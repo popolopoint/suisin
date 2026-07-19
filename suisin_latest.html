@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.3.5 -->
-    <title>水深測っ太郎 v3.6.3 by Popolo App.com</title>
+    <!-- コード名: 6.3.4 -->
+    <title>水深測っ太郎 v3.6.2 by Popolo App.com</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
         .app-header { background: #3498db; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; }
@@ -71,15 +71,11 @@
         .legend-item { display: flex; align-items: center; margin-bottom: 3px; }
         .color-box { width: 12px; height: 12px; margin-right: 6px; border: 1px solid #333; border-radius: 2px; }
 
-        /* 🔭 メニュー出し入れボタン (左下基準位置) */
+        /* 🔭 メニュー出し入れボタン */
         .view-toggle-btn { position: absolute; bottom: 20px; left: 10px; width: 50px; height: 50px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 2000; cursor: pointer; font-size: 24px; border: none; }
 
-        /* 📏 距離リセットボタン（🔭の右隣にスッキリ配置） */
+        /* 📏 【ご指摘対応】距離リセットボタン（左下のメニューボタンの右隣に並べる） */
         .measure-clear-btn { position: absolute; bottom: 20px; left: 70px; width: 50px; height: 50px; background: #95a5a6; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: none; justify-content: center; align-items: center; z-index: 2000; cursor: pointer; font-size: 13px; font-weight: bold; border: none; text-align: center; line-height: 1.2; }
-
-        /* 🔄 【ご指摘対応】データ更新・再読み込みボタンを左下（距離消去ボタンの上）へ完全引っ越し */
-        .sync-button { position: absolute; bottom: 80px; left: 70px; width: 50px; height: 50px; background: #e67e22; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 2000; cursor: pointer; font-size: 24px; border: none; transition: transform 0.2s; }
-        .sync-button:active { transform: scale(0.9); }
 
         /* 各種右側アクションボタンのz-index（最前面） */
         .gps-button { position: absolute; bottom: 20px; right: 10px; width: 50px; height: 50px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; }
@@ -87,10 +83,14 @@
         .measure-button { position: absolute; bottom: 140px; right: 10px; width: 50px; height: 50px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 22px; border: none; transition: background 0.3s; }
         .measure-button.active { background: #2ecc71; color: white; }
         
-        /* コース消去ボタン（右側最上部） */
-        .clear-course-button { position: absolute; bottom: 200px; right: 10px; width: 50px; height: 50px; background: #e74c3c; color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 13px; border: none; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.3); line-height: 1.2; text-align: center; }
+        /* 🔄 手動データ更新ボタン */
+        .sync-button { position: absolute; bottom: 200px; right: 10px; width: 50px; height: 50px; background: #e67e22; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; transition: transform 0.2s; }
+        .sync-button:active { transform: scale(0.9); }
 
-        /* 距離案内用のフローティングバナー（アナウンス専用） */
+        /* コース消去ボタン */
+        .clear-course-button { position: absolute; bottom: 260px; right: 10px; width: 50px; height: 50px; background: #e74c3c; color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 13px; border: none; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.3); line-height: 1.2; text-align: center; }
+
+        /* 距離案内用のフローティングバナー（左下リセット化に伴いアナウンス専用） */
         .measure-result-banner { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); background: rgba(46, 204, 113, 0.95); color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.25); z-index: 3100; display: none; text-align: center; }
         
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 4000; font-weight: bold; color: #3498db; }
@@ -105,7 +105,7 @@
 <body>
 
 <div id="loading">📡 通信中...</div>
-<div class="app-header">水深測っ太郎 v3.6.3 by Popolo App.com</div>
+<div class="app-header">水深測っ太郎 v3.6.2 by Popolo App.com</div>
 
 <!-- 📱 画面切り替え用タブバー -->
 <div class="mode-tabs" id="mode-tabs">
@@ -151,7 +151,7 @@
         </div>
         <div style="background: #eaf2f8; padding: 12px; border-radius: 8px; border: 1px solid #a9cce3; font-size: 0.85rem; font-weight: bold; color: #2471a3; line-height: 1.4;">
             📣 <strong>送受信インフォメーション</strong><br>
-            ・海上から送信後、無線で「送ったよ」と連絡を受けたら、左下の <strong>オレンジ色の更新ボタン(🔄)</strong> を押して位置情報を画面へ反映してください。
+            ・海上から送信後、無線で「送ったよ」と連絡を受けたら、右側の <strong>オレンジ色の更新ボタン(🔄)</strong> を押して位置情報を画面へ反映してください。
         </div>
     </div>
 
@@ -177,10 +177,8 @@
     
     <!-- 🔭 メニュー出し入れボタン -->
     <button class="view-toggle-btn" onclick="toggleUIPanel()" id="toggle-icon">🔭</button>
-    <!-- 📏 距離測定リセットボタン -->
+    <!-- 📏 距離測定リセットボタンを確実に左下へ（🔭のすぐ右） -->
     <button class="measure-clear-btn" id="measure-clear-btn" onclick="clearMeasure()">距離<br>消去</button>
-    <!-- 🔄 【引っ越し完了】データ更新ボタン (オレンジを左下へ) -->
-    <button class="sync-button" id="sync-btn" onclick="syncData()" title="手動更新">🔄</button>
 
     <div class="depth-legend" onclick="toggleLegend()">
         <div id="legend-header">📊 凡例 (タップで開閉)</div>
@@ -200,6 +198,8 @@
     <!-- 案内用トップバナー -->
     <div id="measure-result" class="measure-result-banner"></div>
 
+    <!-- 🔄 手動データ更新ボタン (オレンジ) -->
+    <button class="sync-button" id="sync-btn" onclick="syncData()" title="手動更新">🔄</button>
     <!-- 📏 距離測定ボタン -->
     <button class="measure-button" id="measure-btn" onclick="toggleMeasureMode()" title="距離を測る">📏</button>
     <!-- 🗺️ 背景色切り替えトグルボタン -->
@@ -254,7 +254,7 @@
     // ブラウザ無音ダミーループ用オブジェクト保持
     let audioUnlockInterval = null;
 
-    // 🎵 確定合図およびiPhone覚醒用のサイン音
+    // 🎵 確定合図のピピッというサイン音
     function playSuccessBeep() {
         try {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -407,10 +407,9 @@
             btn.innerHTML = '<span id="voice-icon">🛑</span> 聞き取り中...';
             document.getElementById('voice-status').textContent = "🎙️ 聞き取り中... 「フネ登録」「ブイ登録」「深さ〇〇センチ」";
             
-            // 🔥【永続ループ開通＆iPhone12覚醒ロジック】
-            // タップ操作の瞬間に、まず物理的な電子サウンドを一瞬再生させてオーディオを「強制覚醒」
-            playSuccessBeep();
-
+            // 🔥【永続ループ開通処理】
+            // ボタンタップの瞬間（ユーザー操作コンテキスト内）に、定期的な無音再生をセット。
+            // これによりブラウザに「オーディオセッションを終了させず、常に再生許可を維持させる」よう強制ロックします。
             if (window.speechSynthesis) {
                 if (audioUnlockInterval) clearInterval(audioUnlockInterval);
                 audioUnlockInterval = setInterval(() => {
@@ -419,7 +418,7 @@
                         u.volume = 0;
                         window.speechSynthesis.speak(u);
                     }
-                }, 8000); 
+                }, 8000); // 8秒周期でセッションの鍵を維持
             }
         };
 
