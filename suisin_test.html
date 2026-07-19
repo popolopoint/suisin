@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- 代码名: 6.3.6 -->
-    <title>水深測っ太郎 v3.6.4 by Popolo App.com</title>
+    <!-- コード名: 6.3.7 -->
+    <title>水深測っ太郎 v3.6.5 by Popolo App.com</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
         .app-header { background: #3498db; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; }
@@ -64,7 +64,7 @@
 
         .view-toggle-btn { position: absolute; bottom: 20px; left: 10px; width: 50px; height: 50px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 2000; cursor: pointer; font-size: 24px; border: none; }
         
-        /* 📏【3.6.2同等レイアウト】距離測定リセットボタンを左下に配置 */
+        /* 📏【3.6.2同等】距離測定リセットボタンは左下に配置 */
         .measure-clear-btn { position: absolute; bottom: 20px; left: 70px; width: 50px; height: 50px; background: #95a5a6; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: none; justify-content: center; align-items: center; z-index: 2000; cursor: pointer; font-size: 13px; font-weight: bold; border: none; text-align: center; line-height: 1.2; }
 
         .gps-button { position: absolute; bottom: 20px; right: 10px; width: 50px; height: 50px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; }
@@ -72,7 +72,7 @@
         .measure-button { position: absolute; bottom: 140px; right: 10px; width: 50px; height: 50px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 22px; border: none; transition: background 0.3s; }
         .measure-button.active { background: #2ecc71; color: white; }
         
-        /* 🔄【3.6.2同等レイアウト】手動データ同期更新ボタン（オレンジ）は右側の定位置へ配置 */
+        /* 🔄【3.6.2同等】手動データ同期更新ボタン（オレンジ）は右側の定位置へ配置 */
         .sync-button { position: absolute; bottom: 200px; right: 10px; width: 50px; height: 50px; background: #e67e22; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; transition: transform 0.2s; }
         .sync-button:active { transform: scale(0.9); }
 
@@ -91,7 +91,7 @@
 <body>
 
 <div id="loading">📡 通信中...</div>
-<div class="app-header">水深測っ太郎 v3.6.4 by Popolo App.com</div>
+<div class="app-header">水深測っ太郎 v3.6.5 by Popolo App.com</div>
 
 <div class="mode-tabs" id="mode-tabs">
     <button class="tab-btn active" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
@@ -217,7 +217,6 @@
     let isListening = false;
     let pendingCommand = null; 
     let activeInfoWindow = null;
-    let audioUnlockInterval = null;
 
     function playSuccessBeep() {
         try {
@@ -367,17 +366,6 @@
             btn.classList.add('listening');
             btn.innerHTML = '<span id="voice-icon">🛑</span> 聞き取り中...';
             document.getElementById('voice-status').textContent = "🎙️ 聞き取り中... 「フネ登録」「ブイ登録」「深さ〇〇センチ」";
-            
-            if (window.speechSynthesis) {
-                if (audioUnlockInterval) clearInterval(audioUnlockInterval);
-                audioUnlockInterval = setInterval(() => {
-                    if (isListening || pendingCommand) {
-                        const u = new SpeechSynthesisUtterance("");
-                        u.volume = 0;
-                        window.speechSynthesis.speak(u);
-                    }
-                }, 8000); 
-            }
         };
 
         recognition.onend = () => {
@@ -385,13 +373,6 @@
             const btn = document.getElementById('btn-voice-start');
             btn.classList.remove('listening');
             btn.innerHTML = '<span id="voice-icon">🎙️</span> 音声入力開始';
-            if (audioUnlockInterval && !pendingCommand) {
-                clearInterval(audioUnlockInterval);
-                audioUnlockInterval = null;
-            }
-            if(!pendingCommand) {
-                document.getElementById('voice-status').textContent = "音声聞き取りを終了しました";
-            }
         };
 
         recognition.onresult = (event) => {
@@ -406,13 +387,43 @@
         };
     }
 
-    function toggleSpeechRecognition() {
+    // 🎙️ 新アプローチ：マイク起動前に完全ユーザー操作扱いで即座にスピーカーを喋らせる
+    function startVoiceFlowWithGuide() {
         if (!recognition) initSpeechRecognition();
-        if (!recognition) return;
-        if (isListening) { recognition.stop(); } else { recognition.start(); }
+        
+        document.getElementById('voice-status').textContent = "📢 音声ガイド再生中...";
+        
+        // 1発目のタップイベント直下の100%安全な特権で喋る
+        if (window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+            const uttr = new SpeechSynthesisUtterance("音声認識を開始します。どうぞ！");
+            uttr.lang = "ja-JP";
+            uttr.rate = 1.15;
+            
+            // 喋り終わったイベントをフックして、初めて安全にマイク（音声認識）をONにする
+            uttr.onend = () => {
+                if (recognition && !isListening) {
+                    recognition.start();
+                }
+            };
+            window.speechSynthesis.speak(uttr);
+        } else {
+            // 万が一音声合成非対応なら即起動
+            if (recognition && !isListening) recognition.start();
+        }
     }
 
-    // 🎙️ ボイスコマンド解析＆マイク一時遮断処理
+    function toggleSpeechRecognition() {
+        if (!recognition) initSpeechRecognition();
+        if (isListening) { 
+            recognition.stop(); 
+        } else { 
+            // 🎙️ ガイド付き逆転フローで起動
+            startVoiceFlowWithGuide();
+        }
+    }
+
+    // 🎙️ コード検知時：マイクを「完全終了」させてからスピーカーを鳴らす
     function handleVoiceCommand(text) {
         const textLower = text.toLowerCase();
 
@@ -422,8 +433,8 @@
         }
 
         if (textLower.includes("フネ登録") || textLower.includes("船登録") || textLower.includes("フネ") || textLower.includes("ふね")) {
-            // 🔥 iPhoneのスピーカー出口を開放するため、一時的にマイク認識を完全にストップさせる
-            if (recognition) recognition.stop();
+            // 🔥 iPhoneにマイク終了を認識させ、スピーカー回路を100%解放させるため「強制切断」
+            if (recognition) recognition.abort(); 
             
             navigator.geolocation.getCurrentPosition((pos) => {
                 const timeString = new Date().toLocaleTimeString('ja-JP', {hour: '2-digit', minute:'2-digit'});
@@ -436,11 +447,11 @@
                 document.getElementById('voice-status').innerHTML = `💬 復唱確認中:<br><span class="huge-command">フネ登録</span>ですね？<br>「はい」か「オッケー」と発声するか下のボタンを押してください。`;
                 document.getElementById('btn-voice-confirm').style.display = "block";
                 
-                // マイクが切れた直後に安全に喋らせる
-                setTimeout(() => { speakText("フネ登録ですね？登録する場合は、はい、か、オッケーとお答えください。"); }, 300);
+                // 完全解放されたスピーカーで、1回目から確実にハッキリ発声！
+                setTimeout(() => { speakText("フネ登録ですね？登録する場合は、はい、か、オッケーとお答えください。"); }, 400);
             }, (err) => {
                 document.getElementById('voice-status').textContent = "⚠️ 位置情報の取得に失敗しました";
-                if (recognition && !isListening) recognition.start(); // 失敗したら再開
+                if (recognition) recognition.start();
             }, {enableHighAccuracy: true});
             return;
         }
@@ -455,7 +466,7 @@
             textLower.includes("ui") || 
             textLower.includes("無比")
         ) {
-            if (recognition) recognition.stop();
+            if (recognition) recognition.abort();
             
             navigator.geolocation.getCurrentPosition((pos) => {
                 const timeString = new Date().toLocaleTimeString('ja-JP', {hour: '2-digit', minute:'2-digit'});
@@ -467,10 +478,10 @@
                 };
                 document.getElementById('voice-status').innerHTML = `💬 復唱確認中:<br><span class="huge-command">ブイ登録</span>ですね？<br>「はい」か「オッケー」と発声するか下のボタンを押してください。`;
                 document.getElementById('btn-voice-confirm').style.display = "block";
-                setTimeout(() => { speakText("ブイ登録ですね？登録する場合は、はい、か、オッケーとお答えください。"); }, 300);
+                setTimeout(() => { speakText("ブイ登録ですね？登録する場合は、はい、か、オッケーとお答えください。"); }, 400);
             }, (err) => {
                 document.getElementById('voice-status').textContent = "⚠️ 位置情報の取得に失敗しました";
-                if (recognition && !isListening) recognition.start();
+                if (recognition) recognition.start();
             }, {enableHighAccuracy: true});
             return;
         }
@@ -479,7 +490,7 @@
             const numMatch = textLower.match(/\d+/);
             if (numMatch) {
                 const depthVal = numMatch[0];
-                if (recognition) recognition.stop();
+                if (recognition) recognition.abort();
                 
                 navigator.geolocation.getCurrentPosition((pos) => {
                     pendingCommand = {
@@ -490,10 +501,10 @@
                     };
                     document.getElementById('voice-status').innerHTML = `💬 復唱確認中:<br><span class="huge-command">深さ ${depthVal}cm</span>ですね？<br>「はい」か「オッケー」と発声するか下のボタンを押してください。`;
                     document.getElementById('btn-voice-confirm').style.display = "block";
-                    setTimeout(() => { speakText(`深さ、${depthVal}センチですね？登録する場合は、はい、か、オッケーとお答えください。`); }, 300);
+                    setTimeout(() => { speakText(`深さ、${depthVal}センチですね？登録する場合は、はい、か、オッケーとお答えください。`); }, 400);
                 }, (err) => {
                     document.getElementById('voice-status').textContent = "⚠️ 位置情報エラーが発生しました";
-                    if (recognition && !isListening) recognition.start();
+                    if (recognition) recognition.start();
                 }, {enableHighAccuracy: true});
             } else {
                 document.getElementById('voice-status').textContent = "⚠️ 深さの数値を読み取れませんでした";
@@ -510,9 +521,8 @@
         document.getElementById('btn-voice-confirm').style.display = "none";
         document.getElementById('voice-status').textContent = "🚀 登録中...";
 
-        if (audioUnlockInterval) {
-            clearInterval(audioUnlockInterval);
-            audioUnlockInterval = null;
+        if (recognition && isListening) {
+            recognition.stop();
         }
 
         showLoading(true);
@@ -533,11 +543,11 @@
                 document.getElementById('voice-status').textContent = `✅ ${cmd.name} を登録しました！`;
                 speakText("登録しました");
                 
-                // 全て完了したら次の音声入力のために自動でマイクを再起動
-                setTimeout(() => { if (recognition) recognition.start(); }, 1500);
+                // 登録完了後に、次を連続で聞き取れるようマイクを自動復帰起動
+                setTimeout(() => { if (recognition && !isListening) startVoiceFlowWithGuide(); }, 1500);
             } catch (e) {
                 document.getElementById('voice-status').textContent = "❌ 位置同期通信に失敗しました";
-                setTimeout(() => { if (recognition) recognition.start(); }, 1500);
+                setTimeout(() => { if (recognition && !isListening) startVoiceFlowWithGuide(); }, 1500);
             }
         } 
         else if (cmd.type === 'DEPTH') {
@@ -559,11 +569,11 @@
                     document.getElementById('depth-input').value = ""; 
                     document.getElementById('voice-status').textContent = `✅ 深さ ${cmd.value}センチ を記録しました！`;
                     speakText("登録しました");
-                    setTimeout(() => { if (recognition) recognition.start(); }, 1500);
+                    setTimeout(() => { if (recognition && !isListening) startVoiceFlowWithGuide(); }, 1500);
                 }
             } catch (e) {
                 document.getElementById('voice-status').textContent = "❌ 水深データの送信に失敗しました";
-                setTimeout(() => { if (recognition) recognition.start(); }, 1500);
+                setTimeout(() => { if (recognition && !isListening) startVoiceFlowWithGuide(); }, 1500);
             }
         }
 
@@ -627,7 +637,7 @@
             measureMarkers.push(m);
 
             measureLine = new google.maps.Polyline({
-                path: measurePoints, geodesic: true, strokeColor: "#ff0000", strokeOpacity: 0.8, strokeWeight: 4, map: map, zIndex: 3499
+                path: measurePoints, geodesic: true, strokeColor: "#ff0000", strokeOpacity: 0.8, strokeWidth: 4, map: map, zIndex: 3499
             });
 
             const distance = google.maps.geometry.spherical.computeDistanceBetween(measurePoints[0], measurePoints[1]);
