@@ -74,6 +74,10 @@
         .legend-item { display: flex; align-items: center; margin-bottom: 3px; }
         .color-box { width: 12px; height: 12px; margin-right: 6px; border: 1px solid #333; border-radius: 2px; }
 
+        /* ⚠️ 危険物フィルターボタン */
+        .hazard-filter-btn { position: absolute; top: 10px; left: 10px; background: white; color: #d35400; padding: 8px 12px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.25); border: 2px solid #e67e22; z-index: 10; font-size: 0.8rem; font-weight: bold; cursor: pointer; transition: background 0.2s, color 0.2s; }
+        .hazard-filter-btn.active { background: #e74c3c; color: white; border-color: #c0392b; }
+
         .view-toggle-btn { position: absolute; bottom: 20px; left: 10px; width: 50px; height: 50px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 2000; cursor: pointer; font-size: 24px; border: none; }
         .measure-clear-btn { position: absolute; bottom: 20px; left: 70px; width: 50px; height: 50px; background: #95a5a6; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: none; justify-content: center; align-items: center; z-index: 2000; cursor: pointer; font-size: 13px; font-weight: bold; border: none; text-align: center; line-height: 1.2; }
 
@@ -153,7 +157,7 @@
         </div>
         <div style="background: #eaf2f8; padding: 12px; border-radius: 8px; border: 1px solid #a9cce3; font-size: 0.85rem; font-weight: bold; color: #2471a3; line-height: 1.4;">
             📣 <strong>送受信インフォメーション</strong><br>
-            ・海上から送信後、无线で「送ったよ」と連絡を受けたら、右側の <strong>オレンジ色の更新ボタン(🔄)</strong> を押して位置情報を画面へ反映してください。
+            ・海上から送信後、無線で「送ったよ」と連絡を受けたら、右側の <strong>オレンジ色の更新ボタン(🔄)</strong> を押して位置情報を画面へ反映してください。
         </div>
     </div>
 
@@ -177,6 +181,9 @@
 <div id="map-container">
     <div id="map"></div>
     
+    <!-- ⚠️ 危険物のみ表示ボタン -->
+    <button class="hazard-filter-btn" id="hazard-filter-btn" onclick="toggleHazardOnly()">⚠️ 危険物のみ: OFF</button>
+
     <button class="view-toggle-btn" onclick="toggleUIPanel()" id="toggle-icon">🔭</button>
     <button class="measure-clear-btn" id="measure-clear-btn" onclick="clearMeasure()">距離<br>消去</button>
     <button class="sync-button" id="sync-btn" onclick="syncData()" title="手動更新">🔄</button>
@@ -221,6 +228,7 @@
     let myLocationMarker = null;
     let selectedType = "平地";
     let isWhiteMapMode = false;
+    let isHazardOnlyMode = false; // 危険物のみ表示フラグ
 
     let isMeasureMode = false;
     let measurePoints = []; 
@@ -289,6 +297,19 @@
                 document.getElementById('sec-sync-mode').classList.add('active');
             }
         }
+    }
+
+    function toggleHazardOnly() {
+        isHazardOnlyMode = !isHazardOnlyMode;
+        const btn = document.getElementById('hazard-filter-btn');
+        if (isHazardOnlyMode) {
+            btn.classList.add('active');
+            btn.textContent = "⚠️ 危険物のみ: ON";
+        } else {
+            btn.classList.remove('active');
+            btn.textContent = "⚠️ 危険物のみ: OFF";
+        }
+        refreshMarkersOnMap();
     }
 
     function sendQuickLocation(type) {
@@ -761,9 +782,17 @@
         markers.forEach(m => m.setMap(null));
         markers = [];
         allPointsData.forEach(p => {
+            const pType = p[6] || "";
+            
+            // ⚠️ 危険物フィルター処理（ONの場合は 岩大, 岩, 杭 以外を非表示）
+            if (isHazardOnlyMode) {
+                const isHazard = (pType === "岩大" || pType === "大きい岩" || pType === "大岩" || pType === "岩" || pType === "杭");
+                if (!isHazard) return; // 平地などはスキップ
+            }
+
             const baseDepth = parseFloat(p[4]) || 0;
             const simDepth = baseDepth + currentSelectedTide;
-            createMarker({id:p[0], lat:p[1], lng:p[2], baseDepth:baseDepth, simDepth:simDepth, type:p[6], comment:p[7] || ""});
+            createMarker({id:p[0], lat:p[1], lng:p[2], baseDepth:baseDepth, simDepth:simDepth, type:pType, comment:p[7] || ""});
         });
     }
 
