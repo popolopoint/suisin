@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 6.3.8 -->
-    <title>水深測っ太郎 v3.7.6 by Popolo App.com</title>
+    <title>水深測っ太郎 v3.7.7 by Popolo App.com</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; position: relative; }
         .app-header { background: #3498db; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; }
@@ -100,7 +100,7 @@
 
         .clear-course-button { position: absolute; bottom: 260px; right: 10px; width: 50px; height: 50px; background: #e74c3c; color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 13px; border: none; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.3); line-height: 1.2; text-align: center; }
 
-        /* 📍 距離測定バナーを画面中央の下に移動 */
+        /* 📍 距離測定バナー */
         .measure-result-banner { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); background: rgba(46, 204, 113, 0.95); color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.25); z-index: 2500; display: none; text-align: center; white-space: nowrap; }
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 4000; font-weight: bold; color: #3498db; }
 
@@ -114,7 +114,7 @@
 <body class="is-input-mode">
 
 <div id="loading">📡 通信中...</div>
-<div class="app-header">水深測っ太郎 v3.7.6 by Popolo App.com</div>
+<div class="app-header">水深測っ太郎 v3.7.7 by Popolo App.com</div>
 
 <div class="mode-tabs" id="mode-tabs">
     <button class="tab-btn active" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
@@ -192,7 +192,7 @@
 <div id="map-container">
     <div id="map"></div>
     
-    <!-- ⚠️ 危険物のみ表示ボタン（⚠️ OFF / ⚠️ ON 表示） -->
+    <!-- ⚠️ 危険物のみ表示ボタン -->
     <button class="hazard-filter-btn" id="hazard-filter-btn" onclick="toggleHazardOnly()">⚠️ OFF</button>
 
     <button class="view-toggle-btn" onclick="toggleUIPanel()" id="toggle-icon">🔭</button>
@@ -233,12 +233,12 @@
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHhxSJK-IhYiT9XBRwE1MX7DHhghBQQQk&callback=initMap" async defer></script>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwKzWIWSiloQdDyTGC9r8gcoQTBqy2GRoRyHbM63gzCfvLcPkm0avxRFX6gOp1AGvkxIg/exec"; 
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyub_4739IQqUOggTTOWAXCVlT6QlH4Pv7OR1eq599kApqCyPWBYdHJBURSr9HpSGBLog/exec"; 
     let map, markers = [], allPointsData = [], currentSelectedTide = 0, adminPass = localStorage.getItem('popolo_pass') || "";
     let fullTideMasterData = [];
     let myLocationMarker = null;
     let selectedType = "平地";
-    let mapStyleMode = 0; // 0: 通常地図, 1: 白背景, 2: 航空写真
+    let mapStyleMode = 0; 
     let isHazardOnlyMode = false;
 
     let isMeasureMode = false;
@@ -390,26 +390,45 @@
     }
 
     function toggleMapStyle() {
-        mapStyleMode = (mapStyleMode + 1) % 3; // 0 -> 1 -> 2 -> 0... と巡回
+        mapStyleMode = (mapStyleMode + 1) % 3;
         
         if (mapStyleMode === 0) {
-            // 通常マップ
             map.setMapTypeId('roadmap');
             map.setOptions({ styles: [] });
         } else if (mapStyleMode === 1) {
-            // 白背景マップ
             map.setMapTypeId('roadmap');
             map.setOptions({ styles: whiteMapStyle });
         } else if (mapStyleMode === 2) {
-            // 航空写真（ハイブリッド：写真＋地名ラベル）
             map.setOptions({ styles: [] });
             map.setMapTypeId('hybrid');
         }
     }
 
-    /* 🌊 選択した日時の潮位を別タブで開く処理（iPhone Safari互換修正済） */
+    /* 日付文字列を「yyyy/mm/dd」に正規化する共通関数 */
+    function formatToYMD(val) {
+        if (!val) return "";
+        if (typeof val === 'string') {
+            val = val.split('T')[0].replace(/-/g, '/');
+            const parts = val.split('/');
+            if (parts.length === 3) {
+                const y = parts[0];
+                const m = ("0" + parseInt(parts[1], 10)).slice(-2);
+                const d = ("0" + parseInt(parts[2], 10)).slice(-2);
+                return `${y}/${m}/${d}`;
+            }
+        }
+        const dt = new Date(val);
+        if (!isNaN(dt.getTime())) {
+            const y = dt.getFullYear();
+            const m = ("0" + (dt.getMonth() + 1)).slice(-2);
+            const d = ("0" + dt.getDate()).slice(-2);
+            return `${y}/${m}/${d}`;
+        }
+        return "";
+    }
+
+    /* 🌊 選択した日時の潮位を別タブで開く処理 */
     async function openTodayTideWindow() {
-        // iPhone(iOS Safari)のポップアップブロックを回避するため、タップ直後にウィンドウを確保
         const tideWindow = window.open("", "_blank");
         if (!tideWindow) {
             alert("ポップアップがブロックされました。ブラウザの設定でポップアップを許可してください。");
@@ -436,7 +455,6 @@
             </html>
         `);
 
-        // 万一マスタデータが読み込めていない場合はここで再同期取得
         if (!fullTideMasterData || fullTideMasterData.length === 0) {
             try {
                 const res = await fetch(WEB_APP_URL);
@@ -449,38 +467,19 @@
         }
 
         const val = document.getElementById('target-datetime').value;
-        let y, m, d;
-        
-        if (val) {
-            const parts = val.split('T')[0].split('-');
-            y = parseInt(parts[0], 10);
-            m = parseInt(parts[1], 10);
-            d = parseInt(parts[2], 10);
-        } else {
-            const now = new Date();
-            y = now.getFullYear();
-            m = now.getMonth() + 1;
-            d = now.getDate();
-        }
+        const targetYMD = formatToYMD(val) || formatToYMD(new Date());
 
-        // iPhoneのSafari互換の日付一致判定
         const row = fullTideMasterData.find(r => {
-            if (!r[0]) return false;
-            let rd;
-            if (typeof r[0] === 'string') {
-                rd = new Date(r[0].replace(/-/g, '/'));
-            } else {
-                rd = new Date(r[0]);
-            }
-            return rd.getFullYear() === y && (rd.getMonth()+1) === m && rd.getDate() === d;
+            if (!r || !r[0]) return false;
+            return formatToYMD(r[0]) === targetYMD;
         });
 
         if (!row) {
             tideWindow.document.body.innerHTML = `
                 <div style="padding:20px; text-align:center;">
-                    <h3>⚠️ ${y}年${m}月${d}日 の潮位データが見つかりませんでした。</h3>
-                    <p>潮位マスタに該当日が含まれているか確認してください。</p>
-                    <button onclick="window.close()" style="padding:10px 20px; background:#7f8c8d; color:white; border:none; border-radius:6px; font-weight:bold;">閉じる</button>
+                    <h3>⚠️ ${targetYMD} の潮位データが見つかりませんでした。</h3>
+                    <p>スプレッドシートの「年間24h」シートに該当日が含まれているか確認してください。</p>
+                    <button onclick="window.close()" style="padding:10px 20px; background:#7f8c8d; color:white; border:none; border-radius:6px; font-weight:bold; font-size:1rem; cursor:pointer;">閉じる</button>
                 </div>`;
             return;
         }
@@ -510,7 +509,7 @@
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>${y}年${m}月${d}日 潮位一覧</title>
+                <title>${targetYMD} 潮位一覧</title>
                 <style>
                     body { font-family: sans-serif; padding: 15px; background: #f4f6f7; color: #333; margin:0; }
                     .header { background: #3498db; color: white; padding: 15px; text-align: center; border-radius: 10px; margin-bottom: 15px; }
@@ -528,7 +527,7 @@
             </head>
             <body>
                 <div class="header">
-                    <h2>🌊 ${y}年${m}月${d}日 潮位情報</h2>
+                    <h2>🌊 ${targetYMD} 潮位情報</h2>
                 </div>
                 
                 <div class="summary">
@@ -943,36 +942,25 @@
         const val = document.getElementById('target-datetime').value;
         if (!val || fullTideMasterData.length === 0) return;
         
-        let y, m, d, h, min;
+        const targetYMD = formatToYMD(val);
+        let h = 0, min = 0;
+        
         const parts = val.split('T');
         if (parts.length === 2) {
-            const dParts = parts[0].split('-');
             const tParts = parts[1].split(':');
-            y = parseInt(dParts[0], 10);
-            m = parseInt(dParts[1], 10);
-            d = parseInt(dParts[2], 10);
             h = parseInt(tParts[0], 10);
             min = parseInt(tParts[1], 10);
-        } else {
-            const s = new Date(val);
-            y = s.getFullYear(); m = s.getMonth() + 1; d = s.getDate(); h = s.getHours(); min = s.getMinutes();
         }
 
         const row = fullTideMasterData.find(r => {
-            if (!r[0]) return false;
-            let rd;
-            if (typeof r[0] === 'string') {
-                rd = new Date(r[0].replace(/-/g, '/'));
-            } else {
-                rd = new Date(r[0]);
-            }
-            return rd.getFullYear() === y && (rd.getMonth()+1) === m && rd.getDate() === d;
+            if (!r || !r[0]) return false;
+            return formatToYMD(r[0]) === targetYMD;
         });
 
         if (row) {
             const t1 = parseFloat(row[1+h]), t2 = (h<23)?parseFloat(row[1+h+1]):t1;
             currentSelectedTide = t1 + (t2-t1)*(min/60);
-            document.getElementById('status-display').textContent = `潮位(${d}日 ${h}時): ${currentSelectedTide.toFixed(1)}cm`;
+            document.getElementById('status-display').textContent = `潮位(${h}時${min}分): ${currentSelectedTide.toFixed(1)}cm`;
         }
         refreshMarkersOnMap();
     }
@@ -983,10 +971,9 @@
         allPointsData.forEach(p => {
             const pType = p[6] || "";
             
-            // ⚠️ 危険物フィルター処理（ONの場合は 岩大, 岩, 杭 以外を非表示）
             if (isHazardOnlyMode) {
                 const isHazard = (pType === "岩大" || pType === "大きい岩" || pType === "大岩" || pType === "岩" || pType === "杭");
-                if (!isHazard) return; // 平地などはスキップ
+                if (!isHazard) return;
             }
 
             const baseDepth = parseFloat(p[4]) || 0;
