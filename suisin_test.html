@@ -183,7 +183,7 @@
     <div id="map"></div>
     
     <!-- ⚠️ 危険物のみ表示ボタン（マップ左下に常時表示） -->
-    <button class="hazard-filter-btn" id="hazard-filter-btn" onclick="toggleHazardOnly()">⚠️ 危険物のみ: OFF</button>
+    <button class="hazard-filter-btn" id="hazard-filter-btn" onclick="toggleHazardOnly()">⚠️ OFF</button>
 
     <button class="view-toggle-btn" onclick="toggleUIPanel()" id="toggle-icon">🔭</button>
     <button class="measure-clear-btn" id="measure-clear-btn" onclick="clearMeasure()">距離<br>消去</button>
@@ -305,10 +305,10 @@
         const btn = document.getElementById('hazard-filter-btn');
         if (isHazardOnlyMode) {
             btn.classList.add('active');
-            btn.textContent = "⚠️ 危険物のみ: ON";
+            btn.textContent = "⚠️ ON";
         } else {
             btn.classList.remove('active');
-            btn.textContent = "⚠️ 危険物のみ: OFF";
+            btn.textContent = "⚠️ OFF";
         }
         refreshMarkersOnMap();
     }
