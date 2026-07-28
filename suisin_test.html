@@ -233,7 +233,7 @@
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHhxSJK-IhYiT9XBRwE1MX7DHhghBQQQk&callback=initMap" async defer></script>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwoT5H43v9aa45zTA4u64sudlVf-WRz8l6eDkpmw_V1ypFlP_bgTWTAiLjEmsSD1vXvzQ/exec"; 
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwKzWIWSiloQdDyTGC9r8gcoQTBqy2GRoRyHbM63gzCfvLcPkm0avxRFX6gOp1AGvkxIg/exec"; 
     let map, markers = [], allPointsData = [], currentSelectedTide = 0, adminPass = localStorage.getItem('popolo_pass') || "";
     let fullTideMasterData = [];
     let myLocationMarker = null;
@@ -404,38 +404,53 @@
         }
     }
 
-    /* あらゆる日付表記（ISO文字列, yyyy/mm/dd, 和暦, シリアル値等）を数字のみの「YYYYMMDD」に変換する関数 */
+    /* どんな形式の日付値からでも確実に「YYYYMMDD」の8桁数字文字列を取り出す超強力関数 */
     function extractYMDNumbers(val) {
         if (!val) return "";
-        let str = String(val).trim();
-        
-        // Date型の場合
+        let d = null;
+
+        // 1. すでに Date 型の場合
         if (val instanceof Date && !isNaN(val.getTime())) {
-            const y = val.getFullYear();
-            const m = ("0" + (val.getMonth() + 1)).slice(-2);
-            const d = ("0" + val.getDate()).slice(-2);
-            return `${y}${m}${d}`;
+            d = val;
+        } 
+        // 2. 文字列の場合のパース
+        else {
+            let str = String(val).trim();
+            if (str.includes('T')) str = str.split('T')[0];
+            
+            // ISO / ハイフン / スラッシュ区切りの文字解析
+            const parsedTs = Date.parse(str);
+            if (!isNaN(parsedTs)) {
+                d = new Date(parsedTs);
+            } else {
+                // ハイフン置換して再試行
+                const altTs = Date.parse(str.replace(/-/g, '/'));
+                if (!isNaN(altTs)) {
+                    d = new Date(altTs);
+                } else {
+                    // 正規表現で数字の年・月・日を抽出 (例: 2026/7/28, 2026年7月28日)
+                    const m = str.match(/(\d{4})[^\d]?(\d{1,2})[^\d]?(\d{1,2})/);
+                    if (m) {
+                        const y = m[1];
+                        const mon = ("0" + m[2]).slice(-2);
+                        const day = ("0" + m[3]).slice(-2);
+                        return `${y}${mon}${day}`;
+                    }
+                }
+            }
         }
 
-        // ISO形式などT区切りの対応
-        if (str.includes('T')) {
-            str = str.split('T')[0];
+        if (d && !isNaN(d.getTime())) {
+            const y = d.getFullYear();
+            const mon = ("0" + (d.getMonth() + 1)).slice(-2);
+            const day = ("0" + d.getDate()).slice(-2);
+            return `${y}${mon}${day}`;
         }
 
-        // 数字のみを取り出す
-        const nums = str.match(/\d+/g);
-        if (!nums) return "";
-
-        if (nums.length >= 3) {
-            let y = nums[0];
-            let m = ("0" + nums[1]).slice(-2);
-            let d = ("0" + nums[2]).slice(-2);
-            return `${y}${m}${d}`;
-        }
-        return str;
+        return "";
     }
 
-    /* 🌊 選択した日時の潮位を別タブで開く処理（デバッグ機能付き） */
+    /* 🌊 選択した日時の潮位を別タブで開く処理 */
     async function openTodayTideWindow() {
         const tideWindow = window.open("", "_blank");
         if (!tideWindow) {
@@ -477,13 +492,13 @@
         const val = document.getElementById('target-datetime').value;
         const targetYMDNum = extractYMDNumbers(val) || extractYMDNumbers(new Date());
 
-        // 日付の一致判定（強力判定）
+        // 日付の一致判定（強化版）
         const row = fullTideMasterData.find(r => {
             if (!r || !r[0]) return false;
             return extractYMDNumbers(r[0]) === targetYMDNum;
         });
 
-        // ❌ 見つからなかった場合のデバッグ（診断）画面表示
+        // ❌ 見つからなかった場合
         if (!row) {
             let sampleDatesHtml = "";
             const sampleCount = Math.min(fullTideMasterData.length, 5);
@@ -504,7 +519,7 @@
                     <ul style="font-size:0.85rem; color:#333; padding-left:20px; line-height:1.6;">
                         ${sampleDatesHtml || '<li>(データが0件です)</li>'}
                     </ul>
-                    <p style="font-size:0.8rem; color:#7f8c8d;">※スプレッドシートの「年間24h」シートのA列の日付と、画面で選択している日付（2026/07/28など）が合致しているかご確認ください。</p>
+                    <p style="font-size:0.8rem; color:#7f8c8d;">※スプレッドシートの「年間24h」シートのA列の日付と、画面で選択している日付が合致しているかご確認ください。</p>
                     <button onclick="window.close()" style="width:100%; padding:12px; background:#7f8c8d; color:white; border:none; border-radius:6px; font-weight:bold; font-size:1rem; margin-top:10px; cursor:pointer;">閉じる</button>
                 </div>`;
             return;
