@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 6.3.8 -->
-    <title>水深測っ太郎 v3.7.2 by Popolo App.com</title>
+    <title>水深測っ太郎 v3.7.3 by Popolo App.com</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; position: relative; }
         .app-header { background: #3498db; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; }
@@ -26,7 +26,7 @@
         .datetime-row { display: flex; gap: 6px; align-items: center; }
         #target-datetime { flex: 1; padding: 10px; border: 1px solid #3498db; border-radius: 6px; font-size: 0.9rem; }
         
-        /* 🕒 データ入力モード時の日時入力サイズ（水深入力欄と同じ 1.6rem に拡大） */
+        /* 🕒 データ入力モード時の日時入力サイズ */
         body.is-input-mode #target-datetime {
             font-size: 1.6rem !important;
             font-weight: bold !important;
@@ -82,7 +82,7 @@
         .legend-item { display: flex; align-items: center; margin-bottom: 3px; }
         .color-box { width: 12px; height: 12px; margin-right: 6px; border: 1px solid #333; border-radius: 2px; }
 
-        /* ⚠️ 危険物フィルターボタン（表示を「⚠️ OFF」/「⚠️ ON」に短縮） */
+        /* ⚠️ 危険物フィルターボタン（⚠️ OFF / ⚠️ ON 表示） */
         .hazard-filter-btn { position: absolute; bottom: 80px; left: 10px; background: white; color: #d35400; padding: 10px 14px; border-radius: 8px; box-shadow: 0 3px 8px rgba(0,0,0,0.3); border: 2px solid #e67e22; z-index: 3500; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.2s, color 0.2s; }
         .hazard-filter-btn.active { background: #e74c3c; color: white; border-color: #c0392b; }
 
@@ -113,7 +113,7 @@
 <body class="is-input-mode">
 
 <div id="loading">📡 通信中...</div>
-<div class="app-header">水深測っ太郎 v3.7.2 by Popolo App.com</div>
+<div class="app-header">水深測っ太郎 v3.7.3 by Popolo App.com</div>
 
 <div class="mode-tabs" id="mode-tabs">
     <button class="tab-btn active" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
@@ -214,7 +214,7 @@
 
     <div id="measure-result" class="measure-result-banner"></div>
     <button class="measure-button" id="measure-btn" onclick="toggleMeasureMode()" title="距離を測る">📏</button>
-    <button class="map-style-button" onclick="toggleMapStyle()" title="背景白切り替え">🗺️</button>
+    <button class="map-style-button" onclick="toggleMapStyle()" title="背景切り替え（通常/白/航空写真）">🗺️</button>
     <button class="gps-button" onclick="updateMyLocation(true)">📍</button>
     <button id="clear-course-btn" class="clear-course-button" onclick="clearSharedCourse()">コース<br>消去</button>
 </div>
@@ -236,7 +236,7 @@
     let fullTideMasterData = [];
     let myLocationMarker = null;
     let selectedType = "平地";
-    let isWhiteMapMode = false;
+    let mapStyleMode = 0; // 0: 通常地図, 1: 白背景, 2: 航空写真
     let isHazardOnlyMode = false;
 
     let isMeasureMode = false;
@@ -388,11 +388,20 @@
     }
 
     function toggleMapStyle() {
-        isWhiteMapMode = !isWhiteMapMode;
-        if (isWhiteMapMode) {
+        mapStyleMode = (mapStyleMode + 1) % 3; // 0 -> 1 -> 2 -> 0... と巡回
+        
+        if (mapStyleMode === 0) {
+            // 通常マップ
+            map.setMapTypeId('roadmap');
+            map.setOptions({ styles: [] });
+        } else if (mapStyleMode === 1) {
+            // 白背景マップ
+            map.setMapTypeId('roadmap');
             map.setOptions({ styles: whiteMapStyle });
-        } else {
-            map.setOptions({ styles: [] }); 
+        } else if (mapStyleMode === 2) {
+            // 航空写真（ハイブリッド：写真＋地名ラベル）
+            map.setOptions({ styles: [] });
+            map.setMapTypeId('hybrid');
         }
     }
 
