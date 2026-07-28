@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 6.3.8 -->
-    <title>水深測っ太郎 v3.7.4 by Popolo App.com</title>
+    <title>水深測っ太郎 v3.7.5 by Popolo App.com</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; position: relative; }
         .app-header { background: #3498db; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; }
@@ -114,7 +114,7 @@
 <body class="is-input-mode">
 
 <div id="loading">📡 通信中...</div>
-<div class="app-header">水深測っ太郎 v3.7.4 by Popolo App.com</div>
+<div class="app-header">水深測っ太郎 v3.7.5 by Popolo App.com</div>
 
 <div class="mode-tabs" id="mode-tabs">
     <button class="tab-btn active" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
@@ -407,8 +407,15 @@
         }
     }
 
-    /* 🌊 今日の潮位を別タブで開く処理 */
+    /* 🌊 今日の潮位を別タブで開く処理（iPhoneポップアップブロック回避対応） */
     function openTodayTideWindow() {
+        // iPhone(iOS Safari)のポップアップブロックを回避するためタップの瞬間にタブを開く
+        const tideWindow = window.open("", "_blank");
+        if (!tideWindow) {
+            alert("ポップアップがブロックされました。ブラウザの設定でポップアップを許可してください。");
+            return;
+        }
+
         const val = document.getElementById('target-datetime').value;
         const targetDate = val ? new Date(val) : new Date();
         
@@ -417,7 +424,7 @@
         const d = targetDate.getDate();
 
         if (!fullTideMasterData || fullTideMasterData.length === 0) {
-            alert("潮位データを読み込み中です。少々お待ちください。");
+            tideWindow.document.write("<h3>潮位データを読み込み中です。少々お待ちください...</h3>");
             return;
         }
 
@@ -427,7 +434,7 @@
         });
 
         if (!row) {
-            alert(`${m}月${d}日の潮位データが見つかりませんでした。`);
+            tideWindow.document.write(`<h3>${m}月${d}日の潮位データが見つかりませんでした。</h3>`);
             return;
         }
 
@@ -449,7 +456,6 @@
             }
         }
 
-        const tideWindow = window.open("", "_blank");
         tideWindow.document.write(`
             <!DOCTYPE html>
             <html lang="ja">
