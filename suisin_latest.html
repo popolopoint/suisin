@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 6.3.8 -->
-    <title>水深測っ太郎 v3.6.6 by Popolo App.com</title>
+    <title>水深測っ太郎 v3.7.2 by Popolo App.com</title>
     <style>
-        body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
+        body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; position: relative; }
         .app-header { background: #3498db; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; }
         
         .mode-tabs { display: flex; background: #2c3e50; padding: 2px; flex-shrink: 0; gap: 2px; transition: margin-top 0.3s ease; }
@@ -26,6 +26,14 @@
         .datetime-row { display: flex; gap: 6px; align-items: center; }
         #target-datetime { flex: 1; padding: 10px; border: 1px solid #3498db; border-radius: 6px; font-size: 0.9rem; }
         
+        /* 🕒 データ入力モード時の日時入力サイズ（水深入力欄と同じ 1.6rem に拡大） */
+        body.is-input-mode #target-datetime {
+            font-size: 1.6rem !important;
+            font-weight: bold !important;
+            padding: 8px 5px !important;
+            color: #2c3e50 !important;
+        }
+
         .type-selector { display: flex; gap: 5px; margin-bottom: 8px; }
         .type-btn { flex: 1; padding: 10px; border: 2px solid #3498db; background: white; color: #3498db; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
         .type-btn.active { background: #3498db; color: white; }
@@ -74,6 +82,10 @@
         .legend-item { display: flex; align-items: center; margin-bottom: 3px; }
         .color-box { width: 12px; height: 12px; margin-right: 6px; border: 1px solid #333; border-radius: 2px; }
 
+        /* ⚠️ 危険物フィルターボタン（表示を「⚠️ OFF」/「⚠️ ON」に短縮） */
+        .hazard-filter-btn { position: absolute; bottom: 80px; left: 10px; background: white; color: #d35400; padding: 10px 14px; border-radius: 8px; box-shadow: 0 3px 8px rgba(0,0,0,0.3); border: 2px solid #e67e22; z-index: 3500; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.2s, color 0.2s; }
+        .hazard-filter-btn.active { background: #e74c3c; color: white; border-color: #c0392b; }
+
         .view-toggle-btn { position: absolute; bottom: 20px; left: 10px; width: 50px; height: 50px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 2000; cursor: pointer; font-size: 24px; border: none; }
         .measure-clear-btn { position: absolute; bottom: 20px; left: 70px; width: 50px; height: 50px; background: #95a5a6; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: none; justify-content: center; align-items: center; z-index: 2000; cursor: pointer; font-size: 13px; font-weight: bold; border: none; text-align: center; line-height: 1.2; }
 
@@ -87,7 +99,8 @@
 
         .clear-course-button { position: absolute; bottom: 260px; right: 10px; width: 50px; height: 50px; background: #e74c3c; color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 13px; border: none; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.3); line-height: 1.2; text-align: center; }
 
-        .measure-result-banner { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); background: rgba(46, 204, 113, 0.95); color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.25); z-index: 3100; display: none; text-align: center; }
+        /* 📍 距離測定バナーを画面中央の下に移動 */
+        .measure-result-banner { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); background: rgba(46, 204, 113, 0.95); color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.25); z-index: 2500; display: none; text-align: center; white-space: nowrap; }
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 4000; font-weight: bold; color: #3498db; }
 
         @keyframes pulse {
@@ -97,13 +110,13 @@
         }
     </style>
 </head>
-<body>
+<body class="is-input-mode">
 
 <div id="loading">📡 通信中...</div>
-<div class="app-header">水深測っ太郎 v3.6.6 by Popolo App.com</div>
+<div class="app-header">水深測っ太郎 v3.7.2 by Popolo App.com</div>
 
 <div class="mode-tabs" id="mode-tabs">
-    <button class="tab-btn" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
+    <button class="tab-btn active" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
     <button class="tab-btn" id="tab-sync-mode" onclick="switchViewMode('sync-mode', this)">📡 位置送受信</button>
     <button class="tab-btn" id="tab-register-mode" onclick="switchViewMode('register-mode', this)">🗺️ 位置登録</button>
 </div>
@@ -119,7 +132,7 @@
     </div>
 
     <!-- 1️⃣ データ入力 -->
-    <div id="sec-input-mode" class="mode-section">
+    <div id="sec-input-mode" class="mode-section active">
         <div class="type-selector">
             <button class="type-btn active" onclick="selectType('平地', this)">平地</button>
             <button class="type-btn" onclick="selectType('岩大', this)">岩大</button> 
@@ -153,7 +166,7 @@
         </div>
         <div style="background: #eaf2f8; padding: 12px; border-radius: 8px; border: 1px solid #a9cce3; font-size: 0.85rem; font-weight: bold; color: #2471a3; line-height: 1.4;">
             📣 <strong>送受信インフォメーション</strong><br>
-            ・海上から送信後、无线で「送ったよ」と連絡を受けたら、右側の <strong>オレンジ色の更新ボタン(🔄)</strong> を押して位置情報を画面へ反映してください。
+            ・海上から送信後、無線で「送ったよ」と連絡を受けたら、右側の <strong>オレンジ色の更新ボタン(🔄)</strong> を押して位置情報を画面へ反映してください。
         </div>
     </div>
 
@@ -177,6 +190,9 @@
 <div id="map-container">
     <div id="map"></div>
     
+    <!-- ⚠️ 危険物のみ表示ボタン（⚠️ OFF / ⚠️ ON 表示） -->
+    <button class="hazard-filter-btn" id="hazard-filter-btn" onclick="toggleHazardOnly()">⚠️ OFF</button>
+
     <button class="view-toggle-btn" onclick="toggleUIPanel()" id="toggle-icon">🔭</button>
     <button class="measure-clear-btn" id="measure-clear-btn" onclick="clearMeasure()">距離<br>消去</button>
     <button class="sync-button" id="sync-btn" onclick="syncData()" title="手動更新">🔄</button>
@@ -221,6 +237,7 @@
     let myLocationMarker = null;
     let selectedType = "平地";
     let isWhiteMapMode = false;
+    let isHazardOnlyMode = false;
 
     let isMeasureMode = false;
     let measurePoints = []; 
@@ -277,9 +294,11 @@
         const dtPanel = document.getElementById('global-datetime-panel');
         
         if(targetMode === 'input-mode') {
+            document.body.classList.add('is-input-mode');
             document.getElementById('sec-input-mode').classList.add('active');
             dtPanel.style.display = 'block';
         } else {
+            document.body.classList.remove('is-input-mode');
             document.getElementById('sec-input-mode').classList.remove('active');
             dtPanel.style.display = 'none';
             
@@ -289,6 +308,19 @@
                 document.getElementById('sec-sync-mode').classList.add('active');
             }
         }
+    }
+
+    function toggleHazardOnly() {
+        isHazardOnlyMode = !isHazardOnlyMode;
+        const btn = document.getElementById('hazard-filter-btn');
+        if (isHazardOnlyMode) {
+            btn.classList.add('active');
+            btn.textContent = "⚠️ ON";
+        } else {
+            btn.classList.remove('active');
+            btn.textContent = "⚠️ OFF";
+        }
+        refreshMarkersOnMap();
     }
 
     function sendQuickLocation(type) {
@@ -657,7 +689,7 @@
             handleMeasureClick(e.latLng);
         });
 
-        switchViewMode('sync-mode', document.getElementById('tab-sync-mode'));
+        switchViewMode('input-mode', document.getElementById('tab-input-mode'));
     }
 
     function handleMeasureClick(latLng) {
@@ -761,9 +793,17 @@
         markers.forEach(m => m.setMap(null));
         markers = [];
         allPointsData.forEach(p => {
+            const pType = p[6] || "";
+            
+            // ⚠️ 危険物フィルター処理（ONの場合は 岩大, 岩, 杭 以外を非表示）
+            if (isHazardOnlyMode) {
+                const isHazard = (pType === "岩大" || pType === "大きい岩" || pType === "大岩" || pType === "岩" || pType === "杭");
+                if (!isHazard) return; // 平地などはスキップ
+            }
+
             const baseDepth = parseFloat(p[4]) || 0;
             const simDepth = baseDepth + currentSelectedTide;
-            createMarker({id:p[0], lat:p[1], lng:p[2], baseDepth:baseDepth, simDepth:simDepth, type:p[6], comment:p[7] || ""});
+            createMarker({id:p[0], lat:p[1], lng:p[2], baseDepth:baseDepth, simDepth:simDepth, type:pType, comment:p[7] || ""});
         });
     }
 
