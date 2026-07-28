@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 6.3.8 -->
-    <title>水深測っ太郎 v3.7.8 by Popolo App.com</title>
+    <title>水深測っ太郎 v3.7.9 by Popolo App.com</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; position: relative; }
         .app-header { background: #3498db; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; }
@@ -114,7 +114,7 @@
 <body class="is-input-mode">
 
 <div id="loading">📡 通信中...</div>
-<div class="app-header">水深測っ太郎 v3.7.8 by Popolo App.com</div>
+<div class="app-header">水深測っ太郎 v3.7.9 by Popolo App.com</div>
 
 <div class="mode-tabs" id="mode-tabs">
     <button class="tab-btn active" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
@@ -233,7 +233,7 @@
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHhxSJK-IhYiT9XBRwE1MX7DHhghBQQQk&callback=initMap" async defer></script>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwKzWIWSiloQdDyTGC9r8gcoQTBqy2GRoRyHbM63gzCfvLcPkm0avxRFX6gOp1AGvkxIg/exec"; 
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwoT5H43v9aa45zTA4u64sudlVf-WRz8l6eDkpmw_V1ypFlP_bgTWTAiLjEmsSD1vXvzQ/exec"; 
     let map, markers = [], allPointsData = [], currentSelectedTide = 0, adminPass = localStorage.getItem('popolo_pass') || "";
     let fullTideMasterData = [];
     let myLocationMarker = null;
