@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 6.3.8 -->
-    <title>水深測っ太郎 v3.7.7 by Popolo App.com</title>
+    <title>水深測っ太郎 v3.7.8 by Popolo App.com</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; position: relative; }
         .app-header { background: #3498db; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; }
@@ -83,7 +83,7 @@
         .legend-item { display: flex; align-items: center; margin-bottom: 3px; }
         .color-box { width: 12px; height: 12px; margin-right: 6px; border: 1px solid #333; border-radius: 2px; }
 
-        /* ⚠️ 危険物フィルターボタン（⚠️ OFF / ⚠️ ON 表示） */
+        /* ⚠️ 危険物フィルターボタン */
         .hazard-filter-btn { position: absolute; bottom: 80px; left: 10px; background: white; color: #d35400; padding: 10px 14px; border-radius: 8px; box-shadow: 0 3px 8px rgba(0,0,0,0.3); border: 2px solid #e67e22; z-index: 3500; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.2s, color 0.2s; }
         .hazard-filter-btn.active { background: #e74c3c; color: white; border-color: #c0392b; }
 
@@ -114,7 +114,7 @@
 <body class="is-input-mode">
 
 <div id="loading">📡 通信中...</div>
-<div class="app-header">水深測っ太郎 v3.7.7 by Popolo App.com</div>
+<div class="app-header">水深測っ太郎 v3.7.8 by Popolo App.com</div>
 
 <div class="mode-tabs" id="mode-tabs">
     <button class="tab-btn active" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
@@ -233,7 +233,7 @@
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHhxSJK-IhYiT9XBRwE1MX7DHhghBQQQk&callback=initMap" async defer></script>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyub_4739IQqUOggTTOWAXCVlT6QlH4Pv7OR1eq599kApqCyPWBYdHJBURSr9HpSGBLog/exec"; 
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwKzWIWSiloQdDyTGC9r8gcoQTBqy2GRoRyHbM63gzCfvLcPkm0avxRFX6gOp1AGvkxIg/exec"; 
     let map, markers = [], allPointsData = [], currentSelectedTide = 0, adminPass = localStorage.getItem('popolo_pass') || "";
     let fullTideMasterData = [];
     let myLocationMarker = null;
@@ -404,30 +404,38 @@
         }
     }
 
-    /* 日付文字列を「yyyy/mm/dd」に正規化する共通関数 */
-    function formatToYMD(val) {
+    /* あらゆる日付表記（ISO文字列, yyyy/mm/dd, 和暦, シリアル値等）を数字のみの「YYYYMMDD」に変換する関数 */
+    function extractYMDNumbers(val) {
         if (!val) return "";
-        if (typeof val === 'string') {
-            val = val.split('T')[0].replace(/-/g, '/');
-            const parts = val.split('/');
-            if (parts.length === 3) {
-                const y = parts[0];
-                const m = ("0" + parseInt(parts[1], 10)).slice(-2);
-                const d = ("0" + parseInt(parts[2], 10)).slice(-2);
-                return `${y}/${m}/${d}`;
-            }
+        let str = String(val).trim();
+        
+        // Date型の場合
+        if (val instanceof Date && !isNaN(val.getTime())) {
+            const y = val.getFullYear();
+            const m = ("0" + (val.getMonth() + 1)).slice(-2);
+            const d = ("0" + val.getDate()).slice(-2);
+            return `${y}${m}${d}`;
         }
-        const dt = new Date(val);
-        if (!isNaN(dt.getTime())) {
-            const y = dt.getFullYear();
-            const m = ("0" + (dt.getMonth() + 1)).slice(-2);
-            const d = ("0" + dt.getDate()).slice(-2);
-            return `${y}/${m}/${d}`;
+
+        // ISO形式などT区切りの対応
+        if (str.includes('T')) {
+            str = str.split('T')[0];
         }
-        return "";
+
+        // 数字のみを取り出す
+        const nums = str.match(/\d+/g);
+        if (!nums) return "";
+
+        if (nums.length >= 3) {
+            let y = nums[0];
+            let m = ("0" + nums[1]).slice(-2);
+            let d = ("0" + nums[2]).slice(-2);
+            return `${y}${m}${d}`;
+        }
+        return str;
     }
 
-    /* 🌊 選択した日時の潮位を別タブで開く処理 */
+    /* 🌊 選択した日時の潮位を別タブで開く処理（デバッグ機能付き） */
     async function openTodayTideWindow() {
         const tideWindow = window.open("", "_blank");
         if (!tideWindow) {
@@ -467,23 +475,42 @@
         }
 
         const val = document.getElementById('target-datetime').value;
-        const targetYMD = formatToYMD(val) || formatToYMD(new Date());
+        const targetYMDNum = extractYMDNumbers(val) || extractYMDNumbers(new Date());
 
+        // 日付の一致判定（強力判定）
         const row = fullTideMasterData.find(r => {
             if (!r || !r[0]) return false;
-            return formatToYMD(r[0]) === targetYMD;
+            return extractYMDNumbers(r[0]) === targetYMDNum;
         });
 
+        // ❌ 見つからなかった場合のデバッグ（診断）画面表示
         if (!row) {
+            let sampleDatesHtml = "";
+            const sampleCount = Math.min(fullTideMasterData.length, 5);
+            for (let i = 0; i < sampleCount; i++) {
+                const rawVal = fullTideMasterData[i][0];
+                sampleDatesHtml += `<li>シート側値: <code>${rawVal}</code> ➔ 判定用: <code>${extractYMDNumbers(rawVal)}</code></li>`;
+            }
+
+            const formattedDispDate = targetYMDNum.length === 8 ? 
+                `${targetYMDNum.slice(0,4)}年${targetYMDNum.slice(4,6)}月${targetYMDNum.slice(6,8)}日` : targetYMDNum;
+
             tideWindow.document.body.innerHTML = `
-                <div style="padding:20px; text-align:center;">
-                    <h3>⚠️ ${targetYMD} の潮位データが見つかりませんでした。</h3>
-                    <p>スプレッドシートの「年間24h」シートに該当日が含まれているか確認してください。</p>
-                    <button onclick="window.close()" style="padding:10px 20px; background:#7f8c8d; color:white; border:none; border-radius:6px; font-weight:bold; font-size:1rem; cursor:pointer;">閉じる</button>
+                <div style="padding:15px; text-align:left; background:white; border-radius:10px; max-width:500px; margin:0 auto; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+                    <h3 style="color:#e74c3c; margin-top:0;">⚠️ 潮位データが見つかりませんでした</h3>
+                    <p><b>検索しようとした日付:</b> <span style="font-size:1.2rem; color:#2980b9; font-weight:bold;">${formattedDispDate}</span> (判定キー: ${targetYMDNum})</p>
+                    <hr>
+                    <p style="font-size:0.85rem; color:#555;"><b>スプレッドシートから読み込んでいる日付（先頭5件）:</b></p>
+                    <ul style="font-size:0.85rem; color:#333; padding-left:20px; line-height:1.6;">
+                        ${sampleDatesHtml || '<li>(データが0件です)</li>'}
+                    </ul>
+                    <p style="font-size:0.8rem; color:#7f8c8d;">※スプレッドシートの「年間24h」シートのA列の日付と、画面で選択している日付（2026/07/28など）が合致しているかご確認ください。</p>
+                    <button onclick="window.close()" style="width:100%; padding:12px; background:#7f8c8d; color:white; border:none; border-radius:6px; font-weight:bold; font-size:1rem; margin-top:10px; cursor:pointer;">閉じる</button>
                 </div>`;
             return;
         }
 
+        // ⭕ 見つかった場合：潮位表の生成
         let hourlyHtml = "";
         let minTide = 999, maxTide = -999;
         let minHour = "", maxHour = "";
@@ -502,6 +529,9 @@
             }
         }
 
+        const formattedDispDate = targetYMDNum.length === 8 ? 
+            `${targetYMDNum.slice(0,4)}年${parseInt(targetYMDNum.slice(4,6),10)}月${parseInt(targetYMDNum.slice(6,8),10)}日` : targetYMDNum;
+
         tideWindow.document.open();
         tideWindow.document.write(`
             <!DOCTYPE html>
@@ -509,7 +539,7 @@
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>${targetYMD} 潮位一覧</title>
+                <title>${formattedDispDate} 潮位一覧</title>
                 <style>
                     body { font-family: sans-serif; padding: 15px; background: #f4f6f7; color: #333; margin:0; }
                     .header { background: #3498db; color: white; padding: 15px; text-align: center; border-radius: 10px; margin-bottom: 15px; }
@@ -527,7 +557,7 @@
             </head>
             <body>
                 <div class="header">
-                    <h2>🌊 ${targetYMD} 潮位情報</h2>
+                    <h2>🌊 ${formattedDispDate} 潮位情報</h2>
                 </div>
                 
                 <div class="summary">
@@ -942,7 +972,7 @@
         const val = document.getElementById('target-datetime').value;
         if (!val || fullTideMasterData.length === 0) return;
         
-        const targetYMD = formatToYMD(val);
+        const targetYMDNum = extractYMDNumbers(val);
         let h = 0, min = 0;
         
         const parts = val.split('T');
@@ -954,7 +984,7 @@
 
         const row = fullTideMasterData.find(r => {
             if (!r || !r[0]) return false;
-            return formatToYMD(r[0]) === targetYMD;
+            return extractYMDNumbers(r[0]) === targetYMDNum;
         });
 
         if (row) {
