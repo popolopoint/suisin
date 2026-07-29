@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.3.9 -->
-    <title>水深測っ太郎 v3.8.5 by Popolo App.com</title>
+    <!-- コード名: 6.3.9-mod -->
+    <title>水深測っ太郎 v3.8.6 by Popolo App.com</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; position: relative; }
         .app-header { background: #3498db; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; }
@@ -102,35 +102,39 @@
         .measure-result-banner { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); background: rgba(46, 204, 113, 0.95); color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.25); z-index: 2500; display: none; text-align: center; white-space: nowrap; }
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 4000; font-weight: bold; color: #3498db; }
 
-        /* 📊 潮位表モーダル スタイル */
+        /* 🌊 潮位表モーダル スタイル（改修版） */
         .tide-table-modal-body {
-            max-height: 70vh;
+            max-height: 65vh;
             overflow-y: auto;
             margin-top: 10px;
         }
-        .tide-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-            margin-top: 10px;
+        .tide-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 8px;
         }
-        .tide-cell {
-            padding: 8px;
+        .tide-row-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
             border-radius: 6px;
-            text-align: center;
-            font-weight: bold;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-            font-size: 0.9rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
         }
-        .tide-cell .time-lbl { font-size: 0.75rem; opacity: 0.85; margin-bottom: 2px; }
-        .tide-cell .val-lbl { font-size: 1.1rem; }
+        /* 時刻と潮位の文字サイズ・太さを統一 */
+        .tide-row-item .col-time,
+        .tide-row-item .col-val {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
 
         .tide-hl-info {
             background: #f8f9f9;
             border: 1px solid #d5dbdb;
             border-radius: 6px;
             padding: 8px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             font-size: 0.85rem;
             line-height: 1.4;
         }
@@ -145,7 +149,7 @@
 <body class="is-input-mode">
 
 <div id="loading">📡 通信中...</div>
-<div class="app-header">水深測っ太郎 v3.8.5 by Popolo App.com</div>
+<div class="app-header">水深測っ太郎 v3.8.6 by Popolo App.com</div>
 
 <div class="mode-tabs" id="mode-tabs">
     <button class="tab-btn active" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
@@ -264,16 +268,16 @@
 
 <!-- 🌊 潮位表モーダル -->
 <div id="tide-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:5000; justify-content:center; align-items:center;">
-    <div style="background:white; padding:18px; border-radius:12px; width:88%; max-width:420px; box-sizing:border-box;">
+    <div style="background:white; padding:18px; border-radius:12px; width:88%; max-width:380px; box-sizing:border-box;">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #3498db; padding-bottom:8px;">
-            <h3 style="margin:0; color:#2c3e50; font-size:1.1rem;">🌊 潮位一覧 (8時〜19時)</h3>
+            <h3 style="margin:0; color:#2c3e50; font-size:1.1rem;">🌊 潮位表</h3>
             <button onclick="closeModal('tide-modal')" style="background:none; border:none; font-size:1.4rem; cursor:pointer;">✖</button>
         </div>
-        <div id="tide-modal-date" style="font-weight:bold; color:#3498db; margin-top:8px; font-size:0.95rem;"></div>
+        <div id="tide-modal-date" style="font-weight:bold; color:#3498db; margin-top:8px; font-size:1.1rem; text-align:center;"></div>
         
         <div class="tide-table-modal-body">
-            <div id="tide-hl-container" class="tide-hl-info">満干潮データを読み込み中...</div>
-            <div id="tide-grid-container" class="tide-grid"></div>
+            <div id="tide-hl-container" class="tide-hl-info"></div>
+            <div id="tide-list-container" class="tide-list"></div>
         </div>
 
         <button onclick="closeModal('tide-modal')" style="width:100%; margin-top:12px; background:#3498db; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold; font-size:1rem; cursor:pointer;">閉じる</button>
@@ -947,7 +951,7 @@
         if (fullTideMasterData.length > 0) calculateTideAndRefresh();
     }
 
-    /* 🌊 潮位表モーダルの表示制御・処理 */
+    /* 🌊 潮位表モーダルの表示制御・処理（デザイン更新版） */
     function openTideTableModal() {
         const val = document.getElementById('target-datetime').value;
         if (!val || fullTideMasterData.length === 0) {
@@ -957,7 +961,9 @@
 
         const dt = new Date(val);
         const y = dt.getFullYear(), m = dt.getMonth() + 1, d = dt.getDate();
-        document.getElementById('tide-modal-date').textContent = `📅 ${y}年${m}月${d}日 の潮位データ`;
+        
+        // 📅 日付のみ表示（「の潮位データ」を削除）
+        document.getElementById('tide-modal-date').textContent = `📅 ${y}年${m}月${d}日`;
 
         const row = fullTideMasterData.find(r => {
             const rd = new Date(r[0]);
@@ -965,16 +971,17 @@
         });
 
         const hlContainer = document.getElementById('tide-hl-container');
-        const gridContainer = document.getElementById('tide-grid-container');
+        const listContainer = document.getElementById('tide-list-container');
 
         if (!row) {
+            hlContainer.style.display = 'block';
             hlContainer.innerHTML = "⚠️ 該当する日付の潮位マスターデータが見つかりません。";
-            gridContainer.innerHTML = "";
+            listContainer.innerHTML = "";
             openModal('tide-modal');
             return;
         }
 
-        // 満潮・干潮情報（列25〜のメタ情報があれば表示、または簡易計算）
+        // 満潮・干潮情報
         let hlHtml = "";
         if (row.length >= 29 && row[25] !== undefined && row[25] !== "") {
             hlHtml += `<strong>【満潮】</strong> ${row[25]} (${row[26]}cm) / ${row[27] || ''} (${row[28] || ''}cm)<br>`;
@@ -982,26 +989,29 @@
         if (row.length >= 33 && row[29] !== undefined && row[29] !== "") {
             hlHtml += `<strong>【干潮】</strong> ${row[29]} (${row[30]}cm) / ${row[31] || ''} (${row[32] || ''}cm)`;
         }
-        if (!hlHtml) {
-            hlHtml = `<strong>日潮位予測範囲:</strong> 8:00 〜 19:00 の時系列一覧`;
-        }
-        hlContainer.innerHTML = hlHtml;
 
-        // 08:00 〜 19:00 の潮位を一覧表示
-        let gridHtml = "";
+        if (hlHtml) {
+            hlContainer.style.display = 'block';
+            hlContainer.innerHTML = hlHtml;
+        } else {
+            hlContainer.style.display = 'none';
+        }
+
+        // 08:00 〜 19:00 の潮位をリスト表示（左: 時刻 / 右: 潮位）
+        let listHtml = "";
         for (let h = 8; h <= 19; h++) {
             const tideVal = parseFloat(row[1 + h]) || 0;
             const bgCol = getDepthColor(tideVal);
             const textCol = getContrastColor(bgCol);
 
-            gridHtml += `
-                <div class="tide-cell" style="background-color: ${bgCol}; color: ${textCol};">
-                    <div class="time-lbl">${h}:00</div>
-                    <div class="val-lbl">${tideVal.toFixed(0)}<span style="font-size:0.7rem;">cm</span></div>
+            listHtml += `
+                <div class="tide-row-item" style="background-color: ${bgCol}; color: ${textCol};">
+                    <div class="col-time">${h}:00</div>
+                    <div class="col-val">${tideVal.toFixed(0)} cm</div>
                 </div>
             `;
         }
-        gridContainer.innerHTML = gridHtml;
+        listContainer.innerHTML = listHtml;
 
         openModal('tide-modal');
     }
