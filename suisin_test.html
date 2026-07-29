@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.4.9 -->
-    <title>水深測っ太郎 v3.9.7 by Popolo App.com</title>
+    <!-- コード名: 6.5.0 -->
+    <title>水深測っ太郎 v3.9.8 by Popolo App.com</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; position: relative; }
         .app-header { background: #3498db; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; }
@@ -18,7 +18,9 @@
         .ui-panel { background: white; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 1000; flex-shrink: 0; transition: margin-top 0.3s ease; }
         .ui-panel.hidden { margin-top: -520px; } 
         
-        /* 🔭 1段階目：入力セクションとステータス（同期完了など）を隠して、日時パネルだけを表示するクラス */
+        /* 🔭 1段階目：タブと入力セクションとステータスを完全に隠して日時パネルだけにする */
+        .ui-panel.datetime-only { margin-top: -100px; background: transparent; box-shadow: none; padding: 0 10px; }
+        .ui-panel.datetime-only .datetime-panel { margin-bottom: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.15); background: white; }
         .ui-panel.datetime-only .mode-section { display: none !important; }
         .ui-panel.datetime-only #status-display { display: none !important; }
 
@@ -152,7 +154,7 @@
 <body class="is-input-mode">
 
 <div id="loading">📡 通信中...</div>
-<div class="app-header">水深測っ太郎 v3.9.7 by Popolo App.com</div>
+<div class="app-header">水深測っ太郎 v3.9.8 by Popolo App.com</div>
 
 <div class="mode-tabs" id="mode-tabs">
     <button class="tab-btn active" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
@@ -398,7 +400,7 @@
                 tabs.classList.remove('hidden');
                 icon.innerText = '🔭';
             } else if (uiState === 1) {
-                // 🕒 日時パネルだけ表示（タブやステータスも完全非表示）
+                // 🕒 日時パネルだけ表示（タブも含めて完全非表示にスライド）
                 panel.classList.remove('hidden');
                 panel.classList.add('datetime-only');
                 tabs.classList.add('hidden');
