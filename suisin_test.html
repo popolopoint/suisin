@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.6.4 -->
-    <title>水深測っ太郎 v4.1.4 by Popolo App.com</title>
+    <!-- コード名: 6.6.5 -->
+    <title>水深測っ太郎 v4.1.5 by Popolo App.com</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; position: relative; }
         
@@ -174,7 +174,7 @@
 
 <div id="loading">📡 通信中...</div>
 <!-- 📱 アプリ名ヘッダー（常に最上部に表示） -->
-<div class="app-header" id="app-header">水深測っ太郎 v4.1.4 by Popolo App.com</div>
+<div class="app-header" id="app-header">水深測っ太郎 v4.1.5 by Popolo App.com</div>
 
 <!-- 🎛️ パネル群 -->
 <div class="panel-wrapper">
@@ -487,7 +487,7 @@
         } else {
             panel.classList.toggle('hidden');
             tabs.classList.toggle('hidden');
-            header.classList.toggle('hidden');
+            // 修正: データ入力モード以外ではヘッダーの表示・非表示を切り替えず、常に表示し続ける
             const isHidden = panel.classList.contains('hidden');
             icon.innerText = isHidden ? '📥' : '🔭';
         }
