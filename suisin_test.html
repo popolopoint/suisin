@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.3.9-mod -->
-    <title>水深測っ太郎 v3.8.6 by Popolo App.com</title>
+    <!-- コード名: 6.4.0 -->
+    <title>水深測っ太郎 v3.8.7 by Popolo App.com</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; position: relative; }
         .app-header { background: #3498db; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; }
@@ -102,7 +102,7 @@
         .measure-result-banner { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); background: rgba(46, 204, 113, 0.95); color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.25); z-index: 2500; display: none; text-align: center; white-space: nowrap; }
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 4000; font-weight: bold; color: #3498db; }
 
-        /* 🌊 潮位表モーダル スタイル（改修版） */
+        /* 🌊 潮位表モーダル スタイル */
         .tide-table-modal-body {
             max-height: 65vh;
             overflow-y: auto;
@@ -122,7 +122,6 @@
             border-radius: 6px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.15);
         }
-        /* 時刻と潮位の文字サイズ・太さを統一 */
         .tide-row-item .col-time,
         .tide-row-item .col-val {
             font-size: 1.25rem;
@@ -149,11 +148,11 @@
 <body class="is-input-mode">
 
 <div id="loading">📡 通信中...</div>
-<div class="app-header">水深測っ太郎 v3.8.6 by Popolo App.com</div>
+<div class="app-header">水深測っ太郎 v3.8.7 by Popolo App.com</div>
 
 <div class="mode-tabs" id="mode-tabs">
-    <button class="tab-btn active" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
-    <button class="tab-btn" id="tab-sync-mode" onclick="switchViewMode('sync-mode', this)">📡 位置送受信</button>
+    <button class="tab-btn" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
+    <button class="tab-btn active" id="tab-sync-mode" onclick="switchViewMode('sync-mode', this)">📡 位置送受信</button>
     <button class="tab-btn" id="tab-register-mode" onclick="switchViewMode('register-mode', this)">🗺️ 位置登録</button>
 </div>
 
@@ -169,7 +168,7 @@
     </div>
 
     <!-- 1️⃣ データ入力 -->
-    <div id="sec-input-mode" class="mode-section active">
+    <div id="sec-input-mode" class="mode-section">
         <div class="type-selector">
             <button class="type-btn active" onclick="selectType('平地', this)">平地</button>
             <button class="type-btn" onclick="selectType('岩大', this)">岩大</button> 
@@ -184,8 +183,8 @@
         <input type="text" id="comment-input" placeholder="一言コメント（任意）">
     </div>
 
-    <!-- 2️⃣ 位置送受信 -->
-    <div id="sec-sync-mode" class="mode-section">
+    <!-- 2️⃣ 位置送受信（初期表示） -->
+    <div id="sec-sync-mode" class="mode-section active">
         <div class="quick-sync-panel">
             <div class="quick-sync-title">🗺️ ワンタップ現在位置送信</div>
             <div class="quick-btn-row">
@@ -751,7 +750,8 @@
             handleMeasureClick(e.latLng);
         });
 
-        switchViewMode('input-mode', document.getElementById('tab-input-mode'));
+        // 📌 初期表示タブを「位置送受信（sync-mode）」に固定設定
+        switchViewMode('sync-mode', document.getElementById('tab-sync-mode'));
     }
 
     function handleMeasureClick(latLng) {
@@ -812,6 +812,8 @@
             const data = await res.json();
             fullTideMasterData = data.allTideData || [];
             allPointsData = data.points || [];
+            
+            // 🌊 潮位計算とマップ上の水深ピン再描画を確実に実行
             calculateTideAndRefresh();
 
             clearAllCustomBoatsOnMap(); 
@@ -836,7 +838,10 @@
 
     function calculateTideAndRefresh() {
         const val = document.getElementById('target-datetime').value;
-        if (!val || fullTideMasterData.length === 0) return;
+        if (!val || fullTideMasterData.length === 0) {
+            refreshMarkersOnMap();
+            return;
+        }
         const s = new Date(val);
         const y = s.getFullYear(), m = s.getMonth() + 1, d = s.getDate(), h = s.getHours(), min = s.getMinutes();
         const row = fullTideMasterData.find(r => {
@@ -951,7 +956,7 @@
         if (fullTideMasterData.length > 0) calculateTideAndRefresh();
     }
 
-    /* 🌊 潮位表モーダルの表示制御・処理（デザイン更新版） */
+    /* 🌊 潮位表モーダル */
     function openTideTableModal() {
         const val = document.getElementById('target-datetime').value;
         if (!val || fullTideMasterData.length === 0) {
@@ -962,7 +967,6 @@
         const dt = new Date(val);
         const y = dt.getFullYear(), m = dt.getMonth() + 1, d = dt.getDate();
         
-        // 📅 日付のみ表示（「の潮位データ」を削除）
         document.getElementById('tide-modal-date').textContent = `📅 ${y}年${m}月${d}日`;
 
         const row = fullTideMasterData.find(r => {
@@ -981,7 +985,6 @@
             return;
         }
 
-        // 満潮・干潮情報
         let hlHtml = "";
         if (row.length >= 29 && row[25] !== undefined && row[25] !== "") {
             hlHtml += `<strong>【満潮】</strong> ${row[25]} (${row[26]}cm) / ${row[27] || ''} (${row[28] || ''}cm)<br>`;
@@ -997,7 +1000,6 @@
             hlContainer.style.display = 'none';
         }
 
-        // 08:00 〜 19:00 の潮位をリスト表示（左: 時刻 / 右: 潮位）
         let listHtml = "";
         for (let h = 8; h <= 19; h++) {
             const tideVal = parseFloat(row[1 + h]) || 0;
