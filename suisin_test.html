@@ -3,21 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.6.5 -->
-    <title>水深測っ太郎 v4.1.5 by Popolo App.com</title>
+    <!-- コード名: 6.6.6 -->
+    <title>水深測っ太郎 v4.1.6 by Popolo App.com</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; position: relative; }
         
-        /* 📱 アプリ名ヘッダー */
-        .app-header { background: #3498db; color: white; padding: 8px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; z-index: 1001; transition: transform 0.3s ease, height 0.3s ease, padding 0.3s ease; }
-        .app-header.hidden { transform: translateY(-120%); height: 0; padding: 0; overflow: hidden; }
+        /* 📱 アプリ名ヘッダー（常に上部に固定・非表示クラスを廃止して常時表示） */
+        .app-header { background: #3498db; color: white; padding: 8px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; z-index: 1001; }
 
         /* 🗺️ マップコンテナ */
         #map-container { flex-grow: 1; position: relative; width: 100%; height: 100%; }
         #map { width: 100%; height: 100%; }
 
-        /* 🎛️ パネル群をbody直下に置き、画面最上部に固定 */
-        .panel-wrapper { position: absolute; top: 0; left: 0; width: 100%; z-index: 3000; pointer-events: none; display: flex; flex-direction: column; }
+        /* 🎛️ パネル群をbody直下に配置 */
+        .panel-wrapper { position: absolute; top: 37px; left: 0; width: 100%; z-index: 3000; pointer-events: none; display: flex; flex-direction: column; }
         .panel-wrapper > * { pointer-events: auto; }
 
         .mode-tabs { display: flex; background: #2c3e50; padding: 2px; gap: 2px; transition: transform 0.3s ease, opacity 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
@@ -104,7 +103,7 @@
         .legend-item { display: flex; align-items: center; margin-bottom: 3px; }
         .color-box { width: 12px; height: 12px; margin-right: 6px; border: 1px solid #333; border-radius: 2px; }
 
-        /* 🧭 右下フローティングボタン群（独立ボタン ＆ メニュー） */
+        /* 🧭 右下フローティングボタン群 */
         .view-toggle-btn { position: absolute; bottom: 20px; right: 10px; width: 50px; height: 50px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; }
         
         .sync-button { position: absolute; bottom: 80px; right: 10px; width: 50px; height: 50px; background: #e67e22; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; transition: transform 0.2s; }
@@ -173,8 +172,8 @@
 <body>
 
 <div id="loading">📡 通信中...</div>
-<!-- 📱 アプリ名ヘッダー（常に最上部に表示） -->
-<div class="app-header" id="app-header">水深測っ太郎 v4.1.5 by Popolo App.com</div>
+<!-- 📱 アプリ名ヘッダー（常に上部に常設） -->
+<div class="app-header">水深測っ太郎 v4.1.6 by Popolo App.com</div>
 
 <!-- 🎛️ パネル群 -->
 <div class="panel-wrapper">
@@ -338,7 +337,7 @@
     let fullTideMasterData = [];
     let myLocationMarker = null;
     let selectedType = "平地";
-    let mapStyleMode = 0; // 0: 通常地図, 1: 白背景, 2: 航空写真
+    let mapStyleMode = 0; 
     let isHazardOnlyMode = false;
 
     let isMeasureMode = false;
@@ -429,13 +428,11 @@
         uiState = 0;
         const panel = document.getElementById('ui-panel');
         const tabs = document.getElementById('mode-tabs');
-        const header = document.getElementById('app-header');
         const icon = document.getElementById('toggle-icon');
 
         panel.classList.remove('hidden');
         panel.classList.remove('datetime-only');
         tabs.classList.remove('hidden');
-        header.classList.remove('hidden');
         icon.innerText = '🔭';
 
         if(targetMode === 'input-mode') {
@@ -458,7 +455,6 @@
     function toggleUIPanel() {
         const panel = document.getElementById('ui-panel');
         const tabs = document.getElementById('mode-tabs');
-        const header = document.getElementById('app-header');
         const icon = document.getElementById('toggle-icon');
         const isInputMode = document.getElementById('sec-input-mode').classList.contains('active');
 
@@ -469,25 +465,21 @@
                 panel.classList.remove('hidden');
                 panel.classList.remove('datetime-only');
                 tabs.classList.remove('hidden');
-                header.classList.remove('hidden');
                 icon.innerText = '🔭';
             } else if (uiState === 1) {
                 panel.classList.remove('hidden');
                 panel.classList.add('datetime-only');
                 tabs.classList.add('hidden');
-                header.classList.remove('hidden'); 
                 icon.innerText = '📲';
             } else if (uiState === 2) {
                 panel.classList.add('hidden');
                 panel.classList.remove('datetime-only');
                 tabs.classList.add('hidden');
-                header.classList.remove('hidden');
                 icon.innerText = '📥';
             }
         } else {
             panel.classList.toggle('hidden');
             tabs.classList.toggle('hidden');
-            // 修正: データ入力モード以外ではヘッダーの表示・非表示を切り替えず、常に表示し続ける
             const isHidden = panel.classList.contains('hidden');
             icon.innerText = isHidden ? '📥' : '🔭';
         }
