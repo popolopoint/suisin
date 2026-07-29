@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 6.3.8 -->
-    <title>水深測っ太郎 v3.8.3 by Popolo App.com</title>
+    <title>水深測っ太郎 v3.8.4 by Popolo App.com</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; position: relative; }
         .app-header { background: #3498db; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; }
@@ -82,7 +82,7 @@
         .legend-item { display: flex; align-items: center; margin-bottom: 3px; }
         .color-box { width: 12px; height: 12px; margin-right: 6px; border: 1px solid #333; border-radius: 2px; }
 
-        /* ⚠️ 危険物フィルターボタン（⚠️ OFF / ⚠️ ON 表示） */
+        /* ⚠️ 危険物フィルターボタン */
         .hazard-filter-btn { position: absolute; bottom: 80px; left: 10px; background: white; color: #d35400; padding: 10px 14px; border-radius: 8px; box-shadow: 0 3px 8px rgba(0,0,0,0.3); border: 2px solid #e67e22; z-index: 3500; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.2s, color 0.2s; }
         .hazard-filter-btn.active { background: #e74c3c; color: white; border-color: #c0392b; }
 
@@ -113,7 +113,7 @@
 <body>
 
 <div id="loading">📡 通信中...</div>
-<div class="app-header">水深測っ太郎 v3.8.3 by Popolo App.com</div>
+<div class="app-header">水深測っ太郎 v3.8.4 by Popolo App.com</div>
 
 <div class="mode-tabs" id="mode-tabs">
     <button class="tab-btn" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
@@ -232,12 +232,12 @@
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHhxSJK-IhYiT9XBRwE1MX7DHhghBQQQk&callback=initMap" async defer></script>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwoT5H43v9aa45zTA4u64sudlVf-WRz8l6eDkpmw_V1ypFlP_bgTWTAiLjEmsSD1vXvzQ/exec"; 
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzEIJD_8R-Lo3ed6byTaCOx27xFiWfHa4ZaYyNihxwYt3huIX0nkynPKTFAySuqkpybBA/exec"; 
     let map, markers = [], allPointsData = [], currentSelectedTide = 0, adminPass = localStorage.getItem('popolo_pass') || "";
     let fullTideMasterData = [];
     let myLocationMarker = null;
     let selectedType = "平地";
-    let mapStyleMode = 0; // 0: 通常マップ, 1: 白背景, 2: 航空写真
+    let mapStyleMode = 0; 
     let isHazardOnlyMode = false;
 
     let isMeasureMode = false;
@@ -308,7 +308,7 @@
                 dtPanel.style.display = 'none';
             } else if(targetMode === 'sync-mode') {
                 document.getElementById('sec-sync-mode').classList.add('active');
-                dtPanel.style.display = 'block'; // 送受信タブでも日付パネルは利用可能
+                dtPanel.style.display = 'block';
             }
         }
     }
@@ -405,7 +405,6 @@
         }
     }
 
-    /* どんな形式の日付値からでも確実に「YYYYMMDD」の8桁数字文字列を取り出す確定版関数 */
     function extractYMDNumbers(val) {
         if (!val) return "";
         let str = String(val).trim();
@@ -438,7 +437,7 @@
         return "";
     }
 
-    /* 🌊 選択した日時の潮位を別タブで開く処理（凡例の背景色でカラー表示） */
+    /* 🌊 選択した日時の潮位を別タブで開く処理（8:00〜19:00 のみ表示に改修） */
     async function openTodayTideWindow() {
         const tideWindow = window.open("", "_blank");
         if (!tideWindow) {
@@ -511,12 +510,12 @@
             return;
         }
 
-        // ⭕ 見つかった場合：潮位表の生成（凡例の色をセル背景・バッジに反映）
+        // ⭕ 見つかった場合：潮位表の生成（8:00 〜 19:00 に範囲制限）
         let hourlyHtml = "";
         let minTide = 999, maxTide = -999;
         let minHour = "", maxHour = "";
 
-        for (let h = 0; h <= 23; h++) {
+        for (let h = 8; h <= 19; h++) {
             const tideVal = parseFloat(row[h + 1]);
             if (!isNaN(tideVal)) {
                 const bgCol = getDepthColor(tideVal);
@@ -573,19 +572,19 @@
                 
                 <div class="summary">
                     <div class="box" style="background:${maxBg}; color:${maxText};">
-                        <div class="box-title">🔴 満潮（日中最高）</div>
+                        <div class="box-title">🔴 満潮 (8-19時最高)</div>
                         <div class="box-value">${maxTide > -900 ? maxTide.toFixed(1) + ' cm' : '----'}</div>
                         <div style="font-size:0.8rem; margin-top:2px;">(${maxHour})</div>
                     </div>
                     <div class="box" style="background:${minBg}; color:${minText};">
-                        <div class="box-title">🔵 干潮（日中最低）</div>
+                        <div class="box-title">🔵 干潮 (8-19時最低)</div>
                         <div class="box-value">${minTide < 900 ? minTide.toFixed(1) + ' cm' : '----'}</div>
                         <div style="font-size:0.8rem; margin-top:2px;">(${minHour})</div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <h3 style="margin-top:0; color:#34495e; font-size:1.0rem; border-bottom:2px solid #3498db; padding-bottom:6px;">🕒 時間ごとの潮位一覧 (0:00 〜 23:00)</h3>
+                    <h3 style="margin-top:0; color:#34495e; font-size:1.0rem; border-bottom:2px solid #3498db; padding-bottom:6px;">🕒 日中時間帯の潮位 (8:00 〜 19:00)</h3>
                     <table>
                         <thead>
                             <tr><th>時刻</th><th>潮位 (cm)</th></tr>
@@ -896,7 +895,6 @@
             handleMeasureClick(e.latLng);
         });
 
-        // 🌟 アプリ起動時に「位置送受信」タブを初期表示する
         switchViewMode('sync-mode', document.getElementById('tab-sync-mode'));
     }
 
@@ -972,7 +970,7 @@
                     }
                 });
             }
-            document.getElementById('status-display').textContent = "✅ 同期完了";
+            document.getElementById('status-display').textContent = `✅ 同期完了 (ポイント: ${allPointsData.length}件)`;
         } catch (e) { 
             console.error("同期失敗", e);
             document.getElementById('status-display').textContent = "❌ 通信失敗"; 
@@ -982,7 +980,10 @@
 
     function calculateTideAndRefresh() {
         const val = document.getElementById('target-datetime').value;
-        if (!val) return;
+        if (!val) {
+            refreshMarkersOnMap();
+            return;
+        }
         
         const targetYMDNum = extractYMDNumbers(val);
         let h = 0, min = 0;
@@ -1007,29 +1008,62 @@
             const tide2 = isNaN(t2) ? tide1 : t2;
 
             currentSelectedTide = tide1 + (tide2 - tide1) * (min / 60);
-            document.getElementById('status-display').textContent = `潮位(${h}時${min}分): ${currentSelectedTide.toFixed(1)}cm`;
+            document.getElementById('status-display').textContent = `潮位(${h}時${min}分): ${currentSelectedTide.toFixed(1)}cm / ${allPointsData.length}件描画`;
         } else {
             currentSelectedTide = 0;
-            document.getElementById('status-display').textContent = `潮位データ未設定 (0cm扱いで計算)`;
+            document.getElementById('status-display').textContent = `潮位未設定(0cm計算) / ${allPointsData.length}件描画`;
         }
 
         refreshMarkersOnMap();
     }
 
+    /* 📌 水深ピンの強力描画（柔軟な列判定対応） */
     function refreshMarkersOnMap() {
         markers.forEach(m => m.setMap(null));
         markers = [];
+        
+        if (!allPointsData || allPointsData.length === 0) return;
+
         allPointsData.forEach(p => {
-            const pType = p[6] || "";
-            
+            if (!p || p.length < 3) return;
+
+            // 各列の自動判定 (ID, 緯度, 経度, 基準水深/測定水深, 種別, コメント)
+            let pId = p[0] || String(Math.random());
+            let pLat = parseFloat(p[1]);
+            let pLng = parseFloat(p[2]);
+
+            // 緯度・経度が数値化できない場合はスキップ
+            if (isNaN(pLat) || isNaN(pLng)) return;
+
+            // 数値データが含まれている列を自動探査（基準水深）
+            let baseDepth = 0;
+            if (!isNaN(parseFloat(p[4]))) {
+                baseDepth = parseFloat(p[4]);
+            } else if (!isNaN(parseFloat(p[3]))) {
+                baseDepth = parseFloat(p[3]);
+            }
+
+            // 種別（平地・岩・岩大・杭）の探索
+            let pType = "平地";
+            for (let col = 3; col < p.length; col++) {
+                let cellVal = String(p[col] || "").trim();
+                if (cellVal === "岩大" || cellVal === "岩" || cellVal === "杭" || cellVal === "平地" || cellVal === "大きい岩" || cellVal === "大岩") {
+                    pType = cellVal;
+                    break;
+                }
+            }
+
+            // コメントの取得
+            let comment = p[7] || p[6] || "";
+
+            // ⚠️ 危険物フィルター処理
             if (isHazardOnlyMode) {
                 const isHazard = (pType === "岩大" || pType === "大きい岩" || pType === "大岩" || pType === "岩" || pType === "杭");
                 if (!isHazard) return;
             }
 
-            const baseDepth = parseFloat(p[4]) || 0;
             const simDepth = baseDepth + currentSelectedTide;
-            createMarker({id:p[0], lat:p[1], lng:p[2], baseDepth:baseDepth, simDepth:simDepth, type:pType, comment:p[7] || ""});
+            createMarker({id: pId, lat: pLat, lng: pLng, baseDepth: baseDepth, simDepth: simDepth, type: pType, comment: comment});
         });
     }
 
