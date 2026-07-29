@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.7.3 -->
-    <title>水深測っ太郎 v4.2.3 by Popolo App.com</title>
+    <!-- コード名: 6.7.5 -->
+    <title>水深測っ太郎 v4.2.5 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
         
-        /* 📱 アプリ名ヘッダー：絶対に消えないよう最上部に常時固定 */
+        /* 📱 アプリ名ヘッダー（絶対に消えません） */
         #app-header {
             position: absolute;
             top: 0;
@@ -26,7 +26,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
-        /* 🗺️ マップコンテナ：ヘッダーの高さ分（36px）だけ下から表示する */
+        /* 🗺️ マップコンテナ */
         #map-container {
             position: absolute;
             top: 36px;
@@ -36,7 +36,7 @@
         }
         #map { width: 100%; height: 100%; }
 
-        /* 🎛️ パネル群（マップの上に重ねて配置） */
+        /* 🎛️ パネル群 */
         .panel-wrapper { position: absolute; top: 0; left: 0; width: 100%; z-index: 3000; pointer-events: none; display: flex; flex-direction: column; transition: transform 0.3s ease; }
         .panel-wrapper > * { pointer-events: auto; }
 
@@ -119,7 +119,8 @@
 
         .status-bar { font-size: 0.75rem; color: #666; text-align: center; margin-top: 5px; font-weight: bold; }
         
-        .depth-legend { position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.95); padding: 8px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border: 1px solid #ddd; z-index: 10; font-size: 0.7rem; font-weight: bold; cursor: pointer; }
+        /* 📊 凡例スタイル（タップで超縮小可能） */
+        .depth-legend { position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.95); padding: 8px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border: 1px solid #ddd; z-index: 10; font-size: 0.7rem; font-weight: bold; cursor: pointer; user-select: none; }
         .legend-content.minimized { display: none; }
         .legend-item { display: flex; align-items: center; margin-bottom: 3px; }
         .color-box { width: 12px; height: 12px; margin-right: 6px; border: 1px solid #333; border-radius: 2px; }
@@ -147,11 +148,24 @@
         .measure-result-banner { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); background: rgba(46, 204, 113, 0.95); color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.25); z-index: 2500; display: none; text-align: center; white-space: nowrap; }
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 6000; font-weight: bold; color: #3498db; }
 
-        /* 🌊 潮位表モーダル スタイル */
-        .tide-table-modal-body {
+        /* 🌊 潮位表・マニュアル共通モーダル スタイル */
+        .modal-body-scroll {
             max-height: 65vh;
             overflow-y: auto;
             margin-top: 10px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #333;
+        }
+        .modal-body-scroll h4 {
+            color: #2c3e50;
+            margin: 12px 0 4px 0;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 2px;
+            font-size: 0.95rem;
+        }
+        .modal-body-scroll p {
+            margin: 4px 0 8px 0;
         }
         .tide-list {
             display: flex;
@@ -195,7 +209,7 @@
 <div id="loading">📡 通信中...</div>
 
 <!-- 📱 アプリ名ヘッダー（絶対に消えません） -->
-<div id="app-header">水深測っ太郎 v4.2.3 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.2.5 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -294,6 +308,7 @@
 
     <!-- 📂 メニュー内部の機能ボタン群 -->
     <div class="sub-menu-container" id="sub-menu">
+        <button class="sub-menu-btn" onclick="openManualModal()" title="使い方マニュアル">❓</button>
         <button class="sub-menu-btn hazard" id="hazard-filter-btn" onclick="toggleHazardOnly()" title="危険物のみ表示">⚠️</button>
         <button class="sub-menu-btn" id="measure-btn" onclick="toggleMeasureMode()" title="距離を測る">📏</button>
         <button class="sub-menu-btn" onclick="toggleMapStyle()" title="背景切り替え（通常/白/航空写真）">🗺️</button>
@@ -303,7 +318,8 @@
 
     <button class="measure-clear-btn" id="measure-clear-btn" onclick="clearMeasure()">距離<br>消去</button>
 
-    <div class="depth-legend" id="depth-legend-box">
+    <!-- 📊 凡例（タップで縮小/超縮小切り替え） -->
+    <div class="depth-legend" id="depth-legend-box" onclick="toggleLegendTap(event)" title="タップして縮小/展開">
         <div id="legend-header">📊 凡例</div>
         <div class="legend-content" id="legend-content">
             <div class="legend-item"><div class="color-box" style="background:#ff0000;"></div>20cm未満 (赤)</div>
@@ -341,12 +357,38 @@
         </div>
         <div id="tide-modal-date" style="font-weight:bold; color:#3498db; margin-top:8px; font-size:1.1rem; text-align:center;"></div>
         
-        <div class="tide-table-modal-body">
+        <div class="tide-table-modal-body modal-body-scroll">
             <div id="tide-hl-container" class="tide-hl-info"></div>
             <div id="tide-list-container" class="tide-list"></div>
         </div>
 
         <button onclick="closeModal('tide-modal')" style="width:100%; margin-top:12px; background:#3498db; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold; font-size:1rem; cursor:pointer;">閉じる</button>
+    </div>
+</div>
+
+<!-- ❓ 使い方マニュアル モーダル -->
+<div id="manual-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:7000; justify-content:center; align-items:center;">
+    <div style="background:white; padding:18px; border-radius:12px; width:90%; max-width:420px; box-sizing:border-box;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #3498db; padding-bottom:8px;">
+            <h3 style="margin:0; color:#2c3e50; font-size:1.1rem;">📖 水深測っ太郎 使い方ガイド</h3>
+            <button onclick="closeModal('manual-modal')" style="background:none; border:none; font-size:1.4rem; cursor:pointer;">✖</button>
+        </div>
+        
+        <div class="modal-body-scroll">
+            <h4>📊 1. データ入力タブ</h4>
+            <p>・その場で測った水深(cm)と種類（平地・岩大・岩・杭）を選んで「記録」を押すと、現在地にピンが保存されます。<br>・自動的に潮位を逆算した基準水深が記録されます。</p>
+
+            <h4>📡 2. 位置送受信タブ</h4>
+            <p>・「⚓ フネ登録」や「🟧 ブイ登録」を押すと、現在のGPS位置が即座にクラウドへ送信され地図上に表示されます。<br>・マイクボタンからの**音声入力**（「フネ登録」「深さ50センチ」など）にも対応しています。</p>
+
+            <h4>🗺️ 3. 位置登録タブ</h4>
+            <p>・本部船やブイのマーク名、緯度・経度を確認・微調整して配置や削除ができます。</p>
+
+            <h4>🍔 4. メニュー（右下ボタン群）機能</h4>
+            <p>・<strong>❓ボタン</strong>: このマニュアルを表示します。<br>・<strong>⚠️ボタン</strong>: 危険物（岩や杭）のピンだけに絞り込み表示します。<br>・<strong>📏ボタン</strong>: 地図上の2点間をタップして距離を測れます。<br>・<strong>🗺️ボタン</strong>: マップの背景（通常/白地図/航空写真）を切り替えます。<br>・<strong>📍ボタン</strong>: 現在地を地図の中央に移動します。<br>・<strong>📊ボタン</strong>: 凡例の表示/非表示を切り替えます（凡例ボックスのタップでも縮小できます）。<br>・<strong>🔄ボタン</strong>: 最新のデータをサーバーから再読み込みします。</p>
+        </div>
+
+        <button onclick="closeModal('manual-modal')" style="width:100%; margin-top:12px; background:#3498db; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold; font-size:1rem; cursor:pointer;">閉じる</button>
     </div>
 </div>
 
@@ -375,8 +417,6 @@
     let isListening = false;
     let pendingCommand = null; 
     let activeInfoWindow = null;
-
-    let isPanelHidden = false; // パネルの折りたたみ状態（全画面ボタン押下用）
 
     function playSuccessBeep() {
         try {
@@ -413,6 +453,12 @@
         menu.classList.toggle('open');
     }
 
+    /* 📖 マニュアルモーダルを開く */
+    function openManualModal() {
+        toggleSubMenu(); // メニューを閉じる
+        openModal('manual-modal');
+    }
+
     /* 🕒 時間・日付のプラスマイナス調整（1時間刻みジャンプ） */
     function adjustDateTime(hoursDelta) {
         const input = document.getElementById('target-datetime');
@@ -447,7 +493,6 @@
         document.querySelectorAll('.mode-section').forEach(sec => sec.classList.remove('active'));
         const dtPanel = document.getElementById('global-datetime-panel');
         
-        isPanelHidden = false;
         const panel = document.getElementById('ui-panel');
         const tabs = document.getElementById('mode-tabs');
         const icon = document.getElementById('toggle-icon');
@@ -481,7 +526,6 @@
         const isInputMode = document.getElementById('sec-input-mode').classList.contains('active');
 
         if (isInputMode) {
-            // データ入力モードのとき：通常 ⇄ 日時パネルのみ ⇄ パネル非表示（すべてタイトルは常時表示）
             if (!panel.classList.contains('hidden') && !panel.classList.contains('datetime-only')) {
                 panel.classList.add('datetime-only');
                 tabs.classList.add('hidden');
@@ -496,7 +540,6 @@
                 icon.innerText = '🔭';
             }
         } else {
-            // その他のモードのとき：通常 ⇄ パネル非表示（タイトルは常時表示）
             panel.classList.toggle('hidden');
             tabs.classList.toggle('hidden');
             const isHidden = panel.classList.contains('hidden');
@@ -566,6 +609,7 @@
         btn.classList.add('active');
     }
 
+    /* 📊 凡例表示/非表示の切り替え（メニューボタン連動） */
     function toggleLegend() {
         const box = document.getElementById('depth-legend-box');
         const subBtn = document.getElementById('legend-toggle-sub-btn');
@@ -575,6 +619,18 @@
         } else {
             box.style.display = 'none';
             subBtn.classList.remove('active');
+        }
+    }
+
+    /* 📊 凡例ボックス自体のタップ（内容を完全に隠す超縮小 ⇄ 展開） */
+    function toggleLegendTap(event) {
+        const content = document.getElementById('legend-content');
+        content.classList.toggle('minimized');
+        const header = document.getElementById('legend-header');
+        if (content.classList.contains('minimized')) {
+            header.innerHTML = "📊 凡例 (+) ";
+        } else {
+            header.innerHTML = "📊 凡例";
         }
     }
 
