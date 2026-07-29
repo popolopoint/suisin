@@ -3,20 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.5.2 -->
-    <title>水深測っ太郎 v3.9.11 by Popolo App.com</title>
+    <!-- コード名: 6.5.3 -->
+    <title>水深測っ太郎 v3.9.12 by Popolo App.com</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; position: relative; }
-        .app-header { background: #3498db; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; }
+        .app-header { background: #3498db; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; z-index: 1001; }
         
-        .mode-tabs { display: flex; background: #2c3e50; padding: 2px; flex-shrink: 0; gap: 2px; transition: margin-left 0.3s ease, opacity 0.3s ease; }
-        .mode-tabs.hidden { margin-left: -100%; opacity: 0; pointer-events: none; } 
+        /* 🗺️ マップコンテナを画面全体（ヘッダー以外）に広げる */
+        #map-container { flex-grow: 1; position: relative; width: 100%; height: 100%; }
+        #map { width: 100%; height: 100%; }
+
+        /* 🎛️ パネル群を絶対配置にして、地図の上に重ねる（隠したときに余白を残さない） */
+        .panel-wrapper { position: absolute; top: 0; left: 0; width: 100%; z-index: 1000; pointer-events: none; display: flex; flex-direction: column; }
+        .panel-wrapper > * { pointer-events: auto; }
+
+        .mode-tabs { display: flex; background: #2c3e50; padding: 2px; gap: 2px; transition: transform 0.3s ease, opacity 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .mode-tabs.hidden { transform: translateY(-120%); opacity: 0; pointer-events: none; } 
 
         .tab-btn { flex: 1; padding: 12px 6px; border: none; background: #34495e; color: #bdc3c7; font-weight: bold; font-size: 0.85rem; cursor: pointer; transition: background 0.2s, color 0.2s; text-align: center; }
         .tab-btn.active { background: #3498db; color: white; border-bottom: 3px solid #2980b9; }
 
-        .ui-panel { background: white; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 1000; flex-shrink: 0; transition: transform 0.3s ease; }
-        .ui-panel.hidden { transform: translateY(-120%); } 
+        .ui-panel { background: white; padding: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: transform 0.3s ease; }
+        .ui-panel.hidden { transform: translateY(-140%); } 
         
         /* 🔭 1段階目：日時パネルだけを残し、タブ・入力セクション・ステータスを隠す */
         .ui-panel.datetime-only .mode-section { display: none !important; }
@@ -78,8 +86,6 @@
         #btnDeleteBoat { background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; }
 
         .status-bar { font-size: 0.75rem; color: #666; text-align: center; margin-top: 5px; font-weight: bold; }
-        #map-container { flex-grow: 1; position: relative; }
-        #map { width: 100%; height: 100%; }
         
         .depth-legend { position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.95); padding: 8px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border: 1px solid #ddd; z-index: 10; font-size: 0.7rem; font-weight: bold; cursor: pointer; }
         .legend-content.minimized { display: none; }
@@ -152,83 +158,86 @@
 <body>
 
 <div id="loading">📡 通信中...</div>
-<div class="app-header">水深測っ太郎 v3.9.11 by Popolo App.com</div>
-
-<div class="mode-tabs" id="mode-tabs">
-    <button class="tab-btn" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
-    <button class="tab-btn active" id="tab-sync-mode" onclick="switchViewMode('sync-mode', this)">📡 位置送受信</button>
-    <button class="tab-btn" id="tab-register-mode" onclick="switchViewMode('register-mode', this)">🗺️ 位置登録</button>
-</div>
-
-<div class="ui-panel" id="ui-panel">
-    <!-- ⏳ 共通の日時・ステータスパネル -->
-    <div class="datetime-panel" id="global-datetime-panel" style="display:none;">
-        <div class="datetime-row">
-            <input type="datetime-local" id="target-datetime" onchange="calculateTideAndRefresh()">
-            <button onclick="setNow()" style="padding: 10px 8px; background: #3498db; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight:bold;">現在</button>
-            <button onclick="openTideTableModal()" style="padding: 10px 8px; background: #9b59b6; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight:bold;">潮位</button>
-        </div>
-        <div id="status-display" class="status-bar">⏳ 未同期（更新ボタンを押してください）</div>
-    </div>
-
-    <!-- 1️⃣ データ入力 -->
-    <div id="sec-input-mode" class="mode-section">
-        <div class="type-selector">
-            <button class="type-btn active" onclick="selectType('平地', this)">平地</button>
-            <button class="type-btn" onclick="selectType('岩大', this)">岩大</button> 
-            <button class="type-btn" onclick="selectType('岩', this)">岩</button>
-            <button class="type-btn" onclick="selectType('杭', this)">杭</button>
-        </div>
-        <div class="input-row">
-            <input type="text" id="depth-input" placeholder="今測った水深(cm)">
-            <button class="btn-record" onclick="recordAtCurrentLocation()">記録</button>
-            <button onclick="openModal('admin-modal')" style="width:40px; height:45px; border-radius:6px; border:none; background:#95a5a6; color:white;">🔑</button>
-        </div>
-        <input type="text" id="comment-input" placeholder="一言コメント（任意）">
-    </div>
-
-    <!-- 2️⃣ 位置送受信 -->
-    <div id="sec-sync-mode" class="mode-section active">
-        <div class="quick-sync-panel">
-            <div class="quick-sync-title">🗺️ ワンタップ現在位置送信</div>
-            <div class="quick-btn-row">
-                <button class="btn-quick-send boat" onclick="sendQuickLocation('BOAT')">⚓ フネ登録</button>
-                <button class="btn-quick-send buoy" onclick="sendQuickLocation('BUOY')">🟧 ブイ登録</button>
-            </div>
-        </div>
-
-        <div class="voice-panel">
-            <button id="btn-voice-start" class="btn-voice" onclick="toggleSpeechRecognition()">
-                <span id="voice-icon">🎙️</span> 音声入力開始
-            </button>
-            <div id="voice-status" class="voice-status">声で「フネ登録」や「ブイ登録」「深さ〇〇センチ」</div>
-            <button id="btn-voice-confirm" class="voice-confirm-btn" onclick="executePendingVoiceCommand()">✅ [ OK ] 登録する</button>
-        </div>
-        <div style="background: #eaf2f8; padding: 12px; border-radius: 8px; border: 1px solid #a9cce3; font-size: 0.85rem; font-weight: bold; color: #2471a3; line-height: 1.4;">
-            📣 <strong>送受信インフォメーション</strong><br>
-            ・海上から送信後、無線で「送ったよ」と連絡を受けたら、右側の <strong>オレンジ色の更新ボタン(🔄)</strong> を押して位置情報を画面へ反映してください。
-        </div>
-    </div>
-
-    <!-- 3️⃣ 位置登録 -->
-    <div id="sec-register-mode" class="mode-section">
-        <div class="honbu-panel">
-            <div class="honbu-title">⚓ 船・ブイ配置 / タップして削除・編集</div>
-            <div class="honbu-grid">
-                <input type="text" id="inputBoatName" placeholder="マーク名" value="本部船">
-                <input type="number" id="inputBoatLat" step="any" placeholder="緯度 (Lat)">
-                <input type="number" id="inputBoatLng" step="any" placeholder="経度 (Lng)">
-            </div>
-            <div class="honbu-buttons">
-                <button id="btnSaveBoat" onclick="handleSaveBoat()">🗺️ 配置 / 更新</button>
-                <button id="btnDeleteBoat" onclick="handleDeleteBoat()">削除</button>
-            </div>
-        </div>
-    </div>
-</div>
+<div class="app-header">水深測っ太郎 v3.9.12 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
+    
+    <!-- 🎛️ パネル群（地図の上に絶対配置で重ねることで、非表示時に地図が画面全体に広がります） -->
+    <div class="panel-wrapper">
+        <div class="mode-tabs" id="mode-tabs">
+            <button class="tab-btn" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
+            <button class="tab-btn active" id="tab-sync-mode" onclick="switchViewMode('sync-mode', this)">📡 位置送受信</button>
+            <button class="tab-btn" id="tab-register-mode" onclick="switchViewMode('register-mode', this)">🗺️ 位置登録</button>
+        </div>
+
+        <div class="ui-panel" id="ui-panel">
+            <!-- ⏳ 共通の日時・ステータスパネル -->
+            <div class="datetime-panel" id="global-datetime-panel" style="display:none;">
+                <div class="datetime-row">
+                    <input type="datetime-local" id="target-datetime" onchange="calculateTideAndRefresh()">
+                    <button onclick="setNow()" style="padding: 10px 8px; background: #3498db; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight:bold;">現在</button>
+                    <button onclick="openTideTableModal()" style="padding: 10px 8px; background: #9b59b6; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight:bold;">潮位</button>
+                </div>
+                <div id="status-display" class="status-bar">⏳ 未同期（更新ボタンを押してください）</div>
+            </div>
+
+            <!-- 1️⃣ データ入力 -->
+            <div id="sec-input-mode" class="mode-section">
+                <div class="type-selector">
+                    <button class="type-btn active" onclick="selectType('平地', this)">平地</button>
+                    <button class="type-btn" onclick="selectType('岩大', this)">岩大</button> 
+                    <button class="type-btn" onclick="selectType('岩', this)">岩</button>
+                    <button class="type-btn" onclick="selectType('杭', this)">杭</button>
+                </div>
+                <div class="input-row">
+                    <input type="text" id="depth-input" placeholder="今測った水深(cm)">
+                    <button class="btn-record" onclick="recordAtCurrentLocation()">記録</button>
+                    <button onclick="openModal('admin-modal')" style="width:40px; height:45px; border-radius:6px; border:none; background:#95a5a6; color:white;">🔑</button>
+                </div>
+                <input type="text" id="comment-input" placeholder="一言コメント（任意）">
+            </div>
+
+            <!-- 2️⃣ 位置送受信 -->
+            <div id="sec-sync-mode" class="mode-section active">
+                <div class="quick-sync-panel">
+                    <div class="quick-sync-title">🗺️ ワンタップ現在位置送信</div>
+                    <div class="quick-btn-row">
+                        <button class="btn-quick-send boat" onclick="sendQuickLocation('BOAT')">⚓ フネ登録</button>
+                        <button class="btn-quick-send buoy" onclick="sendQuickLocation('BUOY')">🟧 ブイ登録</button>
+                    </div>
+                </div>
+
+                <div class="voice-panel">
+                    <button id="btn-voice-start" class="btn-voice" onclick="toggleSpeechRecognition()">
+                        <span id="voice-icon">🎙️</span> 音声入力開始
+                    </button>
+                    <div id="voice-status" class="voice-status">声で「フネ登録」や「ブイ登録」「深さ〇〇センチ」</div>
+                    <button id="btn-voice-confirm" class="voice-confirm-btn" onclick="executePendingVoiceCommand()">✅ [ OK ] 登録する</button>
+                </div>
+                <div style="background: #eaf2f8; padding: 12px; border-radius: 8px; border: 1px solid #a9cce3; font-size: 0.85rem; font-weight: bold; color: #2471a3; line-height: 1.4;">
+                    📣 <strong>送受信インフォメーション</strong><br>
+                    ・海上から送信後、無線で「送ったよ」と連絡を受けたら、右側の <strong>オレンジ色の更新ボタン(🔄)</strong> を押して位置情報を画面へ反映してください。
+                </div>
+            </div>
+
+            <!-- 3️⃣ 位置登録 -->
+            <div id="sec-register-mode" class="mode-section">
+                <div class="honbu-panel">
+                    <div class="honbu-title">⚓ 船・ブイ配置 / タップして削除・編集</div>
+                    <div class="honbu-grid">
+                        <input type="text" id="inputBoatName" placeholder="マーク名" value="本部船">
+                        <input type="number" id="inputBoatLat" step="any" placeholder="緯度 (Lat)">
+                        <input type="number" id="inputBoatLng" step="any" placeholder="経度 (Lng)">
+                    </div>
+                    <div class="honbu-buttons">
+                        <button id="btnSaveBoat" onclick="handleSaveBoat()">🗺️ 配置 / 更新</button>
+                        <button id="btnDeleteBoat" onclick="handleDeleteBoat()">削除</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <!-- ⚠️ 危険物のみ表示ボタン -->
     <button class="hazard-filter-btn" id="hazard-filter-btn" onclick="toggleHazardOnly()">⚠️ OFF</button>
@@ -412,6 +421,11 @@
             const isHidden = panel.classList.contains('hidden');
             icon.innerText = isHidden ? '📥' : '🔭';
         }
+        
+        // 🗺️ 地図のサイズが正しく反映されるようにトリガー
+        setTimeout(() => {
+            if (map) google.maps.event.trigger(map, 'resize');
+        }, 300);
     }
 
     function toggleHazardOnly() {
@@ -786,7 +800,6 @@
             handleMeasureClick(e.latLng);
         });
 
-        // 🚀 アプリ起動時はデータを自動取得せず、位置送受信タブをトップページとして開く
         switchViewMode('sync-mode', document.getElementById('tab-sync-mode'));
     }
 
