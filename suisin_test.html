@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.4.7 -->
-    <title>水深測っ太郎 v3.9.4 by Popolo App.com</title>
+    <!-- コード名: 6.4.8 -->
+    <title>水深測っ太郎 v3.9.6 by Popolo App.com</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; position: relative; }
         .app-header { background: #3498db; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; }
@@ -17,7 +17,9 @@
 
         .ui-panel { background: white; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 1000; flex-shrink: 0; transition: margin-top 0.3s ease; }
         .ui-panel.hidden { margin-top: -520px; } 
-        .ui-panel.partial-hidden { margin-top: -120px; } /* 🔭 1段階目（日時パネルのみ表示） */
+        
+        /* 🔭 1段階目：入力セクションを隠して、上の日時パネルだけを表示するクラス */
+        .ui-panel.datetime-only .mode-section { display: none !important; }
 
         .mode-section { display: none; }
         .mode-section.active { display: block; }
@@ -149,7 +151,7 @@
 <body class="is-input-mode">
 
 <div id="loading">📡 通信中...</div>
-<div class="app-header">水深測っ太郎 v3.9.4 by Popolo App.com</div>
+<div class="app-header">水深測っ太郎 v3.9.6 by Popolo App.com</div>
 
 <div class="mode-tabs" id="mode-tabs">
     <button class="tab-btn active" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
@@ -310,7 +312,7 @@
     let pendingCommand = null; 
     let activeInfoWindow = null;
 
-    let uiState = 0; // 0: 通常表示, 1: マップ＋時刻パネルのみ, 2: 完全全画面
+    let uiState = 0; // 0: 通常表示, 1: 時刻日時パネルだけ表示, 2: 完全全画面
 
     function playSuccessBeep() {
         try {
@@ -358,7 +360,7 @@
         const tabs = document.getElementById('mode-tabs');
         const icon = document.getElementById('toggle-icon');
         panel.classList.remove('hidden');
-        panel.classList.remove('partial-hidden');
+        panel.classList.remove('datetime-only');
         tabs.classList.remove('hidden');
         icon.innerText = '🔭';
 
@@ -386,25 +388,25 @@
         const isInputMode = document.getElementById('sec-input-mode').classList.contains('active');
 
         if (isInputMode) {
-            // 📊 データ入力タブのときの「2段階」切り替え (0 -> 1 -> 2 -> 0)
+            // 📊 データ入力タブのとき： 0(通常) -> 1(日時パネルのみ) -> 2(完全全画面) -> 0
             uiState = (uiState + 1) % 3;
 
             if (uiState === 0) {
-                // 通常表示
+                // 通常表示（すべて表示）
                 panel.classList.remove('hidden');
-                panel.classList.remove('partial-hidden');
+                panel.classList.remove('datetime-only');
                 tabs.classList.remove('hidden');
                 icon.innerText = '🔭';
             } else if (uiState === 1) {
-                // マップ ＋ 時刻・日時行のみ表示
+                // 🕒 時刻日時パネルだけ表示（水深入力欄やタブは隠す）
                 panel.classList.remove('hidden');
-                panel.classList.add('partial-hidden');
+                panel.classList.add('datetime-only');
                 tabs.classList.add('hidden');
                 icon.innerText = '📲';
             } else if (uiState === 2) {
-                // マップ完全全画面
+                // 📥 完全全画面（すべて隠す）
                 panel.classList.add('hidden');
-                panel.classList.remove('partial-hidden');
+                panel.classList.remove('datetime-only');
                 tabs.classList.add('hidden');
                 icon.innerText = '📥';
             }
