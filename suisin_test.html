@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.4.0 -->
-    <title>水深測っ太郎 v3.8.7 by Popolo App.com</title>
+    <!-- コード名: 6.4.1 -->
+    <title>水深測っ太郎 v3.8.8 by Popolo App.com</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; position: relative; }
         .app-header { background: #3498db; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; }
@@ -148,7 +148,7 @@
 <body class="is-input-mode">
 
 <div id="loading">📡 通信中...</div>
-<div class="app-header">水深測っ太郎 v3.8.7 by Popolo App.com</div>
+<div class="app-header">水深測っ太郎 v3.8.8 by Popolo App.com</div>
 
 <div class="mode-tabs" id="mode-tabs">
     <button class="tab-btn" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
@@ -183,7 +183,7 @@
         <input type="text" id="comment-input" placeholder="一言コメント（任意）">
     </div>
 
-    <!-- 2️⃣ 位置送受信（初期表示） -->
+    <!-- 2️⃣ 位置送受信 (初期タブ) -->
     <div id="sec-sync-mode" class="mode-section active">
         <div class="quick-sync-panel">
             <div class="quick-sync-title">🗺️ ワンタップ現在位置送信</div>
@@ -750,7 +750,7 @@
             handleMeasureClick(e.latLng);
         });
 
-        // 📌 初期表示タブを「位置送受信（sync-mode）」に固定設定
+        // 初期表示タブを「位置送受信（sync-mode）」に固定設定
         switchViewMode('sync-mode', document.getElementById('tab-sync-mode'));
     }
 
@@ -813,7 +813,7 @@
             fullTideMasterData = data.allTideData || [];
             allPointsData = data.points || [];
             
-            // 🌊 潮位計算とマップ上の水深ピン再描画を確実に実行
+            // 潮位計算と水深ピンの再描画
             calculateTideAndRefresh();
 
             clearAllCustomBoatsOnMap(); 
@@ -844,14 +844,19 @@
         }
         const s = new Date(val);
         const y = s.getFullYear(), m = s.getMonth() + 1, d = s.getDate(), h = s.getHours(), min = s.getMinutes();
+        
         const row = fullTideMasterData.find(r => {
+            if (!r[0]) return false;
             const rd = new Date(r[0]);
             return rd.getFullYear() === y && (rd.getMonth()+1) === m && rd.getDate() === d;
         });
+
         if (row) {
             const t1 = parseFloat(row[1+h]), t2 = (h<23)?parseFloat(row[1+h+1]):t1;
-            currentSelectedTide = t1 + (t2-t1)*(min/60);
-            document.getElementById('status-display').textContent = `潮位(${d}日 ${h}時): ${currentSelectedTide.toFixed(1)}cm`;
+            if (!isNaN(t1)) {
+                currentSelectedTide = t1 + (t2-t1)*(min/60);
+                document.getElementById('status-display').textContent = `潮位(${d}日 ${h}時): ${currentSelectedTide.toFixed(1)}cm`;
+            }
         }
         refreshMarkersOnMap();
     }
@@ -859,7 +864,16 @@
     function refreshMarkersOnMap() {
         markers.forEach(m => m.setMap(null));
         markers = [];
+        
+        if (!allPointsData || allPointsData.length === 0) return;
+
         allPointsData.forEach(p => {
+            const lat = parseFloat(p[1]);
+            const lng = parseFloat(p[2]);
+            
+            // 有効な座標数値でない行はスキップ
+            if (isNaN(lat) || isNaN(lng)) return;
+
             const pType = p[6] || "";
             
             if (isHazardOnlyMode) {
@@ -867,9 +881,10 @@
                 if (!isHazard) return;
             }
 
+            // Index 4 : baseDepth
             const baseDepth = parseFloat(p[4]) || 0;
             const simDepth = baseDepth + currentSelectedTide;
-            createMarker({id:p[0], lat:p[1], lng:p[2], baseDepth:baseDepth, simDepth:simDepth, type:pType, comment:p[7] || ""});
+            createMarker({id: p[0], lat: lat, lng: lng, baseDepth: baseDepth, simDepth: simDepth, type: pType, comment: p[7] || ""});
         });
     }
 
@@ -970,6 +985,7 @@
         document.getElementById('tide-modal-date').textContent = `📅 ${y}年${m}月${d}日`;
 
         const row = fullTideMasterData.find(r => {
+            if (!r[0]) return false;
             const rd = new Date(r[0]);
             return rd.getFullYear() === y && (rd.getMonth()+1) === m && rd.getDate() === d;
         });
