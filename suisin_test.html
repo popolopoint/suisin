@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.6.0 -->
-    <title>水深測っ太郎 v4.1.0 by Popolo App.com</title>
+    <!-- コード名: 6.6.1 -->
+    <title>水深測っ太郎 v4.1.1 by Popolo App.com</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; position: relative; }
         
@@ -170,7 +170,7 @@
 <body>
 
 <div id="loading">📡 通信中...</div>
-<div class="app-header" id="app-header">水深測っ太郎 v4.1.0 by Popolo App.com</div>
+<div class="app-header" id="app-header">水深測っ太郎 v4.1.1 by Popolo App.com</div>
 
 <!-- 🎛️ パネル群 -->
 <div class="panel-wrapper">
@@ -372,14 +372,12 @@
         } catch(e) { console.log("オーディオ再生失敗", e); }
     }
 
-    /* 🕒 時間・日付のプラスマイナス調整（常に *:00 のキリの良い時間に丸めてジャンプ） */
+    /* 🕒 時間・日付のプラスマイナス調整（1時間刻みジャンプ） */
     function adjustDateTime(hoursDelta) {
         const input = document.getElementById('target-datetime');
         let dt = input.value ? new Date(input.value) : new Date();
         
-        // 時間を足し引き
         dt.setHours(dt.getHours() + hoursDelta);
-        // 分と秒を 0 にリセットして *:00 の形に固定
         dt.setMinutes(0);
         dt.setSeconds(0);
         dt.setMilliseconds(0);
@@ -387,6 +385,14 @@
         dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
         input.value = dt.toISOString().slice(0, 16);
         calculateTideAndRefresh();
+    }
+
+    /* ⏱️ 現在ボタン（1分単位の現在の正確な時間を反映） */
+    function setNow() {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('target-datetime').value = now.toISOString().slice(0, 16);
+        if (fullTideMasterData.length > 0) calculateTideAndRefresh();
     }
 
     function switchViewMode(targetMode, btnElement) {
@@ -1046,16 +1052,6 @@
         if (b < 140) return "#70a1ff";
         if (b < 160) return "#a29bfe";
         return "#000080";                
-    }
-
-    function setNow() {
-        const now = new Date();
-        now.setMinutes(0);
-        now.setSeconds(0);
-        now.setMilliseconds(0);
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-        document.getElementById('target-datetime').value = now.toISOString().slice(0, 16);
-        if (fullTideMasterData.length > 0) calculateTideAndRefresh();
     }
 
     /* 🌊 潮位表モーダル */
