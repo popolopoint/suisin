@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.4.5 -->
-    <title>水深測っ太郎 v3.9.2 by Popolo App.com</title>
+    <!-- コード名: 6.4.6 -->
+    <title>水深測っ太郎 v3.9.3 by Popolo App.com</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; position: relative; }
         .app-header { background: #3498db; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; }
@@ -28,7 +28,7 @@
         
         /* 🕒 データ入力モード時の日時入力サイズ */
         body.is-input-mode #target-datetime {
-            font-size: 1.4rem !important;
+            font-size: 1.6rem !important;
             font-weight: bold !important;
             padding: 8px 5px !important;
             color: #2c3e50 !important;
@@ -148,11 +148,11 @@
 <body class="is-input-mode">
 
 <div id="loading">📡 通信中...</div>
-<div class="app-header">水深測っ太郎 v3.9.2 by Popolo App.com</div>
+<div class="app-header">水深測っ太郎 v3.9.3 by Popolo App.com</div>
 
 <div class="mode-tabs" id="mode-tabs">
-    <button class="tab-btn" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
-    <button class="tab-btn active" id="tab-sync-mode" onclick="switchViewMode('sync-mode', this)">📡 位置送受信</button>
+    <button class="tab-btn active" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
+    <button class="tab-btn" id="tab-sync-mode" onclick="switchViewMode('sync-mode', this)">📡 位置送受信</button>
     <button class="tab-btn" id="tab-register-mode" onclick="switchViewMode('register-mode', this)">🗺️ 位置登録</button>
 </div>
 
@@ -168,7 +168,7 @@
     </div>
 
     <!-- 1️⃣ データ入力 -->
-    <div id="sec-input-mode" class="mode-section">
+    <div id="sec-input-mode" class="mode-section active">
         <div class="type-selector">
             <button class="type-btn active" onclick="selectType('平地', this)">平地</button>
             <button class="type-btn" onclick="selectType('岩大', this)">岩大</button> 
@@ -183,8 +183,8 @@
         <input type="text" id="comment-input" placeholder="一言コメント（任意）">
     </div>
 
-    <!-- 2️⃣ 位置送受信 (初期タブ) -->
-    <div id="sec-sync-mode" class="mode-section active">
+    <!-- 2️⃣ 位置送受信 -->
+    <div id="sec-sync-mode" class="mode-section">
         <div class="quick-sync-panel">
             <div class="quick-sync-title">🗺️ ワンタップ現在位置送信</div>
             <div class="quick-btn-row">
@@ -286,7 +286,9 @@
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHhxSJK-IhYiT9XBRwE1MX7DHhghBQQQk&callback=initMap" async defer></script>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwoT5H43v9aa45zTA4u64sudlVf-WRz8l6eDkpmw_V1ypFlP_bgTWTAiLjEmsSD1vXvzQ/exec"; 
+    // v3.7.3で動作していた元のデプロイURLを設定
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzEIJD_8R-Lo3ed6byTaCOx27xFiWfHa4ZaYyNihxwYt3huIX0nkynPKTFAySuqkpybBA/exec"; 
+    
     let map, markers = [], allPointsData = [], currentSelectedTide = 0, adminPass = localStorage.getItem('popolo_pass') || "";
     let fullTideMasterData = [];
     let myLocationMarker = null;
@@ -342,7 +344,7 @@
         if (btnElement) {
             btnElement.classList.add('active');
         } else {
-            if(targetMode === 'sync-mode') document.getElementById('tab-sync-mode').classList.add('active');
+            if(targetMode === 'input-mode') document.getElementById('tab-input-mode').classList.add('active');
         }
         
         document.querySelectorAll('.mode-section').forEach(sec => sec.classList.remove('active'));
@@ -750,8 +752,8 @@
             handleMeasureClick(e.latLng);
         });
 
-        // 初期表示タブを「位置送受信（sync-mode）」に固定設定
-        switchViewMode('sync-mode', document.getElementById('tab-sync-mode'));
+        // v3.7.3同様、データ入力タブを初期選択
+        switchViewMode('input-mode', document.getElementById('tab-input-mode'));
     }
 
     function handleMeasureClick(latLng) {
@@ -813,7 +815,7 @@
             fullTideMasterData = data.allTideData || [];
             allPointsData = data.points || [];
             
-            // 潮位計算と水深ピンの再描画
+            // v3.7.3同様、無条件で再描画を直接実行
             calculateTideAndRefresh();
 
             clearAllCustomBoatsOnMap(); 
@@ -828,53 +830,33 @@
                     }
                 });
             }
-            
-            // データが存在する場合、すべてのピンが映るようにマップ範囲を自動調整
-            if (allPointsData.length > 0) {
-                const bounds = new google.maps.LatLngBounds();
-                let validCount = 0;
-                allPointsData.forEach(p => {
-                    const lat = parseFloat(p[1]), lng = parseFloat(p[2]);
-                    if (!isNaN(lat) && !isNaN(lng)) {
-                        bounds.extend({ lat: lat, lng: lng });
-                        validCount++;
-                    }
-                });
-                if (validCount > 0) {
-                    map.fitBounds(bounds);
-                }
-            }
-
-            document.getElementById('status-display').textContent = `✅ 同期完了 (水深データ:${allPointsData.length}件)`;
+            document.getElementById('status-display').textContent = `✅ 同期完了 (データ:${allPointsData.length}件)`;
         } catch (e) { 
             console.error("同期失敗", e);
-            document.getElementById('status-display').textContent = "❌ 通信失敗 (API URLを確認してください)"; 
+            document.getElementById('status-display').textContent = "❌ 通信失敗"; 
         }
         showLoading(false);
     }
 
     function calculateTideAndRefresh() {
         const val = document.getElementById('target-datetime').value;
-        if (!val || fullTideMasterData.length === 0) {
-            refreshMarkersOnMap();
-            return;
-        }
-        const s = new Date(val);
-        const y = s.getFullYear(), m = s.getMonth() + 1, d = s.getDate(), h = s.getHours(), min = s.getMinutes();
-        
-        const row = fullTideMasterData.find(r => {
-            if (!r[0]) return false;
-            const rd = new Date(r[0]);
-            return rd.getFullYear() === y && (rd.getMonth()+1) === m && rd.getDate() === d;
-        });
-
-        if (row) {
-            const t1 = parseFloat(row[1+h]), t2 = (h<23)?parseFloat(row[1+h+1]):t1;
-            if (!isNaN(t1)) {
-                currentSelectedTide = t1 + (t2-t1)*(min/60);
-                document.getElementById('status-display').textContent = `潮位(${d}日 ${h}時): ${currentSelectedTide.toFixed(1)}cm | 水深:${allPointsData.length}件`;
+        if (val && fullTideMasterData && fullTideMasterData.length > 0) {
+            const s = new Date(val);
+            const y = s.getFullYear(), m = s.getMonth() + 1, d = s.getDate(), h = s.getHours(), min = s.getMinutes();
+            const row = fullTideMasterData.find(r => {
+                if (!r[0]) return false;
+                const rd = new Date(r[0]);
+                return rd.getFullYear() === y && (rd.getMonth()+1) === m && rd.getDate() === d;
+            });
+            if (row) {
+                const t1 = parseFloat(row[1+h]), t2 = (h<23)?parseFloat(row[1+h+1]):t1;
+                if (!isNaN(t1)) {
+                    currentSelectedTide = t1 + (t2-t1)*(min/60);
+                    document.getElementById('status-display').textContent = `潮位(${d}日 ${h}時): ${currentSelectedTide.toFixed(1)}cm | 水深:${allPointsData.length}件`;
+                }
             }
         }
+        // ★潮位マスターデータの有無に関わらず、必ずピン描画を実行（v3.7.3の重要設計）
         refreshMarkersOnMap();
     }
 
@@ -888,7 +870,7 @@
             const lat = parseFloat(p[1]);
             const lng = parseFloat(p[2]);
             
-            // 有効な座標数値でない行はスキップ
+            // 緯度・経度が数値に変換できないものはスキップ
             if (isNaN(lat) || isNaN(lng)) return;
 
             const pType = p[6] || "";
@@ -898,7 +880,6 @@
                 if (!isHazard) return;
             }
 
-            // Index 4 : baseDepth
             const baseDepth = parseFloat(p[4]) || 0;
             const simDepth = baseDepth + currentSelectedTide;
             createMarker({id: p[0], lat: lat, lng: lng, baseDepth: baseDepth, simDepth: simDepth, type: pType, comment: p[7] || ""});
