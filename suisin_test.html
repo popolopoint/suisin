@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.5.1 -->
-    <title>水深測っ太郎 v3.9.9 by Popolo App.com</title>
+    <!-- コード名: 6.5.2 -->
+    <title>水深測っ太郎 v3.9.11 by Popolo App.com</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; position: relative; }
         .app-header { background: #3498db; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; }
@@ -149,30 +149,30 @@
         }
     </style>
 </head>
-<body class="is-input-mode">
+<body>
 
 <div id="loading">📡 通信中...</div>
-<div class="app-header">水深測っ太郎 v3.9.9 by Popolo App.com</div>
+<div class="app-header">水深測っ太郎 v3.9.11 by Popolo App.com</div>
 
 <div class="mode-tabs" id="mode-tabs">
-    <button class="tab-btn active" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
-    <button class="tab-btn" id="tab-sync-mode" onclick="switchViewMode('sync-mode', this)">📡 位置送受信</button>
+    <button class="tab-btn" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
+    <button class="tab-btn active" id="tab-sync-mode" onclick="switchViewMode('sync-mode', this)">📡 位置送受信</button>
     <button class="tab-btn" id="tab-register-mode" onclick="switchViewMode('register-mode', this)">🗺️ 位置登録</button>
 </div>
 
 <div class="ui-panel" id="ui-panel">
     <!-- ⏳ 共通の日時・ステータスパネル -->
-    <div class="datetime-panel" id="global-datetime-panel">
+    <div class="datetime-panel" id="global-datetime-panel" style="display:none;">
         <div class="datetime-row">
             <input type="datetime-local" id="target-datetime" onchange="calculateTideAndRefresh()">
             <button onclick="setNow()" style="padding: 10px 8px; background: #3498db; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight:bold;">現在</button>
             <button onclick="openTideTableModal()" style="padding: 10px 8px; background: #9b59b6; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight:bold;">潮位</button>
         </div>
-        <div id="status-display" class="status-bar">⏳ 起動中...</div>
+        <div id="status-display" class="status-bar">⏳ 未同期（更新ボタンを押してください）</div>
     </div>
 
     <!-- 1️⃣ データ入力 -->
-    <div id="sec-input-mode" class="mode-section active">
+    <div id="sec-input-mode" class="mode-section">
         <div class="type-selector">
             <button class="type-btn active" onclick="selectType('平地', this)">平地</button>
             <button class="type-btn" onclick="selectType('岩大', this)">岩大</button> 
@@ -188,7 +188,7 @@
     </div>
 
     <!-- 2️⃣ 位置送受信 -->
-    <div id="sec-sync-mode" class="mode-section">
+    <div id="sec-sync-mode" class="mode-section active">
         <div class="quick-sync-panel">
             <div class="quick-sync-title">🗺️ ワンタップ現在位置送信</div>
             <div class="quick-btn-row">
@@ -349,7 +349,7 @@
         if (btnElement) {
             btnElement.classList.add('active');
         } else {
-            if(targetMode === 'input-mode') document.getElementById('tab-input-mode').classList.add('active');
+            if(targetMode === 'sync-mode') document.getElementById('tab-sync-mode').classList.add('active');
         }
         
         document.querySelectorAll('.mode-section').forEach(sec => sec.classList.remove('active'));
@@ -388,30 +388,25 @@
         const isInputMode = document.getElementById('sec-input-mode').classList.contains('active');
 
         if (isInputMode) {
-            // 📊 データ入力タブのとき： 0(通常) -> 1(日時パネルのみ) -> 2(完全全画面) -> 0
             uiState = (uiState + 1) % 3;
 
             if (uiState === 0) {
-                // 通常表示（すべて表示）
                 panel.classList.remove('hidden');
                 panel.classList.remove('datetime-only');
                 tabs.classList.remove('hidden');
                 icon.innerText = '🔭';
             } else if (uiState === 1) {
-                // 🕒 日時パネルだけ表示（タブは隠し、ui-panel自体は隠さない）
                 panel.classList.remove('hidden');
                 panel.classList.add('datetime-only');
                 tabs.classList.add('hidden');
                 icon.innerText = '📲';
             } else if (uiState === 2) {
-                // 📥 完全全画面（すべて隠す）
                 panel.classList.add('hidden');
                 panel.classList.remove('datetime-only');
                 tabs.classList.add('hidden');
                 icon.innerText = '📥';
             }
         } else {
-            // 📡 その他のタブは通常の1段階切り替え
             panel.classList.toggle('hidden');
             tabs.classList.toggle('hidden');
             const isHidden = panel.classList.contains('hidden');
@@ -780,7 +775,6 @@
         });
         
         setNow();
-        await syncData();
         updateMyLocation(true);
         navigator.geolocation.watchPosition(updateMyLocation, null, {enableHighAccuracy: true});
 
@@ -792,7 +786,8 @@
             handleMeasureClick(e.latLng);
         });
 
-        switchViewMode('input-mode', document.getElementById('tab-input-mode'));
+        // 🚀 アプリ起動時はデータを自動取得せず、位置送受信タブをトップページとして開く
+        switchViewMode('sync-mode', document.getElementById('tab-sync-mode'));
     }
 
     function handleMeasureClick(latLng) {
@@ -1008,7 +1003,7 @@
     function openTideTableModal() {
         const val = document.getElementById('target-datetime').value;
         if (!val || fullTideMasterData.length === 0) {
-            alert("潮位マスターデータが読み込まれていません。通信状況を確認してください。");
+            alert("潮位データが読み込まれていません。右側のオレンジ色の更新ボタン(🔄)を押してデータを読み込んでください。");
             return;
         }
 
