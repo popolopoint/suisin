@@ -3,29 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.3.8 -->
-    <title>水深測っ太郎 v3.7.3 by Popolo App.com</title>
+    <!-- コード名: 6.6.1 -->
+    <title>水深測っ太郎 v4.1.1 by Popolo App.com</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; position: relative; }
-        .app-header { background: #3498db; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; }
         
-        .mode-tabs { display: flex; background: #2c3e50; padding: 2px; flex-shrink: 0; gap: 2px; transition: margin-top 0.3s ease; }
-        .mode-tabs.hidden { margin-top: -60px; } 
+        /* 📱 アプリ名ヘッダー */
+        .app-header { background: #3498db; color: white; padding: 8px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; z-index: 1001; transition: transform 0.3s ease, height 0.3s ease, padding 0.3s ease; }
+        .app-header.hidden { transform: translateY(-120%); height: 0; padding: 0; overflow: hidden; }
+
+        /* 🗺️ マップコンテナ */
+        #map-container { flex-grow: 1; position: relative; width: 100%; height: 100%; }
+        #map { width: 100%; height: 100%; }
+
+        /* 🎛️ パネル群をbody直下に置き、画面最上部に固定 */
+        .panel-wrapper { position: absolute; top: 0; left: 0; width: 100%; z-index: 3000; pointer-events: none; display: flex; flex-direction: column; }
+        .panel-wrapper > * { pointer-events: auto; }
+
+        .mode-tabs { display: flex; background: #2c3e50; padding: 2px; gap: 2px; transition: transform 0.3s ease, opacity 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .mode-tabs.hidden { transform: translateY(-120%); opacity: 0; pointer-events: none; } 
 
         .tab-btn { flex: 1; padding: 12px 6px; border: none; background: #34495e; color: #bdc3c7; font-weight: bold; font-size: 0.85rem; cursor: pointer; transition: background 0.2s, color 0.2s; text-align: center; }
         .tab-btn.active { background: #3498db; color: white; border-bottom: 3px solid #2980b9; }
 
-        .ui-panel { background: white; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 1000; flex-shrink: 0; transition: margin-top 0.3s ease; }
-        .ui-panel.hidden { margin-top: -520px; } 
+        .ui-panel { background: white; padding: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: transform 0.3s ease; }
+        .ui-panel.hidden { transform: translateY(-140%); } 
+        
+        /* 🔭 1段階目：日時パネルだけを残す */
+        .ui-panel.datetime-only { background: transparent !important; box-shadow: none !important; padding: 0 !important; transform: translateY(0); }
+        .ui-panel.datetime-only .datetime-panel { margin: 0 !important; box-shadow: 0 2px 6px rgba(0,0,0,0.2); background: white; border-radius: 0 0 8px 8px; border-top: none; }
+        .ui-panel.datetime-only .mode-section { display: none !important; }
+        .ui-panel.datetime-only #status-display { display: none !important; }
 
         .mode-section { display: none; }
         .mode-section.active { display: block; }
 
         /* 時刻・潮位パネル */
         .datetime-panel { background: #ebf5fb; padding: 8px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #aed6f1; }
-        .datetime-row { display: flex; gap: 6px; align-items: center; }
+        .datetime-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
         #target-datetime { flex: 1; padding: 10px; border: 1px solid #3498db; border-radius: 6px; font-size: 0.9rem; }
         
+        /* 🕒 日時クイック操作ボタン群 */
+        .datetime-quick-row { display: flex; gap: 4px; }
+        .dt-quick-btn { flex: 1; background: #2980b9; color: white; border: none; padding: 8px 4px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; text-align: center; }
+        .dt-quick-btn:active { background: #1f618d; }
+        .dt-quick-btn.day-btn { background: #8e44ad; }
+        .dt-quick-btn.day-btn:active { background: #6c3483; }
+
         /* 🕒 データ入力モード時の日時入力サイズ */
         body.is-input-mode #target-datetime {
             font-size: 1.6rem !important;
@@ -74,15 +98,13 @@
         #btnDeleteBoat { background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; }
 
         .status-bar { font-size: 0.75rem; color: #666; text-align: center; margin-top: 5px; font-weight: bold; }
-        #map-container { flex-grow: 1; position: relative; }
-        #map { width: 100%; height: 100%; }
         
         .depth-legend { position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.95); padding: 8px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border: 1px solid #ddd; z-index: 10; font-size: 0.7rem; font-weight: bold; cursor: pointer; }
         .legend-content.minimized { display: none; }
         .legend-item { display: flex; align-items: center; margin-bottom: 3px; }
         .color-box { width: 12px; height: 12px; margin-right: 6px; border: 1px solid #333; border-radius: 2px; }
 
-        /* ⚠️ 危険物フィルターボタン（⚠️ OFF / ⚠️ ON 表示） */
+        /* ⚠️ 危険物フィルターボタン */
         .hazard-filter-btn { position: absolute; bottom: 80px; left: 10px; background: white; color: #d35400; padding: 10px 14px; border-radius: 8px; box-shadow: 0 3px 8px rgba(0,0,0,0.3); border: 2px solid #e67e22; z-index: 3500; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.2s, color 0.2s; }
         .hazard-filter-btn.active { background: #e74c3c; color: white; border-color: #c0392b; }
 
@@ -99,9 +121,44 @@
 
         .clear-course-button { position: absolute; bottom: 260px; right: 10px; width: 50px; height: 50px; background: #e74c3c; color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 13px; border: none; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.3); line-height: 1.2; text-align: center; }
 
-        /* 📍 距離測定バナーを画面中央の下に移動 */
         .measure-result-banner { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); background: rgba(46, 204, 113, 0.95); color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.25); z-index: 2500; display: none; text-align: center; white-space: nowrap; }
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 4000; font-weight: bold; color: #3498db; }
+
+        /* 🌊 潮位表モーダル スタイル */
+        .tide-table-modal-body {
+            max-height: 65vh;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .tide-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 8px;
+        }
+        .tide-row-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+        .tide-row-item .col-time,
+        .tide-row-item .col-val {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+
+        .tide-hl-info {
+            background: #f8f9f9;
+            border: 1px solid #d5dbdb;
+            border-radius: 6px;
+            padding: 8px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
 
         @keyframes pulse {
             0% { transform: scale(1); }
@@ -110,78 +167,89 @@
         }
     </style>
 </head>
-<body class="is-input-mode">
+<body>
 
 <div id="loading">📡 通信中...</div>
-<div class="app-header">水深測っ太郎 v3.7.3 by Popolo App.com</div>
+<div class="app-header" id="app-header">水深測っ太郎 v4.1.1 by Popolo App.com</div>
 
-<div class="mode-tabs" id="mode-tabs">
-    <button class="tab-btn active" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
-    <button class="tab-btn" id="tab-sync-mode" onclick="switchViewMode('sync-mode', this)">📡 位置送受信</button>
-    <button class="tab-btn" id="tab-register-mode" onclick="switchViewMode('register-mode', this)">🗺️ 位置登録</button>
-</div>
-
-<div class="ui-panel" id="ui-panel">
-    <!-- ⏳ 共通の日時・ステータスパネル -->
-    <div class="datetime-panel" id="global-datetime-panel">
-        <div class="datetime-row">
-            <input type="datetime-local" id="target-datetime" onchange="calculateTideAndRefresh()">
-            <button onclick="setNow()" style="padding: 10px; background: #3498db; color: white; border: none; border-radius: 6px; font-size: 0.8rem;">現在</button>
-        </div>
-        <div id="status-display" class="status-bar">⏳ 起動中...</div>
+<!-- 🎛️ パネル群 -->
+<div class="panel-wrapper">
+    <div class="mode-tabs" id="mode-tabs">
+        <button class="tab-btn" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
+        <button class="tab-btn active" id="tab-sync-mode" onclick="switchViewMode('sync-mode', this)">📡 位置送受信</button>
+        <button class="tab-btn" id="tab-register-mode" onclick="switchViewMode('register-mode', this)">🗺️ 位置登録</button>
     </div>
 
-    <!-- 1️⃣ データ入力 -->
-    <div id="sec-input-mode" class="mode-section active">
-        <div class="type-selector">
-            <button class="type-btn active" onclick="selectType('平地', this)">平地</button>
-            <button class="type-btn" onclick="selectType('岩大', this)">岩大</button> 
-            <button class="type-btn" onclick="selectType('岩', this)">岩</button>
-            <button class="type-btn" onclick="selectType('杭', this)">杭</button>
+    <div class="ui-panel" id="ui-panel">
+        <!-- ⏳ 共通の日時・ステータスパネル -->
+        <div class="datetime-panel" id="global-datetime-panel" style="display:none;">
+            <div class="datetime-row">
+                <input type="datetime-local" id="target-datetime" onchange="calculateTideAndRefresh()">
+                <button onclick="setNow()" style="padding: 10px 8px; background: #3498db; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight:bold;">現在</button>
+                <button onclick="openTideTableModal()" style="padding: 10px 8px; background: #9b59b6; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight:bold;">潮位</button>
+            </div>
+            <!-- 🕒 1時間単位 & 前日翌日ジャンプボタン -->
+            <div class="datetime-quick-row">
+                <button class="dt-quick-btn day-btn" onclick="adjustDateTime(-24)">◀ 前日</button>
+                <button class="dt-quick-btn" onclick="adjustDateTime(-1)">-1時間</button>
+                <button class="dt-quick-btn" onclick="adjustDateTime(1)">+1時間</button>
+                <button class="dt-quick-btn day-btn" onclick="adjustDateTime(24)">翌日 ▶</button>
+            </div>
+            <div id="status-display" class="status-bar">⏳ 未同期（更新ボタンを押してください）</div>
         </div>
-        <div class="input-row">
-            <input type="text" id="depth-input" placeholder="今測った水深(cm)">
-            <button class="btn-record" onclick="recordAtCurrentLocation()">記録</button>
-            <button onclick="openModal('admin-modal')" style="width:40px; height:45px; border-radius:6px; border:none; background:#95a5a6; color:white;">🔑</button>
-        </div>
-        <input type="text" id="comment-input" placeholder="一言コメント（任意）">
-    </div>
 
-    <!-- 2️⃣ 位置送受信 -->
-    <div id="sec-sync-mode" class="mode-section">
-        <div class="quick-sync-panel">
-            <div class="quick-sync-title">🗺️ ワンタップ現在位置送信</div>
-            <div class="quick-btn-row">
-                <button class="btn-quick-send boat" onclick="sendQuickLocation('BOAT')">⚓ フネ登録</button>
-                <button class="btn-quick-send buoy" onclick="sendQuickLocation('BUOY')">🟧 ブイ登録</button>
+        <!-- 1️⃣ データ入力 -->
+        <div id="sec-input-mode" class="mode-section">
+            <div class="type-selector">
+                <button class="type-btn active" onclick="selectType('平地', this)">平地</button>
+                <button class="type-btn" onclick="selectType('岩大', this)">岩大</button> 
+                <button class="type-btn" onclick="selectType('岩', this)">岩</button>
+                <button class="type-btn" onclick="selectType('杭', this)">杭</button>
+            </div>
+            <div class="input-row">
+                <input type="text" id="depth-input" placeholder="今測った水深(cm)">
+                <button class="btn-record" onclick="recordAtCurrentLocation()">記録</button>
+                <button onclick="openModal('admin-modal')" style="width:40px; height:45px; border-radius:6px; border:none; background:#95a5a6; color:white;">🔑</button>
+            </div>
+            <input type="text" id="comment-input" placeholder="一言コメント（任意）">
+        </div>
+
+        <!-- 2️⃣ 位置送受信 -->
+        <div id="sec-sync-mode" class="mode-section active">
+            <div class="quick-sync-panel">
+                <div class="quick-sync-title">🗺️ ワンタップ現在位置送信</div>
+                <div class="quick-btn-row">
+                    <button class="btn-quick-send boat" onclick="sendQuickLocation('BOAT')">⚓ フネ登録</button>
+                    <button class="btn-quick-send buoy" onclick="sendQuickLocation('BUOY')">🟧 ブイ登録</button>
+                </div>
+            </div>
+
+            <div class="voice-panel">
+                <button id="btn-voice-start" class="btn-voice" onclick="toggleSpeechRecognition()">
+                    <span id="voice-icon">🎙️</span> 音声入力開始
+                </button>
+                <div id="voice-status" class="voice-status">声で「フネ登録」や「ブイ登録」「深さ〇〇センチ」</div>
+                <button id="btn-voice-confirm" class="voice-confirm-btn" onclick="executePendingVoiceCommand()">✅ [ OK ] 登録する</button>
+            </div>
+            <div style="background: #eaf2f8; padding: 12px; border-radius: 8px; border: 1px solid #a9cce3; font-size: 0.85rem; font-weight: bold; color: #2471a3; line-height: 1.4;">
+                📣 <strong>送受信インフォメーション</strong><br>
+                ・海上から送信後、無線で「送ったよ」と連絡を受けたら、右側の <strong>オレンジ色の更新ボタン(🔄)</strong> を押して位置情報を画面へ反映してください。
             </div>
         </div>
 
-        <div class="voice-panel">
-            <button id="btn-voice-start" class="btn-voice" onclick="toggleSpeechRecognition()">
-                <span id="voice-icon">🎙️</span> 音声入力開始
-            </button>
-            <div id="voice-status" class="voice-status">声で「フネ登録」や「ブイ登録」「深さ〇〇センチ」</div>
-            <button id="btn-voice-confirm" class="voice-confirm-btn" onclick="executePendingVoiceCommand()">✅ [ OK ] 登録する</button>
-        </div>
-        <div style="background: #eaf2f8; padding: 12px; border-radius: 8px; border: 1px solid #a9cce3; font-size: 0.85rem; font-weight: bold; color: #2471a3; line-height: 1.4;">
-            📣 <strong>送受信インフォメーション</strong><br>
-            ・海上から送信後、無線で「送ったよ」と連絡を受けたら、右側の <strong>オレンジ色の更新ボタン(🔄)</strong> を押して位置情報を画面へ反映してください。
-        </div>
-    </div>
-
-    <!-- 3️⃣ 位置登録 -->
-    <div id="sec-register-mode" class="mode-section">
-        <div class="honbu-panel">
-            <div class="honbu-title">⚓ 船・ブイ配置 / タップして削除・編集</div>
-            <div class="honbu-grid">
-                <input type="text" id="inputBoatName" placeholder="マーク名" value="本部船">
-                <input type="number" id="inputBoatLat" step="any" placeholder="緯度 (Lat)">
-                <input type="number" id="inputBoatLng" step="any" placeholder="経度 (Lng)">
-            </div>
-            <div class="honbu-buttons">
-                <button id="btnSaveBoat" onclick="handleSaveBoat()">🗺️ 配置 / 更新</button>
-                <button id="btnDeleteBoat" onclick="handleDeleteBoat()">削除</button>
+        <!-- 3️⃣ 位置登録 -->
+        <div id="sec-register-mode" class="mode-section">
+            <div class="honbu-panel">
+                <div class="honbu-title">⚓ 船・ブイ配置 / タップして削除・編集</div>
+                <div class="honbu-grid">
+                    <input type="text" id="inputBoatName" placeholder="マーク名" value="本部船">
+                    <input type="number" id="inputBoatLat" step="any" placeholder="緯度 (Lat)">
+                    <input type="number" id="inputBoatLng" step="any" placeholder="経度 (Lng)">
+                </div>
+                <div class="honbu-buttons">
+                    <button id="btnSaveBoat" onclick="handleSaveBoat()">🗺️ 配置 / 更新</button>
+                    <button id="btnDeleteBoat" onclick="handleDeleteBoat()">削除</button>
+                </div>
             </div>
         </div>
     </div>
@@ -190,7 +258,7 @@
 <div id="map-container">
     <div id="map"></div>
     
-    <!-- ⚠️ 危険物のみ表示ボタン（⚠️ OFF / ⚠️ ON 表示） -->
+    <!-- ⚠️ 危険物のみ表示ボタン -->
     <button class="hazard-filter-btn" id="hazard-filter-btn" onclick="toggleHazardOnly()">⚠️ OFF</button>
 
     <button class="view-toggle-btn" onclick="toggleUIPanel()" id="toggle-icon">🔭</button>
@@ -204,11 +272,11 @@
             <div class="legend-item"><div class="color-box" style="background:#ffa500;"></div>20-40cm (橙)</div>
             <div class="legend-item"><div class="color-box" style="background:#ffff00;"></div>40-60cm (黄)</div>
             <div class="legend-item"><div class="color-box" style="background:#adff2f;"></div>60-80cm (黄緑)</div>
-            <div class="legend-item"><div class="color-box" style="background:#76d7d2;"></div>80-100cm (淡い水色緑)</div>
+            <div class="legend-item"><div class="color-box" style="background:#76d7d2;"></div>80-100cm (淡水色)</div>
             <div class="legend-item"><div class="color-box" style="background:#00ffff;"></div>100-120cm (水色)</div>
             <div class="legend-item"><div class="color-box" style="background:#70a1ff;"></div>120-140cm</div>
             <div class="legend-item"><div class="color-box" style="background:#a29bfe;"></div>140-160cm</div>
-            <div class="legend-item"><div class="color-box" style="background:#000080;"></div>160cm以上</div>
+            <div class="legend-item"><div class="color-box" style="background:#000080;"></div>160cm以上 (紺)</div>
         </div>
     </div>
 
@@ -219,6 +287,7 @@
     <button id="clear-course-btn" class="clear-course-button" onclick="clearSharedCourse()">コース<br>消去</button>
 </div>
 
+<!-- 🔑 管理者設定モーダル -->
 <div id="admin-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:5000; justify-content:center; align-items:center;">
     <div style="background:white; padding:20px; border-radius:12px; width:80%;">
         <h3>管理者設定</h3>
@@ -228,10 +297,29 @@
     </div>
 </div>
 
+<!-- 🌊 潮位表モーダル -->
+<div id="tide-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:5000; justify-content:center; align-items:center;">
+    <div style="background:white; padding:18px; border-radius:12px; width:88%; max-width:380px; box-sizing:border-box;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #3498db; padding-bottom:8px;">
+            <h3 style="margin:0; color:#2c3e50; font-size:1.1rem;">🌊 潮位表</h3>
+            <button onclick="closeModal('tide-modal')" style="background:none; border:none; font-size:1.4rem; cursor:pointer;">✖</button>
+        </div>
+        <div id="tide-modal-date" style="font-weight:bold; color:#3498db; margin-top:8px; font-size:1.1rem; text-align:center;"></div>
+        
+        <div class="tide-table-modal-body">
+            <div id="tide-hl-container" class="tide-hl-info"></div>
+            <div id="tide-list-container" class="tide-list"></div>
+        </div>
+
+        <button onclick="closeModal('tide-modal')" style="width:100%; margin-top:12px; background:#3498db; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold; font-size:1rem; cursor:pointer;">閉じる</button>
+    </div>
+</div>
+
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHhxSJK-IhYiT9XBRwE1MX7DHhghBQQQk&callback=initMap" async defer></script>
 
 <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzEIJD_8R-Lo3ed6byTaCOx27xFiWfHa4ZaYyNihxwYt3huIX0nkynPKTFAySuqkpybBA/exec"; 
+    
     let map, markers = [], allPointsData = [], currentSelectedTide = 0, adminPass = localStorage.getItem('popolo_pass') || "";
     let fullTideMasterData = [];
     let myLocationMarker = null;
@@ -252,6 +340,8 @@
     let isListening = false;
     let pendingCommand = null; 
     let activeInfoWindow = null;
+
+    let uiState = 0; // 0: 通常表示, 1: 日時パネルのみ表示, 2: 完全全画面
 
     function playSuccessBeep() {
         try {
@@ -282,6 +372,29 @@
         } catch(e) { console.log("オーディオ再生失敗", e); }
     }
 
+    /* 🕒 時間・日付のプラスマイナス調整（1時間刻みジャンプ） */
+    function adjustDateTime(hoursDelta) {
+        const input = document.getElementById('target-datetime');
+        let dt = input.value ? new Date(input.value) : new Date();
+        
+        dt.setHours(dt.getHours() + hoursDelta);
+        dt.setMinutes(0);
+        dt.setSeconds(0);
+        dt.setMilliseconds(0);
+
+        dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
+        input.value = dt.toISOString().slice(0, 16);
+        calculateTideAndRefresh();
+    }
+
+    /* ⏱️ 現在ボタン（1分単位の現在の正確な時間を反映） */
+    function setNow() {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('target-datetime').value = now.toISOString().slice(0, 16);
+        if (fullTideMasterData.length > 0) calculateTideAndRefresh();
+    }
+
     function switchViewMode(targetMode, btnElement) {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         if (btnElement) {
@@ -293,6 +406,18 @@
         document.querySelectorAll('.mode-section').forEach(sec => sec.classList.remove('active'));
         const dtPanel = document.getElementById('global-datetime-panel');
         
+        uiState = 0;
+        const panel = document.getElementById('ui-panel');
+        const tabs = document.getElementById('mode-tabs');
+        const header = document.getElementById('app-header');
+        const icon = document.getElementById('toggle-icon');
+
+        panel.classList.remove('hidden');
+        panel.classList.remove('datetime-only');
+        tabs.classList.remove('hidden');
+        header.classList.remove('hidden');
+        icon.innerText = '🔭';
+
         if(targetMode === 'input-mode') {
             document.body.classList.add('is-input-mode');
             document.getElementById('sec-input-mode').classList.add('active');
@@ -308,6 +433,48 @@
                 document.getElementById('sec-sync-mode').classList.add('active');
             }
         }
+    }
+
+    function toggleUIPanel() {
+        const panel = document.getElementById('ui-panel');
+        const tabs = document.getElementById('mode-tabs');
+        const header = document.getElementById('app-header');
+        const icon = document.getElementById('toggle-icon');
+        const isInputMode = document.getElementById('sec-input-mode').classList.contains('active');
+
+        if (isInputMode) {
+            uiState = (uiState + 1) % 3;
+
+            if (uiState === 0) {
+                panel.classList.remove('hidden');
+                panel.classList.remove('datetime-only');
+                tabs.classList.remove('hidden');
+                header.classList.remove('hidden');
+                icon.innerText = '🔭';
+            } else if (uiState === 1) {
+                panel.classList.remove('hidden');
+                panel.classList.add('datetime-only');
+                tabs.classList.add('hidden');
+                header.classList.add('hidden'); 
+                icon.innerText = '📲';
+            } else if (uiState === 2) {
+                panel.classList.add('hidden');
+                panel.classList.remove('datetime-only');
+                tabs.classList.add('hidden');
+                header.classList.add('hidden');
+                icon.innerText = '📥';
+            }
+        } else {
+            panel.classList.toggle('hidden');
+            tabs.classList.toggle('hidden');
+            header.classList.toggle('hidden');
+            const isHidden = panel.classList.contains('hidden');
+            icon.innerText = isHidden ? '📥' : '🔭';
+        }
+        
+        setTimeout(() => {
+            if (map) google.maps.event.trigger(map, 'resize');
+        }, 300);
     }
 
     function toggleHazardOnly() {
@@ -370,36 +537,21 @@
         btn.classList.add('active');
     }
 
-    function toggleUIPanel() {
-        const panel = document.getElementById('ui-panel');
-        const tabs = document.getElementById('mode-tabs');
-        const icon = document.getElementById('toggle-icon');
-        
-        panel.classList.toggle('hidden');
-        tabs.classList.toggle('hidden');
-        
-        const isHidden = panel.classList.contains('hidden');
-        icon.innerText = isHidden ? '📥' : '🔭';
-    }
-
     function toggleLegend() {
         const content = document.getElementById('legend-content');
         content.classList.toggle('minimized');
     }
 
     function toggleMapStyle() {
-        mapStyleMode = (mapStyleMode + 1) % 3; // 0 -> 1 -> 2 -> 0... と巡回
+        mapStyleMode = (mapStyleMode + 1) % 3;
         
         if (mapStyleMode === 0) {
-            // 通常マップ
             map.setMapTypeId('roadmap');
             map.setOptions({ styles: [] });
         } else if (mapStyleMode === 1) {
-            // 白背景マップ
             map.setMapTypeId('roadmap');
             map.setOptions({ styles: whiteMapStyle });
         } else if (mapStyleMode === 2) {
-            // 航空写真（ハイブリッド：写真＋地名ラベル）
             map.setOptions({ styles: [] });
             map.setMapTypeId('hybrid');
         }
@@ -686,7 +838,6 @@
         });
         
         setNow();
-        await syncData();
         updateMyLocation(true);
         navigator.geolocation.watchPosition(updateMyLocation, null, {enableHighAccuracy: true});
 
@@ -698,7 +849,7 @@
             handleMeasureClick(e.latLng);
         });
 
-        switchViewMode('input-mode', document.getElementById('tab-input-mode'));
+        switchViewMode('sync-mode', document.getElementById('tab-sync-mode'));
     }
 
     function handleMeasureClick(latLng) {
@@ -773,7 +924,7 @@
                     }
                 });
             }
-            document.getElementById('status-display').textContent = "✅ 同期完了";
+            document.getElementById('status-display').textContent = `✅ 同期完了 (データ:${allPointsData.length}件)`;
         } catch (e) { 
             console.error("同期失敗", e);
             document.getElementById('status-display').textContent = "❌ 通信失敗"; 
@@ -783,17 +934,21 @@
 
     function calculateTideAndRefresh() {
         const val = document.getElementById('target-datetime').value;
-        if (!val || fullTideMasterData.length === 0) return;
-        const s = new Date(val);
-        const y = s.getFullYear(), m = s.getMonth() + 1, d = s.getDate(), h = s.getHours(), min = s.getMinutes();
-        const row = fullTideMasterData.find(r => {
-            const rd = new Date(r[0]);
-            return rd.getFullYear() === y && (rd.getMonth()+1) === m && rd.getDate() === d;
-        });
-        if (row) {
-            const t1 = parseFloat(row[1+h]), t2 = (h<23)?parseFloat(row[1+h+1]):t1;
-            currentSelectedTide = t1 + (t2-t1)*(min/60);
-            document.getElementById('status-display').textContent = `潮位(${d}日 ${h}時): ${currentSelectedTide.toFixed(1)}cm`;
+        if (val && fullTideMasterData && fullTideMasterData.length > 0) {
+            const s = new Date(val);
+            const y = s.getFullYear(), m = s.getMonth() + 1, d = s.getDate(), h = s.getHours(), min = s.getMinutes();
+            const row = fullTideMasterData.find(r => {
+                if (!r[0]) return false;
+                const rd = new Date(r[0]);
+                return rd.getFullYear() === y && (rd.getMonth()+1) === m && rd.getDate() === d;
+            });
+            if (row) {
+                const t1 = parseFloat(row[1+h]), t2 = (h<23)?parseFloat(row[1+h+1]):t1;
+                if (!isNaN(t1)) {
+                    currentSelectedTide = t1 + (t2-t1)*(min/60);
+                    document.getElementById('status-display').textContent = `潮位(${d}日 ${h}時): ${currentSelectedTide.toFixed(1)}cm | 水深:${allPointsData.length}件`;
+                }
+            }
         }
         refreshMarkersOnMap();
     }
@@ -801,18 +956,25 @@
     function refreshMarkersOnMap() {
         markers.forEach(m => m.setMap(null));
         markers = [];
+        
+        if (!allPointsData || allPointsData.length === 0) return;
+
         allPointsData.forEach(p => {
+            const lat = parseFloat(p[1]);
+            const lng = parseFloat(p[2]);
+            
+            if (isNaN(lat) || isNaN(lng)) return;
+
             const pType = p[6] || "";
             
-            // ⚠️ 危険物フィルター処理（ONの場合は 岩大, 岩, 杭 以外を非表示）
             if (isHazardOnlyMode) {
                 const isHazard = (pType === "岩大" || pType === "大きい岩" || pType === "大岩" || pType === "岩" || pType === "杭");
-                if (!isHazard) return; // 平地などはスキップ
+                if (!isHazard) return;
             }
 
             const baseDepth = parseFloat(p[4]) || 0;
             const simDepth = baseDepth + currentSelectedTide;
-            createMarker({id:p[0], lat:p[1], lng:p[2], baseDepth:baseDepth, simDepth:simDepth, type:pType, comment:p[7] || ""});
+            createMarker({id: p[0], lat: lat, lng: lng, baseDepth: baseDepth, simDepth: simDepth, type: pType, comment: p[7] || ""});
         });
     }
 
@@ -892,11 +1054,67 @@
         return "#000080";                
     }
 
-    function setNow() {
-        const now = new Date();
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-        document.getElementById('target-datetime').value = now.toISOString().slice(0, 16);
-        if (fullTideMasterData.length > 0) calculateTideAndRefresh();
+    /* 🌊 潮位表モーダル */
+    function openTideTableModal() {
+        const val = document.getElementById('target-datetime').value;
+        if (!val || fullTideMasterData.length === 0) {
+            alert("潮位データが読み込まれていません。右側のオレンジ色の更新ボタン(🔄)を押してデータを読み込んでください。");
+            return;
+        }
+
+        const dt = new Date(val);
+        const y = dt.getFullYear(), m = dt.getMonth() + 1, d = dt.getDate();
+        
+        document.getElementById('tide-modal-date').textContent = `📅 ${y}年${m}月${d}日`;
+
+        const row = fullTideMasterData.find(r => {
+            if (!r[0]) return false;
+            const rd = new Date(r[0]);
+            return rd.getFullYear() === y && (rd.getMonth()+1) === m && rd.getDate() === d;
+        });
+
+        const hlContainer = document.getElementById('tide-hl-container');
+        const listContainer = document.getElementById('tide-list-container');
+
+        if (!row) {
+            hlContainer.style.display = 'block';
+            hlContainer.innerHTML = "⚠️ 該当する日付の潮位マスターデータが見つかりません。";
+            listContainer.innerHTML = "";
+            openModal('tide-modal');
+            return;
+        }
+
+        let hlHtml = "";
+        if (row.length >= 29 && row[25] !== undefined && row[25] !== "") {
+            hlHtml += `<strong>【満潮】</strong> ${row[25]} (${row[26]}cm) / ${row[27] || ''} (${row[28] || ''}cm)<br>`;
+        }
+        if (row.length >= 33 && row[29] !== undefined && row[29] !== "") {
+            hlHtml += `<strong>【干潮】</strong> ${row[29]} (${row[30]}cm) / ${row[31] || ''} (${row[32] || ''}cm)`;
+        }
+
+        if (hlHtml) {
+            hlContainer.style.display = 'block';
+            hlContainer.innerHTML = hlHtml;
+        } else {
+            hlContainer.style.display = 'none';
+        }
+
+        let listHtml = "";
+        for (let h = 8; h <= 19; h++) {
+            const tideVal = parseFloat(row[1 + h]) || 0;
+            const bgCol = getDepthColor(tideVal);
+            const textCol = getContrastColor(bgCol);
+
+            listHtml += `
+                <div class="tide-row-item" style="background-color: ${bgCol}; color: ${textCol};">
+                    <div class="col-time">${h}:00</div>
+                    <div class="col-val">${tideVal.toFixed(0)} cm</div>
+                </div>
+            `;
+        }
+        listContainer.innerHTML = listHtml;
+
+        openModal('tide-modal');
     }
 
     function recordAtCurrentLocation() {
