@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.6.8 -->
-    <title>水深測っ太郎 v4.1.8 by Popolo App.com</title>
+    <!-- コード名: 6.6.9 -->
+    <title>水深測っ太郎 v4.1.9 by Popolo App.com</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; position: relative; }
         
-        /* 📱 アプリ名ヘッダー */
+        /* 📱 アプリ名ヘッダー（デフォルト表示、hiddenクラスが付いた時だけ非表示） */
         .app-header { background: #3498db; color: white; padding: 8px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; z-index: 1001; transition: transform 0.3s ease, height 0.3s ease, padding 0.3s ease; }
         .app-header.hidden { transform: translateY(-120%); height: 0; padding: 0; overflow: hidden; }
 
@@ -174,7 +174,7 @@
 
 <div id="loading">📡 通信中...</div>
 <!-- 📱 アプリ名ヘッダー -->
-<div class="app-header" id="app-header">水深測っ太郎 v4.1.8 by Popolo App.com</div>
+<div class="app-header" id="app-header">水深測っ太郎 v4.1.9 by Popolo App.com</div>
 
 <!-- 🎛️ パネル群 -->
 <div class="panel-wrapper" id="panel-wrapper">
@@ -432,7 +432,7 @@
         const header = document.getElementById('app-header');
         const icon = document.getElementById('toggle-icon');
 
-        /* 修正: タブを切り替えた際は必ず通常表示（タイトル表示）にリセットする */
+        // タブ切り替え時は必ず通常表示（タイトル表示）に戻す
         panel.classList.remove('hidden');
         panel.classList.remove('datetime-only');
         tabs.classList.remove('hidden');
@@ -470,28 +470,34 @@
                 panel.classList.remove('hidden');
                 panel.classList.remove('datetime-only');
                 tabs.classList.remove('hidden');
-                header.classList.remove('hidden');
+                header.classList.remove('hidden'); // 通常
                 icon.innerText = '🔭';
             } else if (uiState === 1) {
                 panel.classList.remove('hidden');
                 panel.classList.add('datetime-only');
                 tabs.classList.add('hidden');
-                header.classList.remove('hidden'); 
+                header.classList.remove('hidden'); // 1段階目（日時のみ）：タイトルは表示
                 icon.innerText = '📲';
             } else if (uiState === 2) {
                 panel.classList.add('hidden');
                 panel.classList.remove('datetime-only');
                 tabs.classList.add('hidden');
-                header.classList.add('hidden'); // 完全全画面時はタイトルも一緒に消す
+                header.classList.add('hidden'); // 完全全画面：タイトルも消す
                 icon.innerText = '📥';
             }
         } else {
-            // 位置送受信・位置登録タブのとき（通常 ⇄ 完全全画面 の切り替え）
+            // 位置送受信・位置登録タブのとき（通常 ⇄ 完全全画面）
             panel.classList.toggle('hidden');
             tabs.classList.toggle('hidden');
-            header.classList.toggle('hidden'); // 全画面時はタイトルも一緒に消す
+            
             const isHidden = panel.classList.contains('hidden');
-            icon.innerText = isHidden ? '📥' : '🔭';
+            if (isHidden) {
+                header.classList.add('hidden'); // 全画面時は消す
+                icon.innerText = '📥';
+            } else {
+                header.classList.remove('hidden'); // 通常時は表示する
+                icon.innerText = '🔭';
+            }
         }
         
         setTimeout(() => {
