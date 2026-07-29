@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 6.3.8 -->
-    <title>水深測っ太郎 v3.8.1 by Popolo App.com</title>
+    <title>水深測っ太郎 v3.8.2 by Popolo App.com</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; position: relative; }
         .app-header { background: #3498db; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; }
@@ -114,7 +114,7 @@
 <body class="is-input-mode">
 
 <div id="loading">📡 通信中...</div>
-<div class="app-header">水深測っ太郎 v3.8.1 by Popolo App.com</div>
+<div class="app-header">水深測っ太郎 v3.8.2 by Popolo App.com</div>
 
 <div class="mode-tabs" id="mode-tabs">
     <button class="tab-btn active" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
@@ -404,51 +404,42 @@
         }
     }
 
-    /* どんな形式の日付値からでも確実に「YYYYMMDD」の8桁数字文字列を取り出す超強力関数 */
-    function extractYMDNumbers(val) {
-        if (!val) return "";
-        let d = null;
+   /* どんな形式の日付値からでも確実に「YYYYMMDD」の8桁数字文字列を取り出す確定版関数 */
+function extractYMDNumbers(val) {
+    if (!val) return "";
+    let str = String(val).trim();
 
-        // 1. すでに Date 型の場合
-        if (val instanceof Date && !isNaN(val.getTime())) {
-            d = val;
-        } 
-        // 2. 文字列の場合のパース
-        else {
-            let str = String(val).trim();
-            if (str.includes('T')) str = str.split('T')[0];
-            
-            // ISO / ハイフン / スラッシュ区切りの文字解析
-            const parsedTs = Date.parse(str);
-            if (!isNaN(parsedTs)) {
-                d = new Date(parsedTs);
-            } else {
-                // ハイフン置換して再試行
-                const altTs = Date.parse(str.replace(/-/g, '/'));
-                if (!isNaN(altTs)) {
-                    d = new Date(altTs);
-                } else {
-                    // 正規表現で数字の年・月・日を抽出 (例: 2026/7/28, 2026年7月28日)
-                    const m = str.match(/(\d{4})[^\d]?(\d{1,2})[^\d]?(\d{1,2})/);
-                    if (m) {
-                        const y = m[1];
-                        const mon = ("0" + m[2]).slice(-2);
-                        const day = ("0" + m[3]).slice(-2);
-                        return `${y}${mon}${day}`;
-                    }
-                }
-            }
-        }
+    // 1. 英語月名の変換マッピング
+    const monthMap = { Jan:'01', Feb:'02', Mar:'03', Apr:'04', May:'05', Jun:'06', Jul:'07', Aug:'08', Sep:'09', Oct:'10', Nov:'11', Dec:'12' };
 
-        if (d && !isNaN(d.getTime())) {
-            const y = d.getFullYear();
-            const mon = ("0" + (d.getMonth() + 1)).slice(-2);
-            const day = ("0" + d.getDate()).slice(-2);
-            return `${y}${mon}${day}`;
-        }
-
-        return "";
+    // 2. 「Sat Dec 27 2025...」形式の直接抽出 (例: Dec 27 2025)
+    const engMatch = str.match(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2})\s+(\d{4})/i);
+    if (engMatch) {
+        const mon = monthMap[engMatch[1].substring(0, 3)];
+        const day = ("0" + engMatch[2]).slice(-2);
+        const y = engMatch[3];
+        return `${y}${mon}${day}`;
     }
+
+    // 3. 「2026/07/29」「2026-07-29」「2026年07月29日」などの直接抽出
+    const numMatch = str.match(/(\d{4})[^\d]?(\d{1,2})[^\d]?(\d{1,2})/);
+    if (numMatch) {
+        const y = numMatch[1];
+        const mon = ("0" + numMatch[2]).slice(-2);
+        const day = ("0" + numMatch[3]).slice(-2);
+        return `${y}${mon}${day}`;
+    }
+
+    // 4. JavaScriptの Date オブジェクトの場合
+    if (val instanceof Date && !isNaN(val.getTime())) {
+        const y = val.getFullYear();
+        const mon = ("0" + (val.getMonth() + 1)).slice(-2);
+        const day = ("0" + val.getDate()).slice(-2);
+        return `${y}${mon}${day}`;
+    }
+
+    return "";
+}
 
     /* 🌊 選択した日時の潮位を別タブで開く処理 */
     async function openTodayTideWindow() {
