@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.7.6 -->
-    <title>水深測っ太郎 v4.2.7 by Popolo App.com</title>
+    <!-- コード名: 6.7.8 -->
+    <title>水深測っ太郎 v4.2.8 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -87,7 +87,7 @@
         #comment-input { width: 100%; padding: 15px; border: 2px solid #ccc; border-radius: 8px; margin-bottom: 8px; box-sizing: border-box; font-size: 1.6rem; }
         .btn-record { background: #2ecc71; color: white; flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: bold; font-size: 1.8rem; cursor: pointer; }
 
-        /* ワンタップ位置登録用ボタンスタイル（縦を倍サイズに拡大 & 文字も大きく） */
+        /* ワンタップ位置登録用ボタンスタイル（縦倍サイズ・大きな文字） */
         .quick-sync-panel { background: #eaf2f8; padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #a9cce3; }
         .quick-sync-title { font-size: 0.8rem; font-weight: bold; margin-bottom: 6px; color: #2471a3; text-align: center; }
         .quick-btn-row { display: flex; gap: 8px; width: 100%; box-sizing: border-box; }
@@ -98,7 +98,7 @@
         .btn-quick-send.buoy { background-color: #ff8c00; }
         .btn-quick-send.buoy:hover { background-color: #e07b00; }
 
-        /* 音声入力ボタンも縦を倍サイズに拡大 & 文字も大きく */
+        /* 音声入力ボタン（縦倍サイズ・大きな文字） */
         .voice-panel { background: #fdf2e9; padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #f5cba7; box-sizing: border-box; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; width: 100%; }
         .btn-voice { background: #e67e22; color: white; border: none; padding: 24px 12px; border-radius: 8px; font-weight: bold; font-size: 1.45rem; cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%; justify-content: center; box-sizing: border-box; }
         .btn-voice.listening { background: #e74c3c; animation: pulse 1.5s infinite; }
@@ -107,16 +107,19 @@
         .voice-status .huge-command { font-size: 4.2rem; color: #e67e22; font-weight: 900; display: block; margin: 8px 0; letter-spacing: -2px; text-shadow: 1px 1px 0px #fff, -1px -1px 0px #fff; }
         .voice-confirm-btn { display: none; width: 100%; background: #2ecc71; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 1.4rem; font-weight: bold; cursor: pointer; text-align: center; box-sizing: border-box; margin-top: 5px; box-shadow: 0 4px 10px rgba(46,204,113,0.4); }
 
-        .honbu-panel { background: #eef7f2; padding: 8px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #cceadb; box-sizing: border-box; }
-        .honbu-title { font-size: 0.8rem; font-weight: bold; margin-bottom: 4px; color: #1e4620; }
-        .honbu-grid { display: flex; gap: 4px; margin-bottom: 4px; width: 100%; }
-        .honbu-grid input { font-size: 0.95rem; padding: 8px 4px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; min-width: 0; }
-        #inputBoatName { width: 35%; } 
-        #inputBoatLat { width: 32%; text-align: center; }
-        #inputBoatLng { width: 33%; text-align: center; }
-        .honbu-buttons { display: flex; gap: 4px; width: 100%; }
-        #btnSaveBoat { flex: 1; background: #28a745; color: white; border: none; padding: 8px; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; }
-        #btnDeleteBoat { background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; }
+        /* 🗺️ 位置登録パネル（大画面・2行分割レイアウト） */
+        .honbu-panel { background: #eef7f2; padding: 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #cceadb; box-sizing: border-box; }
+        .honbu-title { font-size: 0.95rem; font-weight: bold; margin-bottom: 8px; color: #1e4620; text-align: center; }
+        
+        .honbu-row { display: flex; gap: 8px; margin-bottom: 8px; width: 100%; }
+        .honbu-row input { font-size: 1.5rem; padding: 12px 10px; border-radius: 8px; border: 2px solid #28a745; box-sizing: border-box; width: 100%; font-weight: bold; }
+        #inputBoatName { background: white; }
+        #inputBoatLat, #inputBoatLng { text-align: center; background: white; }
+
+        .honbu-buttons { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 4px; }
+        #btnSaveBoat { width: 100%; background: #28a745; color: white; border: none; padding: 36px 12px; border-radius: 8px; font-size: 1.8rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        #btnSaveBoat:active { background: #218838; transform: scale(0.98); }
+        #btnDeleteBoat { width: 100%; background: #dc3545; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
 
         .status-bar { font-size: 0.75rem; color: #666; text-align: center; margin-top: 5px; font-weight: bold; }
         
@@ -210,7 +213,7 @@
 <div id="loading">📡 通信中...</div>
 
 <!-- 📱 アプリ名ヘッダー（絶対に消えません） -->
-<div id="app-header">水深測っ太郎 v4.2.7 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.2.8 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -279,25 +282,31 @@
                 <div style="background: #eaf2f8; padding: 10px; border-radius: 8px; border: 1px solid #a9cce3; font-size: 0.85rem; font-weight: bold; color: #2471a3; line-height: 1.4; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
                     <div>
                         📣 <strong>送受信インフォメーション</strong><br>
-                        ・フネ、ブイを登録したら、陸上本部に「登録したよ」と教えて、あげて、ね。<BR>
-                        ・海上から送信後、無線で連絡を受けたら右下の <strong>オレンジ色のリセット(🔄)</strong> を押して反映、して、ね。
+                        ・海上から送信後、無線で連絡を受けたら右下の <strong>オレンジ色のリセット(🔄)</strong> を押して反映してください。<br>
+                        ・フネ、ブイを登録したら、陸上本部に「登録したよ」と教えてあげてね。
                     </div>
                     <button onclick="speakInfoText()" style="background: #2980b9; color: white; border: none; padding: 10px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: bold; cursor: pointer; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.15);" title="インフォメーションを読み上げ">🔊 読み上げ</button>
                 </div>
             </div>
 
-            <!-- 3️⃣ 位置登録 -->
+            <!-- 3️⃣ 位置登録（大画面・2行分割レイアウト） -->
             <div id="sec-register-mode" class="mode-section">
                 <div class="honbu-panel">
                     <div class="honbu-title">⚓ 船・ブイ配置 / タップして削除・編集</div>
-                    <div class="honbu-grid">
+                    
+                    <div class="honbu-row">
                         <input type="text" id="inputBoatName" placeholder="マーク名" value="本部船">
+                    </div>
+                    <div class="honbu-row">
                         <input type="number" id="inputBoatLat" step="any" placeholder="緯度 (Lat)">
+                    </div>
+                    <div class="honbu-row">
                         <input type="number" id="inputBoatLng" step="any" placeholder="経度 (Lng)">
                     </div>
+
                     <div class="honbu-buttons">
                         <button id="btnSaveBoat" onclick="handleSaveBoat()">🗺️ 配置 / 更新</button>
-                        <button id="btnDeleteBoat" onclick="handleDeleteBoat()">削除</button>
+                        <button id="btnDeleteBoat" onclick="handleDeleteBoat()">🗑️ 削除する</button>
                     </div>
                 </div>
             </div>
@@ -456,7 +465,7 @@
 
     /* 🔊 送受信インフォメーションの音声読み上げ */
     function speakInfoText() {
-        const msg = "送受信インフォメーション。フネ、ブイを登録したら、陸上本部に「登録したよ」と教えて、あげて、ね。海上から送信後、無線で連絡を受けたら、右下のオレンジ色のリセットボタンを押して、位置情報を画面へ反映、して、ね。";
+        const msg = "送受信インフォメーション。海上から送信後、無線で連絡を受けたら、右下のオレンジ色のリセットボタンを押して、位置情報を画面へ反映してください。また、フネやブイを登録したら、陸上本部に、登録したよ、と教えてあげてください。";
         speakText(msg);
     }
 
