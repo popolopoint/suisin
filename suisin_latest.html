@@ -3,21 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.6.1 -->
-    <title>水深測っ太郎 v4.1.1 by Popolo App.com</title>
+    <!-- コード名: 6.7.3 -->
+    <title>水深測っ太郎 v4.2.3 by Popolo App.com</title>
     <style>
-        body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f4f8; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; position: relative; }
+        * { box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
         
-        /* 📱 アプリ名ヘッダー */
-        .app-header { background: #3498db; color: white; padding: 8px; text-align: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; z-index: 1001; transition: transform 0.3s ease, height 0.3s ease, padding 0.3s ease; }
-        .app-header.hidden { transform: translateY(-120%); height: 0; padding: 0; overflow: hidden; }
+        /* 📱 アプリ名ヘッダー：絶対に消えないよう最上部に常時固定 */
+        #app-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 36px;
+            background: #3498db;
+            color: white;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            line-height: 36px;
+            z-index: 5000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
 
-        /* 🗺️ マップコンテナ */
-        #map-container { flex-grow: 1; position: relative; width: 100%; height: 100%; }
+        /* 🗺️ マップコンテナ：ヘッダーの高さ分（36px）だけ下から表示する */
+        #map-container {
+            position: absolute;
+            top: 36px;
+            left: 0;
+            width: 100%;
+            bottom: 0;
+        }
         #map { width: 100%; height: 100%; }
 
-        /* 🎛️ パネル群をbody直下に置き、画面最上部に固定 */
-        .panel-wrapper { position: absolute; top: 0; left: 0; width: 100%; z-index: 3000; pointer-events: none; display: flex; flex-direction: column; }
+        /* 🎛️ パネル群（マップの上に重ねて配置） */
+        .panel-wrapper { position: absolute; top: 0; left: 0; width: 100%; z-index: 3000; pointer-events: none; display: flex; flex-direction: column; transition: transform 0.3s ease; }
         .panel-wrapper > * { pointer-events: auto; }
 
         .mode-tabs { display: flex; background: #2c3e50; padding: 2px; gap: 2px; transition: transform 0.3s ease, opacity 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
@@ -48,7 +68,7 @@
         .dt-quick-btn { flex: 1; background: #2980b9; color: white; border: none; padding: 8px 4px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; text-align: center; }
         .dt-quick-btn:active { background: #1f618d; }
         .dt-quick-btn.day-btn { background: #8e44ad; }
-        .dt-quick-btn.day-btn:active { background: #6c3483; }
+        .dt-quick-btn.day-btn.active, .dt-quick-btn.day-btn:active { background: #6c3483; }
 
         /* 🕒 データ入力モード時の日時入力サイズ */
         body.is-input-mode #target-datetime {
@@ -104,25 +124,28 @@
         .legend-item { display: flex; align-items: center; margin-bottom: 3px; }
         .color-box { width: 12px; height: 12px; margin-right: 6px; border: 1px solid #333; border-radius: 2px; }
 
-        /* ⚠️ 危険物フィルターボタン */
-        .hazard-filter-btn { position: absolute; bottom: 80px; left: 10px; background: white; color: #d35400; padding: 10px 14px; border-radius: 8px; box-shadow: 0 3px 8px rgba(0,0,0,0.3); border: 2px solid #e67e22; z-index: 3500; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.2s, color 0.2s; }
-        .hazard-filter-btn.active { background: #e74c3c; color: white; border-color: #c0392b; }
-
-        .view-toggle-btn { position: absolute; bottom: 20px; left: 10px; width: 50px; height: 50px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 2000; cursor: pointer; font-size: 24px; border: none; }
-        .measure-clear-btn { position: absolute; bottom: 20px; left: 70px; width: 50px; height: 50px; background: #95a5a6; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: none; justify-content: center; align-items: center; z-index: 2000; cursor: pointer; font-size: 13px; font-weight: bold; border: none; text-align: center; line-height: 1.2; }
-
-        .gps-button { position: absolute; bottom: 20px; right: 10px; width: 50px; height: 50px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; }
-        .map-style-button { position: absolute; bottom: 80px; right: 10px; width: 50px; height: 50px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 22px; border: none; }
-        .measure-button { position: absolute; bottom: 140px; right: 10px; width: 50px; height: 50px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 22px; border: none; transition: background 0.3s; }
-        .measure-button.active { background: #2ecc71; color: white; }
+        /* 🧭 右下フローティングボタン群 */
+        .view-toggle-btn { position: absolute; bottom: 20px; right: 10px; width: 50px; height: 50px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; }
         
-        .sync-button { position: absolute; bottom: 200px; right: 10px; width: 50px; height: 50px; background: #e67e22; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; transition: transform 0.2s; }
+        .sync-button { position: absolute; bottom: 80px; right: 10px; width: 50px; height: 50px; background: #e67e22; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; transition: transform 0.2s; }
         .sync-button:active { transform: scale(0.9); }
 
-        .clear-course-button { position: absolute; bottom: 260px; right: 10px; width: 50px; height: 50px; background: #e74c3c; color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 13px; border: none; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.3); line-height: 1.2; text-align: center; }
+        .menu-main-btn { position: absolute; bottom: 140px; right: 10px; width: 50px; height: 50px; background: #2c3e50; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; }
+        
+        /* メニューで開閉する機能ボタン群（デフォルト非表示） */
+        .sub-menu-container { display: none; flex-direction: column; gap: 10px; position: absolute; bottom: 200px; right: 10px; z-index: 3000; }
+        .sub-menu-container.open { display: flex; }
+
+        .sub-menu-btn { width: 50px; height: 50px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 22px; border: none; transition: background 0.3s, color 0.3s; position: relative; }
+        .sub-menu-btn.active { background: #2ecc71; color: white; }
+        .sub-menu-btn.hazard.active { background: #e74c3c; color: white; border-color: #c0392b; }
+
+        .measure-clear-btn { position: absolute; bottom: 20px; left: 70px; width: 50px; height: 50px; background: #95a5a6; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: none; justify-content: center; align-items: center; z-index: 2000; cursor: pointer; font-size: 13px; font-weight: bold; border: none; text-align: center; line-height: 1.2; }
+
+        .clear-course-button { position: absolute; bottom: 20px; left: 10px; width: 50px; height: 50px; background: #e74c3c; color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 13px; border: none; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.3); line-height: 1.2; text-align: center; }
 
         .measure-result-banner { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); background: rgba(46, 204, 113, 0.95); color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.25); z-index: 2500; display: none; text-align: center; white-space: nowrap; }
-        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 4000; font-weight: bold; color: #3498db; }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 6000; font-weight: bold; color: #3498db; }
 
         /* 🌊 潮位表モーダル スタイル */
         .tide-table-modal-body {
@@ -170,103 +193,118 @@
 <body>
 
 <div id="loading">📡 通信中...</div>
-<div class="app-header" id="app-header">水深測っ太郎 v4.1.1 by Popolo App.com</div>
 
-<!-- 🎛️ パネル群 -->
-<div class="panel-wrapper">
-    <div class="mode-tabs" id="mode-tabs">
-        <button class="tab-btn" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
-        <button class="tab-btn active" id="tab-sync-mode" onclick="switchViewMode('sync-mode', this)">📡 位置送受信</button>
-        <button class="tab-btn" id="tab-register-mode" onclick="switchViewMode('register-mode', this)">🗺️ 位置登録</button>
-    </div>
-
-    <div class="ui-panel" id="ui-panel">
-        <!-- ⏳ 共通の日時・ステータスパネル -->
-        <div class="datetime-panel" id="global-datetime-panel" style="display:none;">
-            <div class="datetime-row">
-                <input type="datetime-local" id="target-datetime" onchange="calculateTideAndRefresh()">
-                <button onclick="setNow()" style="padding: 10px 8px; background: #3498db; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight:bold;">現在</button>
-                <button onclick="openTideTableModal()" style="padding: 10px 8px; background: #9b59b6; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight:bold;">潮位</button>
-            </div>
-            <!-- 🕒 1時間単位 & 前日翌日ジャンプボタン -->
-            <div class="datetime-quick-row">
-                <button class="dt-quick-btn day-btn" onclick="adjustDateTime(-24)">◀ 前日</button>
-                <button class="dt-quick-btn" onclick="adjustDateTime(-1)">-1時間</button>
-                <button class="dt-quick-btn" onclick="adjustDateTime(1)">+1時間</button>
-                <button class="dt-quick-btn day-btn" onclick="adjustDateTime(24)">翌日 ▶</button>
-            </div>
-            <div id="status-display" class="status-bar">⏳ 未同期（更新ボタンを押してください）</div>
-        </div>
-
-        <!-- 1️⃣ データ入力 -->
-        <div id="sec-input-mode" class="mode-section">
-            <div class="type-selector">
-                <button class="type-btn active" onclick="selectType('平地', this)">平地</button>
-                <button class="type-btn" onclick="selectType('岩大', this)">岩大</button> 
-                <button class="type-btn" onclick="selectType('岩', this)">岩</button>
-                <button class="type-btn" onclick="selectType('杭', this)">杭</button>
-            </div>
-            <div class="input-row">
-                <input type="text" id="depth-input" placeholder="今測った水深(cm)">
-                <button class="btn-record" onclick="recordAtCurrentLocation()">記録</button>
-                <button onclick="openModal('admin-modal')" style="width:40px; height:45px; border-radius:6px; border:none; background:#95a5a6; color:white;">🔑</button>
-            </div>
-            <input type="text" id="comment-input" placeholder="一言コメント（任意）">
-        </div>
-
-        <!-- 2️⃣ 位置送受信 -->
-        <div id="sec-sync-mode" class="mode-section active">
-            <div class="quick-sync-panel">
-                <div class="quick-sync-title">🗺️ ワンタップ現在位置送信</div>
-                <div class="quick-btn-row">
-                    <button class="btn-quick-send boat" onclick="sendQuickLocation('BOAT')">⚓ フネ登録</button>
-                    <button class="btn-quick-send buoy" onclick="sendQuickLocation('BUOY')">🟧 ブイ登録</button>
-                </div>
-            </div>
-
-            <div class="voice-panel">
-                <button id="btn-voice-start" class="btn-voice" onclick="toggleSpeechRecognition()">
-                    <span id="voice-icon">🎙️</span> 音声入力開始
-                </button>
-                <div id="voice-status" class="voice-status">声で「フネ登録」や「ブイ登録」「深さ〇〇センチ」</div>
-                <button id="btn-voice-confirm" class="voice-confirm-btn" onclick="executePendingVoiceCommand()">✅ [ OK ] 登録する</button>
-            </div>
-            <div style="background: #eaf2f8; padding: 12px; border-radius: 8px; border: 1px solid #a9cce3; font-size: 0.85rem; font-weight: bold; color: #2471a3; line-height: 1.4;">
-                📣 <strong>送受信インフォメーション</strong><br>
-                ・海上から送信後、無線で「送ったよ」と連絡を受けたら、右側の <strong>オレンジ色の更新ボタン(🔄)</strong> を押して位置情報を画面へ反映してください。
-            </div>
-        </div>
-
-        <!-- 3️⃣ 位置登録 -->
-        <div id="sec-register-mode" class="mode-section">
-            <div class="honbu-panel">
-                <div class="honbu-title">⚓ 船・ブイ配置 / タップして削除・編集</div>
-                <div class="honbu-grid">
-                    <input type="text" id="inputBoatName" placeholder="マーク名" value="本部船">
-                    <input type="number" id="inputBoatLat" step="any" placeholder="緯度 (Lat)">
-                    <input type="number" id="inputBoatLng" step="any" placeholder="経度 (Lng)">
-                </div>
-                <div class="honbu-buttons">
-                    <button id="btnSaveBoat" onclick="handleSaveBoat()">🗺️ 配置 / 更新</button>
-                    <button id="btnDeleteBoat" onclick="handleDeleteBoat()">削除</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- 📱 アプリ名ヘッダー（絶対に消えません） -->
+<div id="app-header">水深測っ太郎 v4.2.3 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
     
-    <!-- ⚠️ 危険物のみ表示ボタン -->
-    <button class="hazard-filter-btn" id="hazard-filter-btn" onclick="toggleHazardOnly()">⚠️ OFF</button>
+    <!-- 🎛️ パネル群 -->
+    <div class="panel-wrapper" id="panel-wrapper">
+        <div class="mode-tabs" id="mode-tabs">
+            <button class="tab-btn" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
+            <button class="tab-btn active" id="tab-sync-mode" onclick="switchViewMode('sync-mode', this)">📡 位置送受信</button>
+            <button class="tab-btn" id="tab-register-mode" onclick="switchViewMode('register-mode', this)">🗺️ 位置登録</button>
+        </div>
 
+        <div class="ui-panel" id="ui-panel">
+            <!-- ⏳ 共通の日時・ステータスパネル -->
+            <div class="datetime-panel" id="global-datetime-panel" style="display:none;">
+                <div class="datetime-row">
+                    <input type="datetime-local" id="target-datetime" onchange="calculateTideAndRefresh()">
+                    <button onclick="setNow()" style="padding: 10px 8px; background: #3498db; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight:bold;">現在</button>
+                    <button onclick="openTideTableModal()" style="padding: 10px 8px; background: #9b59b6; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight:bold;">潮位</button>
+                </div>
+                <!-- 🕒 1時間単位 & 前日翌日ジャンプボタン -->
+                <div class="datetime-quick-row">
+                    <button class="dt-quick-btn day-btn" onclick="adjustDateTime(-24)">◀ 前日</button>
+                    <button class="dt-quick-btn" onclick="adjustDateTime(-1)">-1時間</button>
+                    <button class="dt-quick-btn" onclick="adjustDateTime(1)">+1時間</button>
+                    <button class="dt-quick-btn day-btn" onclick="adjustDateTime(24)">翌日 ▶</button>
+                </div>
+                <div id="status-display" class="status-bar">⏳ 未同期（更新ボタンを押してください）</div>
+            </div>
+
+            <!-- 1️⃣ データ入力 -->
+            <div id="sec-input-mode" class="mode-section">
+                <div class="type-selector">
+                    <button class="type-btn active" onclick="selectType('平地', this)">平地</button>
+                    <button class="type-btn" onclick="selectType('岩大', this)">岩大</button> 
+                    <button class="type-btn" onclick="selectType('岩', this)">岩</button>
+                    <button class="type-btn" onclick="selectType('杭', this)">杭</button>
+                </div>
+                <div class="input-row">
+                    <input type="text" id="depth-input" placeholder="今測った水深(cm)">
+                    <button class="btn-record" onclick="recordAtCurrentLocation()">記録</button>
+                    <button onclick="openModal('admin-modal')" style="width:40px; height:45px; border-radius:6px; border:none; background:#95a5a6; color:white;">🔑</button>
+                </div>
+                <input type="text" id="comment-input" placeholder="一言コメント（任意）">
+            </div>
+
+            <!-- 2️⃣ 位置送受信 -->
+            <div id="sec-sync-mode" class="mode-section active">
+                <div class="quick-sync-panel">
+                    <div class="quick-sync-title">🗺️ ワンタップ現在位置送信</div>
+                    <div class="quick-btn-row">
+                        <button class="btn-quick-send boat" onclick="sendQuickLocation('BOAT')">⚓ フネ登録</button>
+                        <button class="btn-quick-send buoy" onclick="sendQuickLocation('BUOY')">🟧 ブイ登録</button>
+                    </div>
+                </div>
+
+                <div class="voice-panel">
+                    <button id="btn-voice-start" class="btn-voice" onclick="toggleSpeechRecognition()">
+                        <span id="voice-icon">🎙️</span> 音声入力開始
+                    </button>
+                    <div id="voice-status" class="voice-status">声で「フネ登録」や「ブイ登録」「深さ〇〇センチ」</div>
+                    <button id="btn-voice-confirm" class="voice-confirm-btn" onclick="executePendingVoiceCommand()">✅ [ OK ] 登録する</button>
+                </div>
+                <div style="background: #eaf2f8; padding: 12px; border-radius: 8px; border: 1px solid #a9cce3; font-size: 0.85rem; font-weight: bold; color: #2471a3; line-height: 1.4;">
+                    📣 <strong>送受信インフォメーション</strong><br>
+                    ・海上から送信後、無線で「送ったよ」と連絡を受けたら、右下の <strong>オレンジ色のリセットボタン(🔄)</strong> を押して位置情報を画面へ反映してください。
+                </div>
+            </div>
+
+            <!-- 3️⃣ 位置登録 -->
+            <div id="sec-register-mode" class="mode-section">
+                <div class="honbu-panel">
+                    <div class="honbu-title">⚓ 船・ブイ配置 / タップして削除・編集</div>
+                    <div class="honbu-grid">
+                        <input type="text" id="inputBoatName" placeholder="マーク名" value="本部船">
+                        <input type="number" id="inputBoatLat" step="any" placeholder="緯度 (Lat)">
+                        <input type="number" id="inputBoatLng" step="any" placeholder="経度 (Lng)">
+                    </div>
+                    <div class="honbu-buttons">
+                        <button id="btnSaveBoat" onclick="handleSaveBoat()">🗺️ 配置 / 更新</button>
+                        <button id="btnDeleteBoat" onclick="handleDeleteBoat()">削除</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 🔭 1. 独立した全画面ボタン -->
     <button class="view-toggle-btn" onclick="toggleUIPanel()" id="toggle-icon">🔭</button>
-    <button class="measure-clear-btn" id="measure-clear-btn" onclick="clearMeasure()">距離<br>消去</button>
+
+    <!-- 🔄 2. 独立した手動更新（リセット）ボタン -->
     <button class="sync-button" id="sync-btn" onclick="syncData()" title="手動更新">🔄</button>
 
-    <div class="depth-legend" onclick="toggleLegend()">
-        <div id="legend-header">📊 凡例 (タップで開閉)</div>
+    <!-- 🍔 3. メニュー開閉ボタン -->
+    <button class="menu-main-btn" onclick="toggleSubMenu()" id="menu-btn" title="メニュー">🍔</button>
+
+    <!-- 📂 メニュー内部の機能ボタン群 -->
+    <div class="sub-menu-container" id="sub-menu">
+        <button class="sub-menu-btn hazard" id="hazard-filter-btn" onclick="toggleHazardOnly()" title="危険物のみ表示">⚠️</button>
+        <button class="sub-menu-btn" id="measure-btn" onclick="toggleMeasureMode()" title="距離を測る">📏</button>
+        <button class="sub-menu-btn" onclick="toggleMapStyle()" title="背景切り替え（通常/白/航空写真）">🗺️</button>
+        <button class="sub-menu-btn" onclick="updateMyLocation(true)" title="現在位置をセンターに">📍</button>
+        <button class="sub-menu-btn active" id="legend-toggle-sub-btn" onclick="toggleLegend()" title="凡例表示/非表示">📊</button>
+    </div>
+
+    <button class="measure-clear-btn" id="measure-clear-btn" onclick="clearMeasure()">距離<br>消去</button>
+
+    <div class="depth-legend" id="depth-legend-box">
+        <div id="legend-header">📊 凡例</div>
         <div class="legend-content" id="legend-content">
             <div class="legend-item"><div class="color-box" style="background:#ff0000;"></div>20cm未満 (赤)</div>
             <div class="legend-item"><div class="color-box" style="background:#ffa500;"></div>20-40cm (橙)</div>
@@ -281,14 +319,11 @@
     </div>
 
     <div id="measure-result" class="measure-result-banner"></div>
-    <button class="measure-button" id="measure-btn" onclick="toggleMeasureMode()" title="距離を測る">📏</button>
-    <button class="map-style-button" onclick="toggleMapStyle()" title="背景切り替え（通常/白/航空写真）">🗺️</button>
-    <button class="gps-button" onclick="updateMyLocation(true)">📍</button>
     <button id="clear-course-btn" class="clear-course-button" onclick="clearSharedCourse()">コース<br>消去</button>
 </div>
 
 <!-- 🔑 管理者設定モーダル -->
-<div id="admin-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:5000; justify-content:center; align-items:center;">
+<div id="admin-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:7000; justify-content:center; align-items:center;">
     <div style="background:white; padding:20px; border-radius:12px; width:80%;">
         <h3>管理者設定</h3>
         <input type="password" id="pass-input" placeholder="パスワード" style="width:100%; padding:10px; box-sizing:border-box;">
@@ -298,7 +333,7 @@
 </div>
 
 <!-- 🌊 潮位表モーダル -->
-<div id="tide-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:5000; justify-content:center; align-items:center;">
+<div id="tide-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:7000; justify-content:center; align-items:center;">
     <div style="background:white; padding:18px; border-radius:12px; width:88%; max-width:380px; box-sizing:border-box;">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #3498db; padding-bottom:8px;">
             <h3 style="margin:0; color:#2c3e50; font-size:1.1rem;">🌊 潮位表</h3>
@@ -324,7 +359,7 @@
     let fullTideMasterData = [];
     let myLocationMarker = null;
     let selectedType = "平地";
-    let mapStyleMode = 0; // 0: 通常地図, 1: 白背景, 2: 航空写真
+    let mapStyleMode = 0; 
     let isHazardOnlyMode = false;
 
     let isMeasureMode = false;
@@ -341,7 +376,7 @@
     let pendingCommand = null; 
     let activeInfoWindow = null;
 
-    let uiState = 0; // 0: 通常表示, 1: 日時パネルのみ表示, 2: 完全全画面
+    let isPanelHidden = false; // パネルの折りたたみ状態（全画面ボタン押下用）
 
     function playSuccessBeep() {
         try {
@@ -370,6 +405,12 @@
                 osc2.stop(audioCtx.currentTime + 0.12);
             }, 80);
         } catch(e) { console.log("オーディオ再生失敗", e); }
+    }
+
+    /* 🍔 メニュー開閉トグル */
+    function toggleSubMenu() {
+        const menu = document.getElementById('sub-menu');
+        menu.classList.toggle('open');
     }
 
     /* 🕒 時間・日付のプラスマイナス調整（1時間刻みジャンプ） */
@@ -406,16 +447,14 @@
         document.querySelectorAll('.mode-section').forEach(sec => sec.classList.remove('active'));
         const dtPanel = document.getElementById('global-datetime-panel');
         
-        uiState = 0;
+        isPanelHidden = false;
         const panel = document.getElementById('ui-panel');
         const tabs = document.getElementById('mode-tabs');
-        const header = document.getElementById('app-header');
         const icon = document.getElementById('toggle-icon');
 
         panel.classList.remove('hidden');
         panel.classList.remove('datetime-only');
         tabs.classList.remove('hidden');
-        header.classList.remove('hidden');
         icon.innerText = '🔭';
 
         if(targetMode === 'input-mode') {
@@ -438,36 +477,28 @@
     function toggleUIPanel() {
         const panel = document.getElementById('ui-panel');
         const tabs = document.getElementById('mode-tabs');
-        const header = document.getElementById('app-header');
         const icon = document.getElementById('toggle-icon');
         const isInputMode = document.getElementById('sec-input-mode').classList.contains('active');
 
         if (isInputMode) {
-            uiState = (uiState + 1) % 3;
-
-            if (uiState === 0) {
-                panel.classList.remove('hidden');
-                panel.classList.remove('datetime-only');
-                tabs.classList.remove('hidden');
-                header.classList.remove('hidden');
-                icon.innerText = '🔭';
-            } else if (uiState === 1) {
-                panel.classList.remove('hidden');
+            // データ入力モードのとき：通常 ⇄ 日時パネルのみ ⇄ パネル非表示（すべてタイトルは常時表示）
+            if (!panel.classList.contains('hidden') && !panel.classList.contains('datetime-only')) {
                 panel.classList.add('datetime-only');
                 tabs.classList.add('hidden');
-                header.classList.add('hidden'); 
                 icon.innerText = '📲';
-            } else if (uiState === 2) {
+            } else if (panel.classList.contains('datetime-only')) {
                 panel.classList.add('hidden');
                 panel.classList.remove('datetime-only');
-                tabs.classList.add('hidden');
-                header.classList.add('hidden');
                 icon.innerText = '📥';
+            } else {
+                panel.classList.remove('hidden');
+                tabs.classList.remove('hidden');
+                icon.innerText = '🔭';
             }
         } else {
+            // その他のモードのとき：通常 ⇄ パネル非表示（タイトルは常時表示）
             panel.classList.toggle('hidden');
             tabs.classList.toggle('hidden');
-            header.classList.toggle('hidden');
             const isHidden = panel.classList.contains('hidden');
             icon.innerText = isHidden ? '📥' : '🔭';
         }
@@ -482,10 +513,8 @@
         const btn = document.getElementById('hazard-filter-btn');
         if (isHazardOnlyMode) {
             btn.classList.add('active');
-            btn.textContent = "⚠️ ON";
         } else {
             btn.classList.remove('active');
-            btn.textContent = "⚠️ OFF";
         }
         refreshMarkersOnMap();
     }
@@ -538,8 +567,15 @@
     }
 
     function toggleLegend() {
-        const content = document.getElementById('legend-content');
-        content.classList.toggle('minimized');
+        const box = document.getElementById('depth-legend-box');
+        const subBtn = document.getElementById('legend-toggle-sub-btn');
+        if (box.style.display === 'none') {
+            box.style.display = 'block';
+            subBtn.classList.add('active');
+        } else {
+            box.style.display = 'none';
+            subBtn.classList.remove('active');
+        }
     }
 
     function toggleMapStyle() {
@@ -1058,7 +1094,7 @@
     function openTideTableModal() {
         const val = document.getElementById('target-datetime').value;
         if (!val || fullTideMasterData.length === 0) {
-            alert("潮位データが読み込まれていません。右側のオレンジ色の更新ボタン(🔄)を押してデータを読み込んでください。");
+            alert("潮位データが読み込まれていません。右側のオレンジ色のリセットボタン(🔄)を押してデータを読み込んでください。");
             return;
         }
 
