@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.7.9 -->
-    <title>水深測っ太郎 v4.2.9 by Popolo App.com</title>
+    <!-- コード名: 6.8.0 -->
+    <title>水深測っ太郎 v4.3.0 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -213,7 +213,7 @@
 <div id="loading">📡 通信中...</div>
 
 <!-- 📱 アプリ名ヘッダー（絶対に消えません） -->
-<div id="app-header">水深測っ太郎 v4.2.9 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.3.0 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -221,7 +221,7 @@
     <!-- 🎛️ パネル群 -->
     <div class="panel-wrapper" id="panel-wrapper">
         <div class="mode-tabs" id="mode-tabs">
-            <button class="tab-btn" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
+            <button class="tab-btn" id="tab-input-mode" onclick="trySwitchToInputMode(this)">📊 データ入力</button>
             <button class="tab-btn active" id="tab-sync-mode" onclick="switchViewMode('sync-mode', this)">📡 位置送受信</button>
             <button class="tab-btn" id="tab-register-mode" onclick="switchViewMode('register-mode', this)">🗺️ 位置登録</button>
         </div>
@@ -502,6 +502,31 @@
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
         document.getElementById('target-datetime').value = now.toISOString().slice(0, 16);
         if (fullTideMasterData.length > 0) calculateTideAndRefresh();
+    }
+
+    /* 🔒 データ入力タブを押したときのパスワードチェック付き切り替え */
+    function trySwitchToInputMode(btnElement) {
+        // すでにパスワードが端末に保存されている場合は、そのままパスワード入力なしで開く
+        if (adminPass && adminPass.length > 0) {
+            switchViewMode('input-mode', btnElement);
+            return;
+        }
+
+        // パスワードが未設定（または覚えているパスワードがない）場合はプロンプトを表示
+        const inputVal = prompt("📊 「データ入力」モードを開くには管理者パスワードを入力してください：");
+        
+        if (inputVal === null) {
+            // キャンセルされた場合は何もしない（元のタブを維持）
+            return;
+        }
+
+        if (inputVal.trim().length > 0) {
+            adminPass = inputVal.trim();
+            localStorage.setItem('popolo_pass', adminPass);
+            switchViewMode('input-mode', btnElement);
+        } else {
+            alert("パスワードが入力されなかったため、データ入力モードを開けませんでした。");
+        }
     }
 
     function switchViewMode(targetMode, btnElement) {
@@ -1161,7 +1186,7 @@
         if (b < 40) return "#ffa500";    
         if (b < 60) return "#ffff00";    
         if (b < 80) return "#adff2f";    
-        if (b < 100) return "#a8e6cf";   /* 80〜100cmをパステル緑に変更 */
+        if (b < 100) return "#a8e6cf";   
         if (b < 120) return "#00ffff";   
         if (b < 140) return "#70a1ff";
         if (b < 160) return "#a29bfe";
