@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.8.1 -->
-    <title>水深測っ太郎 v4.3.1 by Popolo App.com</title>
+    <!-- コード名: 6.8.2 -->
+    <title>水深測っ太郎 v4.3.2 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -213,7 +213,7 @@
 <div id="loading">📡 通信中...</div>
 
 <!-- 📱 アプリ名ヘッダー（絶対に消えません） -->
-<div id="app-header">水深測っ太郎 v4.3.1 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.3.2 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -254,8 +254,7 @@
                 </div>
                 <div class="input-row">
                     <input type="text" id="depth-input" placeholder="今測った水深(cm)">
-                    <button class="btn-record" onclick="recordAtCurrentLocation()">記録</button>
-                    <button onclick="openModal('admin-modal')" style="width:40px; height:45px; border-radius:6px; border:none; background:#95a5a6; color:white;" title="パスワード再設定">🔑</button>
+                    <button class="btn-record" onclick="recordAtCurrentLocation()" style="width:100%;">記録</button>
                 </div>
                 <input type="text" id="comment-input" placeholder="一言コメント（任意）">
             </div>
@@ -278,17 +277,14 @@
                     <button id="btn-voice-confirm" class="voice-confirm-btn" onclick="executePendingVoiceCommand()">✅ [ OK ] 登録する</button>
                 </div>
 
-                <!-- 📢 送受信インフォメーション ＋ パスワード再設定＆読み上げボタン -->
+                <!-- 📢 送受信インフォメーション ＋ 読み上げボタン -->
                 <div style="background: #eaf2f8; padding: 10px; border-radius: 8px; border: 1px solid #a9cce3; font-size: 0.85rem; font-weight: bold; color: #2471a3; line-height: 1.4; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
                     <div>
                         📣 <strong>送受信インフォメーション</strong><br>
                         ・海上から送信後、無線で連絡を受けたら右下の <strong>オレンジ色のリセット(🔄)</strong> を押して反映してください。<br>
                         ・フネ、ブイを登録したら、陸上本部に「登録したよ」と教えてあげてね。
                     </div>
-                    <div style="display: flex; gap: 6px; flex-shrink: 0;">
-                        <button onclick="openModal('admin-modal')" style="background: #95a5a6; color: white; border: none; padding: 10px 12px; border-radius: 6px; font-size: 1rem; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.15);" title="パスワード再設定">🔑</button>
-                        <button onclick="speakInfoText()" style="background: #2980b9; color: white; border: none; padding: 10px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.15);" title="インフォメーションを読み上げ">🔊 読み上げ</button>
-                    </div>
+                    <button onclick="speakInfoText()" style="background: #2980b9; color: white; border: none; padding: 10px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: bold; cursor: pointer; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.15);" title="インフォメーションを読み上げ">🔊 読み上げ</button>
                 </div>
             </div>
 
@@ -357,17 +353,6 @@
     <button id="clear-course-btn" class="clear-course-button" onclick="clearSharedCourse()">コース<br>消去</button>
 </div>
 
-<!-- 🔑 管理者設定モーダル -->
-<div id="admin-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:7000; justify-content:center; align-items:center;">
-    <div style="background:white; padding:20px; border-radius:12px; width:80%; max-width:340px;">
-        <h3 style="margin-top:0; color:#2c3e50;">🔑 管理者パスワード設定</h3>
-        <p style="font-size:0.85rem; color:#666;">新しいパスワードを入力して保存してください。</p>
-        <input type="password" id="pass-input" placeholder="新しいパスワード" style="width:100%; padding:12px; box-sizing:border-box; font-size:1.1rem; border:2px solid #3498db; border-radius:8px;">
-        <button class="btn-record" onclick="saveAdminPass()" style="width:100%; margin-top:12px; font-size:1.2rem; padding:12px;">保存する</button>
-        <button onclick="closeModal('admin-modal')" style="width:100%; margin-top:8px; background:none; border:none; color:#7f8c8d; font-weight:bold; padding:10px; cursor:pointer;">閉じる</button>
-    </div>
-</div>
-
 <!-- 🌊 潮位表モーダル -->
 <div id="tide-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:7000; justify-content:center; align-items:center;">
     <div style="background:white; padding:18px; border-radius:12px; width:88%; max-width:380px; box-sizing:border-box;">
@@ -417,7 +402,10 @@
 <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzEIJD_8R-Lo3ed6byTaCOx27xFiWfHa4ZaYyNihxwYt3huIX0nkynPKTFAySuqkpybBA/exec"; 
     
-    let map, markers = [], allPointsData = [], currentSelectedTide = 0, adminPass = localStorage.getItem('popolo_pass') || "";
+    // 👇 ここにご自身の秘密のパスワードを設定してください（他の人には変更されません）
+    const ADMIN_SECRET = "umi1173"; 
+    
+    let map, markers = [], allPointsData = [], currentSelectedTide = 0;
     let fullTideMasterData = [];
     let myLocationMarker = null;
     let selectedType = "平地";
@@ -508,25 +496,18 @@
         if (fullTideMasterData.length > 0) calculateTideAndRefresh();
     }
 
-    /* 🔒 データ入力タブを押したときのパスワードチェック付き切り替え */
+    /* 🔒 データ入力タブを押したときの管理者パスワード認証付き切り替え */
     function trySwitchToInputMode(btnElement) {
-        if (adminPass && adminPass.length > 0) {
-            switchViewMode('input-mode', btnElement);
-            return;
-        }
-
         const inputVal = prompt("📊 「データ入力」モードを開くには管理者パスワードを入力してください：");
         
         if (inputVal === null) {
             return;
         }
 
-        if (inputVal.trim().length > 0) {
-            adminPass = inputVal.trim();
-            localStorage.setItem('popolo_pass', adminPass);
+        if (inputVal.trim() === ADMIN_SECRET) {
             switchViewMode('input-mode', btnElement);
         } else {
-            alert("パスワードが入力されなかったため、データ入力モードを開けませんでした。");
+            alert("パスワードが違うため、データ入力モードを開けませんでした。");
         }
     }
 
@@ -623,7 +604,7 @@
             try {
                 const response = await fetch(WEB_APP_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ method: 'SAVE_BOAT', password: adminPass, name: name, lat: lat, lng: lng })
+                    body: JSON.stringify({ method: 'SAVE_BOAT', password: ADMIN_SECRET, name: name, lat: lat, lng: lng })
                 });
                 const resultText = await response.text();
                 playSuccessBeep();
@@ -914,7 +895,7 @@
             try {
                 await fetch(WEB_APP_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ method: 'SAVE_BOAT', password: adminPass, name: cmd.name, lat: cmd.lat, lng: cmd.lng })
+                    body: JSON.stringify({ method: 'SAVE_BOAT', password: ADMIN_SECRET, name: cmd.name, lat: cmd.lat, lng: cmd.lng })
                 });
                 playSuccessBeep(); 
                 document.getElementById('voice-status').textContent = `✅ ${cmd.name} を登録しました！`;
@@ -931,7 +912,7 @@
             const latLng = new google.maps.LatLng(cmd.lat, cmd.lng);
 
             const pointData = { 
-                method: 'POST', password: adminPass, id: String(Date.now()), 
+                method: 'POST', password: ADMIN_SECRET, id: String(Date.now()), 
                 lat: latLng.lat(), lng: latLng.lng(), rawDepth: cmd.value, baseDepth: baseDepth, 
                 timestamp: document.getElementById('target-datetime').value, type: selectedType, comment: "" 
             };
@@ -1269,7 +1250,7 @@
         const comment = document.getElementById('comment-input').value;
         if (!raw) return alert("水深を入力してください");
         const baseDepth = parseFloat(raw) - currentSelectedTide;
-        const pointData = { method: 'POST', password: adminPass, id: String(Date.now()), lat: latLng.lat(), lng: latLng.lng(), rawDepth: raw, baseDepth: baseDepth, timestamp: document.getElementById('target-datetime').value, type: selectedType, comment: comment };
+        const pointData = { method: 'POST', password: ADMIN_SECRET, id: String(Date.now()), lat: latLng.lat(), lng: latLng.lng(), rawDepth: raw, baseDepth: baseDepth, timestamp: document.getElementById('target-datetime').value, type: selectedType, comment: comment };
         showLoading(true);
         try {
             const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(pointData) });
@@ -1289,7 +1270,7 @@
         try {
             const response = await fetch(WEB_APP_URL, { 
                 method: 'POST', 
-                body: JSON.stringify({ method: 'UPDATE_POINT', password: adminPass, id: id, rawDepth: newDepth, baseDepth: newBaseDepth, comment: newCmt, type: newType }) 
+                body: JSON.stringify({ method: 'UPDATE_POINT', password: ADMIN_SECRET, id: id, rawDepth: newDepth, baseDepth: newBaseDepth, comment: newCmt, type: newType }) 
             });
             if ((await response.text()).trim() === "success") { await syncData(); alert("更新しました！"); closeActiveInfoWindow(); }
         } catch (e) { alert("通信エラーが発生しました"); }
@@ -1300,7 +1281,7 @@
         if (!confirm("削除しますか？")) return;
         showLoading(true);
         try {
-            await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ method: 'DELETE', password: adminPass, id: id }) });
+            await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ method: 'DELETE', password: ADMIN_SECRET, id: id }) });
             await syncData();
             closeActiveInfoWindow();
         } catch (e) {}
@@ -1308,13 +1289,6 @@
     }
 
     function showLoading(s) { document.getElementById('loading').style.display = s ? 'flex' : 'none'; }
-    function saveAdminPass() {
-        adminPass = document.getElementById('pass-input').value.trim();
-        localStorage.setItem('popolo_pass', adminPass);
-        closeModal('admin-modal');
-        alert("パスワードを保存しました！");
-        syncData();
-    }
 
     function checkUrlCourseParams() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -1400,7 +1374,7 @@
         try {
             await fetch(WEB_APP_URL, {
                 method: 'POST',
-                body: JSON.stringify({ method: 'SAVE_BOAT', password: adminPass, name: name, lat: lat, lng: lng })
+                body: JSON.stringify({ method: 'SAVE_BOAT', password: ADMIN_SECRET, name: name, lat: lat, lng: lng })
             });
         } catch (e) { console.error("マークの位置同期に失敗しました", e); }
     }
@@ -1494,7 +1468,7 @@
             try {
                 const res = await fetch(WEB_APP_URL, { 
                     method: 'POST', 
-                    body: JSON.stringify({ method: 'DELETE_BOAT', password: adminPass, name: name, lat: targetBoat.lat, lng: targetBoat.lng }) 
+                    body: JSON.stringify({ method: 'DELETE_BOAT', password: ADMIN_SECRET, name: name, lat: targetBoat.lat, lng: targetBoat.lng }) 
                 });
                 if ((await res.text()).trim() === "success") {
                     await syncData(); 
