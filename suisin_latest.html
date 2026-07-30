@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.7.8 -->
-    <title>水深測っ太郎 v4.2.8 by Popolo App.com</title>
+    <!-- コード名: 6.8.6 -->
+    <title>水深測っ太郎 v4.3.6 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -49,7 +49,7 @@
         .ui-panel { background: white; padding: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: transform 0.3s ease; }
         .ui-panel.hidden { transform: translateY(-140%); } 
         
-        /* 🔭 1段階目：日時パネルだけを残す */
+        /* 🔭 1段階目：日時パネルだけを残す共通スタイル */
         .ui-panel.datetime-only { background: transparent !important; box-shadow: none !important; padding: 0 !important; transform: translateY(0); }
         .ui-panel.datetime-only .datetime-panel { margin: 0 !important; box-shadow: 0 2px 6px rgba(0,0,0,0.2); background: white; border-radius: 0 0 8px 8px; border-top: none; }
         .ui-panel.datetime-only .mode-section { display: none !important; }
@@ -70,9 +70,9 @@
         .dt-quick-btn.day-btn { background: #8e44ad; }
         .dt-quick-btn.day-btn.active, .dt-quick-btn.day-btn:active { background: #6c3483; }
 
-        /* 🕒 データ入力モード時の日時入力サイズ */
-        body.is-input-mode #target-datetime {
-            font-size: 1.6rem !important;
+        /* 🕒 日時入力サイズ */
+        #target-datetime {
+            font-size: 1.2rem !important;
             font-weight: bold !important;
             padding: 8px 5px !important;
             color: #2c3e50 !important;
@@ -213,7 +213,7 @@
 <div id="loading">📡 通信中...</div>
 
 <!-- 📱 アプリ名ヘッダー（絶対に消えません） -->
-<div id="app-header">水深測っ太郎 v4.2.8 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.3.6 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -221,14 +221,14 @@
     <!-- 🎛️ パネル群 -->
     <div class="panel-wrapper" id="panel-wrapper">
         <div class="mode-tabs" id="mode-tabs">
-            <button class="tab-btn" id="tab-input-mode" onclick="switchViewMode('input-mode', this)">📊 データ入力</button>
+            <button class="tab-btn" id="tab-input-mode" onclick="trySwitchToInputMode(this)">📊 データ入力</button>
             <button class="tab-btn active" id="tab-sync-mode" onclick="switchViewMode('sync-mode', this)">📡 位置送受信</button>
             <button class="tab-btn" id="tab-register-mode" onclick="switchViewMode('register-mode', this)">🗺️ 位置登録</button>
         </div>
 
         <div class="ui-panel" id="ui-panel">
-            <!-- ⏳ 共通の日時・ステータスパネル -->
-            <div class="datetime-panel" id="global-datetime-panel" style="display:none;">
+            <!-- ⏳ すべてのタブ共通の日時・ステータスパネル -->
+            <div class="datetime-panel" id="global-datetime-panel">
                 <div class="datetime-row">
                     <input type="datetime-local" id="target-datetime" onchange="calculateTideAndRefresh()">
                     <button onclick="setNow()" style="padding: 10px 8px; background: #3498db; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight:bold;">現在</button>
@@ -253,9 +253,8 @@
                     <button class="type-btn" onclick="selectType('杭', this)">杭</button>
                 </div>
                 <div class="input-row">
-                    <input type="text" id="depth-input" placeholder="今測った水深(cm)">
-                    <button class="btn-record" onclick="recordAtCurrentLocation()">記録</button>
-                    <button onclick="openModal('admin-modal')" style="width:40px; height:45px; border-radius:6px; border:none; background:#95a5a6; color:white;">🔑</button>
+                    <input type="number" inputmode="numeric" pattern="[0-9]*" id="depth-input" placeholder="今測った水深(cm)">
+                    <button class="btn-record" onclick="recordAtCurrentLocation()" style="width:100%;">記録</button>
                 </div>
                 <input type="text" id="comment-input" placeholder="一言コメント（任意）">
             </div>
@@ -313,7 +312,7 @@
         </div>
     </div>
     
-    <!-- 🔭 1. 独立した全画面ボタン -->
+    <!-- 🔭 1. 独立した全画面ボタン（3段階切り替え） -->
     <button class="view-toggle-btn" onclick="toggleUIPanel()" id="toggle-icon">🔭</button>
 
     <!-- 🔄 2. 独立した手動更新（リセット）ボタン -->
@@ -334,7 +333,7 @@
 
     <button class="measure-clear-btn" id="measure-clear-btn" onclick="clearMeasure()">距離<br>消去</button>
 
-    <!-- 📊 凡例（タップで縮小/超縮小切り替え） -->
+    <!-- 📊 凡例（パステル緑反映版） -->
     <div class="depth-legend" id="depth-legend-box" onclick="toggleLegendTap(event)" title="タップして縮小/展開">
         <div id="legend-header">📊 凡例</div>
         <div class="legend-content" id="legend-content">
@@ -342,7 +341,7 @@
             <div class="legend-item"><div class="color-box" style="background:#ffa500;"></div>20-40cm (橙)</div>
             <div class="legend-item"><div class="color-box" style="background:#ffff00;"></div>40-60cm (黄)</div>
             <div class="legend-item"><div class="color-box" style="background:#adff2f;"></div>60-80cm (黄緑)</div>
-            <div class="legend-item"><div class="color-box" style="background:#76d7d2;"></div>80-100cm (淡水色)</div>
+            <div class="legend-item"><div class="color-box" style="background:#a8e6cf;"></div>80-100cm (パステル緑)</div>
             <div class="legend-item"><div class="color-box" style="background:#00ffff;"></div>100-120cm (水色)</div>
             <div class="legend-item"><div class="color-box" style="background:#70a1ff;"></div>120-140cm</div>
             <div class="legend-item"><div class="color-box" style="background:#a29bfe;"></div>140-160cm</div>
@@ -352,16 +351,6 @@
 
     <div id="measure-result" class="measure-result-banner"></div>
     <button id="clear-course-btn" class="clear-course-button" onclick="clearSharedCourse()">コース<br>消去</button>
-</div>
-
-<!-- 🔑 管理者設定モーダル -->
-<div id="admin-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:7000; justify-content:center; align-items:center;">
-    <div style="background:white; padding:20px; border-radius:12px; width:80%;">
-        <h3>管理者設定</h3>
-        <input type="password" id="pass-input" placeholder="パスワード" style="width:100%; padding:10px; box-sizing:border-box;">
-        <button class="btn-record" onclick="saveAdminPass()" style="width:100%; margin-top:10px;">保存</button>
-        <button onclick="closeModal('admin-modal')" style="width:100%; margin-top:10px; background:none; border:none;">閉じる</button>
-    </div>
 </div>
 
 <!-- 🌊 潮位表モーダル -->
@@ -413,7 +402,10 @@
 <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzEIJD_8R-Lo3ed6byTaCOx27xFiWfHa4ZaYyNihxwYt3huIX0nkynPKTFAySuqkpybBA/exec"; 
     
-    let map, markers = [], allPointsData = [], currentSelectedTide = 0, adminPass = localStorage.getItem('popolo_pass') || "";
+    // 👇 ここにご自身の秘密のパスワードを設定してください
+    const ADMIN_SECRET = "popolo2026"; 
+    
+    let map, markers = [], allPointsData = [], currentSelectedTide = 0;
     let fullTideMasterData = [];
     let myLocationMarker = null;
     let selectedType = "平地";
@@ -504,6 +496,24 @@
         if (fullTideMasterData.length > 0) calculateTideAndRefresh();
     }
 
+    /* 🔒 データ入力タブを押したときの自動認証付き切り替え */
+    function trySwitchToInputMode(btnElement) {
+        if (localStorage.getItem('popolo_authed') === 'true') {
+            switchViewMode('input-mode', btnElement);
+            return;
+        }
+
+        const inputVal = prompt("📊 「データ入力」モードを開くには管理者パスワードを入力してください：");
+        if (inputVal === null) return;
+
+        if (inputVal.trim() === ADMIN_SECRET) {
+            localStorage.setItem('popolo_authed', 'true');
+            switchViewMode('input-mode', btnElement);
+        } else {
+            alert("パスワードが違うため、データ入力モードを開けませんでした。");
+        }
+    }
+
     function switchViewMode(targetMode, btnElement) {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         if (btnElement) {
@@ -513,7 +523,6 @@
         }
         
         document.querySelectorAll('.mode-section').forEach(sec => sec.classList.remove('active'));
-        const dtPanel = document.getElementById('global-datetime-panel');
         
         const panel = document.getElementById('ui-panel');
         const tabs = document.getElementById('mode-tabs');
@@ -525,19 +534,11 @@
         icon.innerText = '🔭';
 
         if(targetMode === 'input-mode') {
-            document.body.classList.add('is-input-mode');
             document.getElementById('sec-input-mode').classList.add('active');
-            dtPanel.style.display = 'block';
-        } else {
-            document.body.classList.remove('is-input-mode');
-            document.getElementById('sec-input-mode').classList.remove('active');
-            dtPanel.style.display = 'none';
-            
-            if(targetMode === 'register-mode') {
-                document.getElementById('sec-register-mode').classList.add('active');
-            } else if(targetMode === 'sync-mode') {
-                document.getElementById('sec-sync-mode').classList.add('active');
-            }
+        } else if(targetMode === 'register-mode') {
+            document.getElementById('sec-register-mode').classList.add('active');
+        } else if(targetMode === 'sync-mode') {
+            document.getElementById('sec-sync-mode').classList.add('active');
         }
     }
 
@@ -545,27 +546,19 @@
         const panel = document.getElementById('ui-panel');
         const tabs = document.getElementById('mode-tabs');
         const icon = document.getElementById('toggle-icon');
-        const isInputMode = document.getElementById('sec-input-mode').classList.contains('active');
 
-        if (isInputMode) {
-            if (!panel.classList.contains('hidden') && !panel.classList.contains('datetime-only')) {
-                panel.classList.add('datetime-only');
-                tabs.classList.add('hidden');
-                icon.innerText = '📲';
-            } else if (panel.classList.contains('datetime-only')) {
-                panel.classList.add('hidden');
-                panel.classList.remove('datetime-only');
-                icon.innerText = '📥';
-            } else {
-                panel.classList.remove('hidden');
-                tabs.classList.remove('hidden');
-                icon.innerText = '🔭';
-            }
+        if (!panel.classList.contains('hidden') && !panel.classList.contains('datetime-only')) {
+            panel.classList.add('datetime-only');
+            tabs.classList.add('hidden');
+            icon.innerText = '📲';
+        } else if (panel.classList.contains('datetime-only')) {
+            panel.classList.add('hidden');
+            panel.classList.remove('datetime-only');
+            icon.innerText = '📥';
         } else {
-            panel.classList.toggle('hidden');
-            tabs.classList.toggle('hidden');
-            const isHidden = panel.classList.contains('hidden');
-            icon.innerText = isHidden ? '📥' : '🔭';
+            panel.classList.remove('hidden');
+            tabs.classList.remove('hidden');
+            icon.innerText = '🔭';
         }
         
         setTimeout(() => {
@@ -595,11 +588,10 @@
             drawCustomBoat(name, parseFloat(lat), parseFloat(lng), true);
 
             try {
-                const response = await fetch(WEB_APP_URL, {
+                await fetch(WEB_APP_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ method: 'SAVE_BOAT', password: adminPass, name: name, lat: lat, lng: lng })
+                    body: JSON.stringify({ method: 'SAVE_BOAT', password: ADMIN_SECRET, name: name, lat: lat, lng: lng })
                 });
-                const resultText = await response.text();
                 playSuccessBeep();
                 alert(`【ワンタップ登録完了】\n${name} を配置・送信しました！`);
                 await syncData();
@@ -888,7 +880,7 @@
             try {
                 await fetch(WEB_APP_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ method: 'SAVE_BOAT', password: adminPass, name: cmd.name, lat: cmd.lat, lng: cmd.lng })
+                    body: JSON.stringify({ method: 'SAVE_BOAT', password: ADMIN_SECRET, name: cmd.name, lat: cmd.lat, lng: cmd.lng })
                 });
                 playSuccessBeep(); 
                 document.getElementById('voice-status').textContent = `✅ ${cmd.name} を登録しました！`;
@@ -905,7 +897,7 @@
             const latLng = new google.maps.LatLng(cmd.lat, cmd.lng);
 
             const pointData = { 
-                method: 'POST', password: adminPass, id: String(Date.now()), 
+                method: 'POST', password: ADMIN_SECRET, id: String(Date.now()), 
                 lat: latLng.lat(), lng: latLng.lng(), rawDepth: cmd.value, baseDepth: baseDepth, 
                 timestamp: document.getElementById('target-datetime').value, type: selectedType, comment: "" 
             };
@@ -1086,9 +1078,10 @@
                 if (!isHazard) return;
             }
 
+            const rawDepth = parseFloat(p[3]) || 0;
             const baseDepth = parseFloat(p[4]) || 0;
             const simDepth = baseDepth + currentSelectedTide;
-            createMarker({id: p[0], lat: lat, lng: lng, baseDepth: baseDepth, simDepth: simDepth, type: pType, comment: p[7] || ""});
+            createMarker({id: p[0], lat: lat, lng: lng, rawDepth: rawDepth, baseDepth: baseDepth, simDepth: simDepth, type: pType, comment: p[7] || ""});
         });
     }
 
@@ -1108,7 +1101,7 @@
 
         const marker = new google.maps.Marker({
             position: {lat: Number(d.lat), lng: Number(d.lng)}, map: map,
-            icon: { path: sym, fillColor: getDepthColor(d.simDepth), fillOpacity: 0.9, scale: currentScale, strokeColor: "#333333", strokeWeight: 0.6 },
+            icon: { path: sym, fillColor: getDepthColor(d.simDepth, d.rawDepth), fillOpacity: 0.9, scale: currentScale, strokeColor: "#333333", strokeWeight: 0.6 },
             zIndex: calculatedZIndex 
         });
 
@@ -1123,7 +1116,7 @@
                     </select>
                     <br>
                     水深(cm): 
-                    <input type="number" id="edit-depth-${d.id}" value="${d.simDepth.toFixed(1)}" 
+                    <input type="number" inputmode="numeric" pattern="[0-9]*" id="edit-depth-${d.id}" value="${d.simDepth.toFixed(1)}" 
                            style="width:120px; font-size:24px; font-weight:bold; border:2px solid #3498db; border-radius:8px; padding:5px; text-align:center;">
                     <br>
                     <input type="text" id="edit-cmt-${d.id}" value="${d.comment}" 
@@ -1156,12 +1149,15 @@
         return (yiq >= 170) ? '#000000' : '#ffffff';
     }
 
-    function getDepthColor(b) {
+    function getDepthColor(b, raw) {
+        // 999または「999」と入力されていた場合は白色にする
+        if (Math.round(raw) === 999) return "#ffffff";
+        
         if (b < 20) return "#ff0000";    
         if (b < 40) return "#ffa500";    
         if (b < 60) return "#ffff00";    
         if (b < 80) return "#adff2f";    
-        if (b < 100) return "#76d7d2";   
+        if (b < 100) return "#a8e6cf";   
         if (b < 120) return "#00ffff";   
         if (b < 140) return "#70a1ff";
         if (b < 160) return "#a29bfe";
@@ -1216,7 +1212,7 @@
         let listHtml = "";
         for (let h = 8; h <= 19; h++) {
             const tideVal = parseFloat(row[1 + h]) || 0;
-            const bgCol = getDepthColor(tideVal);
+            const bgCol = getDepthColor(tideVal, 0);
             const textCol = getContrastColor(bgCol);
 
             listHtml += `
@@ -1243,7 +1239,7 @@
         const comment = document.getElementById('comment-input').value;
         if (!raw) return alert("水深を入力してください");
         const baseDepth = parseFloat(raw) - currentSelectedTide;
-        const pointData = { method: 'POST', password: adminPass, id: String(Date.now()), lat: latLng.lat(), lng: latLng.lng(), rawDepth: raw, baseDepth: baseDepth, timestamp: document.getElementById('target-datetime').value, type: selectedType, comment: comment };
+        const pointData = { method: 'POST', password: ADMIN_SECRET, id: String(Date.now()), lat: latLng.lat(), lng: latLng.lng(), rawDepth: raw, baseDepth: baseDepth, timestamp: document.getElementById('target-datetime').value, type: selectedType, comment: comment };
         showLoading(true);
         try {
             const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(pointData) });
@@ -1263,7 +1259,7 @@
         try {
             const response = await fetch(WEB_APP_URL, { 
                 method: 'POST', 
-                body: JSON.stringify({ method: 'UPDATE_POINT', password: adminPass, id: id, rawDepth: newDepth, baseDepth: newBaseDepth, comment: newCmt, type: newType }) 
+                body: JSON.stringify({ method: 'UPDATE_POINT', password: ADMIN_SECRET, id: id, rawDepth: newDepth, baseDepth: newBaseDepth, comment: newCmt, type: newType }) 
             });
             if ((await response.text()).trim() === "success") { await syncData(); alert("更新しました！"); closeActiveInfoWindow(); }
         } catch (e) { alert("通信エラーが発生しました"); }
@@ -1274,7 +1270,7 @@
         if (!confirm("削除しますか？")) return;
         showLoading(true);
         try {
-            await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ method: 'DELETE', password: adminPass, id: id }) });
+            await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ method: 'DELETE', password: ADMIN_SECRET, id: id }) });
             await syncData();
             closeActiveInfoWindow();
         } catch (e) {}
@@ -1282,12 +1278,6 @@
     }
 
     function showLoading(s) { document.getElementById('loading').style.display = s ? 'flex' : 'none'; }
-    function saveAdminPass() {
-        adminPass = document.getElementById('pass-input').value.trim();
-        localStorage.setItem('popolo_pass', adminPass);
-        closeModal('admin-modal');
-        syncData();
-    }
 
     function checkUrlCourseParams() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -1373,7 +1363,7 @@
         try {
             await fetch(WEB_APP_URL, {
                 method: 'POST',
-                body: JSON.stringify({ method: 'SAVE_BOAT', password: adminPass, name: name, lat: lat, lng: lng })
+                body: JSON.stringify({ method: 'SAVE_BOAT', password: ADMIN_SECRET, name: name, lat: lat, lng: lng })
             });
         } catch (e) { console.error("マークの位置同期に失敗しました", e); }
     }
@@ -1467,7 +1457,7 @@
             try {
                 const res = await fetch(WEB_APP_URL, { 
                     method: 'POST', 
-                    body: JSON.stringify({ method: 'DELETE_BOAT', password: adminPass, name: name, lat: targetBoat.lat, lng: targetBoat.lng }) 
+                    body: JSON.stringify({ method: 'DELETE_BOAT', password: ADMIN_SECRET, name: name, lat: targetBoat.lat, lng: targetBoat.lng }) 
                 });
                 if ((await res.text()).trim() === "success") {
                     await syncData(); 
