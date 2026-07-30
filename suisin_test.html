@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.8.2 -->
-    <title>水深測っ太郎 v4.3.2 by Popolo App.com</title>
+    <!-- コード名: 6.8.3 -->
+    <title>水深測っ太郎 v4.3.3 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -213,7 +213,7 @@
 <div id="loading">📡 通信中...</div>
 
 <!-- 📱 アプリ名ヘッダー（絶対に消えません） -->
-<div id="app-header">水深測っ太郎 v4.3.2 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.3.3 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -402,8 +402,8 @@
 <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzEIJD_8R-Lo3ed6byTaCOx27xFiWfHa4ZaYyNihxwYt3huIX0nkynPKTFAySuqkpybBA/exec"; 
     
-    // 👇 ここにご自身の秘密のパスワードを設定してください（他の人には変更されません）
-    const ADMIN_SECRET = "umi1173"; 
+    // 👇 ここにご自身の秘密のパスワードを設定してください
+    const ADMIN_SECRET = "popolo2026"; 
     
     let map, markers = [], allPointsData = [], currentSelectedTide = 0;
     let fullTideMasterData = [];
@@ -496,8 +496,14 @@
         if (fullTideMasterData.length > 0) calculateTideAndRefresh();
     }
 
-    /* 🔒 データ入力タブを押したときの管理者パスワード認証付き切り替え */
+    /* 🔒 データ入力タブを押したときの自動認証付き切り替え */
     function trySwitchToInputMode(btnElement) {
+        // すでにこのスマホで認証済みの場合は、パスワードを聞かずにそのまま開く
+        if (localStorage.getItem('popolo_authed') === 'true') {
+            switchViewMode('input-mode', btnElement);
+            return;
+        }
+
         const inputVal = prompt("📊 「データ入力」モードを開くには管理者パスワードを入力してください：");
         
         if (inputVal === null) {
@@ -505,6 +511,8 @@
         }
 
         if (inputVal.trim() === ADMIN_SECRET) {
+            // 正解したらスマホに「認証済み」を記憶させて、次回からパスワードをスキップする
+            localStorage.setItem('popolo_authed', 'true');
             switchViewMode('input-mode', btnElement);
         } else {
             alert("パスワードが違うため、データ入力モードを開けませんでした。");
