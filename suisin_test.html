@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.8.5 -->
-    <title>水深測っ太郎 v4.3.5 by Popolo App.com</title>
+    <!-- コード名: 6.8.6 -->
+    <title>水深測っ太郎 v4.3.6 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -213,7 +213,7 @@
 <div id="loading">📡 通信中...</div>
 
 <!-- 📱 アプリ名ヘッダー（絶対に消えません） -->
-<div id="app-header">水深測っ太郎 v4.3.5 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.3.6 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -253,7 +253,6 @@
                     <button class="type-btn" onclick="selectType('杭', this)">杭</button>
                 </div>
                 <div class="input-row">
-                    <!-- 👇 type="number" & pattern="[0-9]*" でスマホのテンキーを確実に起動します -->
                     <input type="number" inputmode="numeric" pattern="[0-9]*" id="depth-input" placeholder="今測った水深(cm)">
                     <button class="btn-record" onclick="recordAtCurrentLocation()" style="width:100%;">記録</button>
                 </div>
@@ -1079,9 +1078,10 @@
                 if (!isHazard) return;
             }
 
+            const rawDepth = parseFloat(p[3]) || 0;
             const baseDepth = parseFloat(p[4]) || 0;
             const simDepth = baseDepth + currentSelectedTide;
-            createMarker({id: p[0], lat: lat, lng: lng, baseDepth: baseDepth, simDepth: simDepth, type: pType, comment: p[7] || ""});
+            createMarker({id: p[0], lat: lat, lng: lng, rawDepth: rawDepth, baseDepth: baseDepth, simDepth: simDepth, type: pType, comment: p[7] || ""});
         });
     }
 
@@ -1101,7 +1101,7 @@
 
         const marker = new google.maps.Marker({
             position: {lat: Number(d.lat), lng: Number(d.lng)}, map: map,
-            icon: { path: sym, fillColor: getDepthColor(d.simDepth), fillOpacity: 0.9, scale: currentScale, strokeColor: "#333333", strokeWeight: 0.6 },
+            icon: { path: sym, fillColor: getDepthColor(d.simDepth, d.rawDepth), fillOpacity: 0.9, scale: currentScale, strokeColor: "#333333", strokeWeight: 0.6 },
             zIndex: calculatedZIndex 
         });
 
@@ -1149,7 +1149,10 @@
         return (yiq >= 170) ? '#000000' : '#ffffff';
     }
 
-    function getDepthColor(b) {
+    function getDepthColor(b, raw) {
+        // 999または「999」と入力されていた場合は白色にする
+        if (Math.round(raw) === 999) return "#ffffff";
+        
         if (b < 20) return "#ff0000";    
         if (b < 40) return "#ffa500";    
         if (b < 60) return "#ffff00";    
@@ -1209,7 +1212,7 @@
         let listHtml = "";
         for (let h = 8; h <= 19; h++) {
             const tideVal = parseFloat(row[1 + h]) || 0;
-            const bgCol = getDepthColor(tideVal);
+            const bgCol = getDepthColor(tideVal, 0);
             const textCol = getContrastColor(bgCol);
 
             listHtml += `
