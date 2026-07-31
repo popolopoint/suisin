@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.8.4 -->
-    <title>水深測っ太郎 v4.3.4 by Popolo App.com</title>
+    <!-- コード名: 6.8.8 -->
+    <title>水深測っ太郎 v4.3.8 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -213,7 +213,7 @@
 <div id="loading">📡 通信中...</div>
 
 <!-- 📱 アプリ名ヘッダー（絶対に消えません） -->
-<div id="app-header">水深測っ太郎 v4.3.4 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.3.8 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -241,7 +241,7 @@
                     <button class="dt-quick-btn" onclick="adjustDateTime(1)">+1時間</button>
                     <button class="dt-quick-btn day-btn" onclick="adjustDateTime(24)">翌日 ▶</button>
                 </div>
-                <div id="status-display" class="status-bar">⏳ 未同期（更新ボタンを押してください）</div>
+                <div id="status-display" class="status-bar">⚡ 高速起動完了</div>
             </div>
 
             <!-- 1️⃣ データ入力 -->
@@ -253,7 +253,7 @@
                     <button class="type-btn" onclick="selectType('杭', this)">杭</button>
                 </div>
                 <div class="input-row">
-                    <input type="text" id="depth-input" placeholder="今測った水深(cm)">
+                    <input type="number" inputmode="numeric" pattern="[0-9]*" id="depth-input" placeholder="今測った水深(cm)">
                     <button class="btn-record" onclick="recordAtCurrentLocation()" style="width:100%;">記録</button>
                 </div>
                 <input type="text" id="comment-input" placeholder="一言コメント（任意）">
@@ -281,7 +281,7 @@
                 <div style="background: #eaf2f8; padding: 10px; border-radius: 8px; border: 1px solid #a9cce3; font-size: 0.85rem; font-weight: bold; color: #2471a3; line-height: 1.4; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
                     <div>
                         📣 <strong>送受信インフォメーション</strong><br>
-                        ・海上から送信後、無線で連絡を受けたら右下の <strong>オレンジ色のリセット(🔄)</strong> を押して反映してください。<br>
+                        ・海上から送信後、無線で連絡を受けたら右下の <strong>オレンジ色のリセット(🔄)</strong> を押して最新に更新できます。<br>
                         ・フネ、ブイを登録したら、陸上本部に「登録したよ」と教えてあげてね。
                     </div>
                     <button onclick="speakInfoText()" style="background: #2980b9; color: white; border: none; padding: 10px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: bold; cursor: pointer; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.15);" title="インフォメーションを読み上げ">🔊 読み上げ</button>
@@ -316,7 +316,7 @@
     <button class="view-toggle-btn" onclick="toggleUIPanel()" id="toggle-icon">🔭</button>
 
     <!-- 🔄 2. 独立した手動更新（リセット）ボタン -->
-    <button class="sync-button" id="sync-btn" onclick="syncData()" title="手動更新">🔄</button>
+    <button class="sync-button" id="sync-btn" onclick="syncData(false)" title="手動更新">🔄</button>
 
     <!-- 🍔 3. メニュー開閉ボタン -->
     <button class="menu-main-btn" onclick="toggleSubMenu()" id="menu-btn" title="メニュー">🍔</button>
@@ -594,7 +594,7 @@
                 });
                 playSuccessBeep();
                 alert(`【ワンタップ登録完了】\n${name} を配置・送信しました！`);
-                await syncData();
+                await syncData(false);
             } catch (e) {
                 alert("位置送信通信に失敗しました。電波状況を確認してください。");
             }
@@ -906,7 +906,7 @@
                 const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(pointData) });
                 if ((await res.text()).trim() === "success") { 
                     playSuccessBeep(); 
-                    await syncData(); 
+                    await syncData(false); 
                     document.getElementById('depth-input').value = ""; 
                     document.getElementById('voice-status').textContent = `✅ 深さ ${cmd.value}センチ を記録しました！`;
                     speakText("登録しました");
@@ -944,6 +944,10 @@
         });
         
         setNow();
+        
+        // ⚡ スマホに保存されている前回のキャッシュデータを一瞬で読み込む（0.1秒起動）
+        loadFromCache();
+
         updateMyLocation(true);
         navigator.geolocation.watchPosition(updateMyLocation, null, {enableHighAccuracy: true});
 
@@ -956,6 +960,36 @@
         });
 
         switchViewMode('sync-mode', document.getElementById('tab-sync-mode'));
+
+        // 🚀 バックグラウンドで最新データを同期（静かに更新）
+        syncData(true);
+    }
+
+    /* 💾 前回のキャッシュデータをスマホから超高速復元 */
+    function loadFromCache() {
+        try {
+            const cachedTide = localStorage.getItem('popolo_cache_tide');
+            const cachedPoints = localStorage.getItem('popolo_cache_points');
+            const cachedBoats = localStorage.getItem('popolo_cache_boats');
+
+            if (cachedTide) fullTideMasterData = JSON.parse(cachedTide);
+            if (cachedPoints) allPointsData = JSON.parse(cachedPoints);
+
+            calculateTideAndRefresh();
+
+            if (cachedBoats) {
+                const bList = JSON.parse(cachedBoats);
+                clearAllCustomBoatsOnMap();
+                bList.forEach(boat => {
+                    const bLat = parseFloat(boat.lat);
+                    const bLng = parseFloat(boat.lng);
+                    const bName = String(boat.name);
+                    if (!isNaN(bLat) && !isNaN(bLng)) {
+                        drawCustomBoat(bName, bLat, bLng, false); 
+                    }
+                });
+            }
+        } catch(e) { console.log("キャッシュ読み込み失敗", e); }
     }
 
     function handleMeasureClick(latLng) {
@@ -1009,13 +1043,21 @@
         }, (err) => console.log("位置情報取得失敗"), {enableHighAccuracy: true});
     }
 
-    async function syncData() {
-        showLoading(true);
+    async function syncData(isSilent = false) {
+        if (!isSilent) showLoading(true);
         try {
             const res = await fetch(WEB_APP_URL);
             const data = await res.json();
             fullTideMasterData = data.allTideData || [];
             allPointsData = data.points || [];
+
+            // 💾 取得した最新データをスマホ（ブラウザ）に保存
+            try {
+                localStorage.setItem('popolo_cache_tide', JSON.stringify(fullTideMasterData));
+                localStorage.setItem('popolo_cache_points', JSON.stringify(allPointsData));
+                localStorage.setItem('popolo_cache_boats', JSON.stringify(data.boatList || []));
+            } catch(e){}
+
             calculateTideAndRefresh();
 
             clearAllCustomBoatsOnMap(); 
@@ -1033,9 +1075,9 @@
             document.getElementById('status-display').textContent = `✅ 同期完了 (データ:${allPointsData.length}件)`;
         } catch (e) { 
             console.error("同期失敗", e);
-            document.getElementById('status-display').textContent = "❌ 通信失敗"; 
+            document.getElementById('status-display').textContent = "⚡ キャッシュ表示中 (オフライン)"; 
         }
-        showLoading(false);
+        if (!isSilent) showLoading(false);
     }
 
     function calculateTideAndRefresh() {
@@ -1078,9 +1120,10 @@
                 if (!isHazard) return;
             }
 
+            const rawDepth = parseFloat(p[3]) || 0;
             const baseDepth = parseFloat(p[4]) || 0;
             const simDepth = baseDepth + currentSelectedTide;
-            createMarker({id: p[0], lat: lat, lng: lng, baseDepth: baseDepth, simDepth: simDepth, type: pType, comment: p[7] || ""});
+            createMarker({id: p[0], lat: lat, lng: lng, rawDepth: rawDepth, baseDepth: baseDepth, simDepth: simDepth, type: pType, comment: p[7] || ""});
         });
     }
 
@@ -1100,7 +1143,7 @@
 
         const marker = new google.maps.Marker({
             position: {lat: Number(d.lat), lng: Number(d.lng)}, map: map,
-            icon: { path: sym, fillColor: getDepthColor(d.simDepth), fillOpacity: 0.9, scale: currentScale, strokeColor: "#333333", strokeWeight: 0.6 },
+            icon: { path: sym, fillColor: getDepthColor(d.simDepth, d.rawDepth), fillOpacity: 0.9, scale: currentScale, strokeColor: "#333333", strokeWeight: 0.6 },
             zIndex: calculatedZIndex 
         });
 
@@ -1115,7 +1158,7 @@
                     </select>
                     <br>
                     水深(cm): 
-                    <input type="number" id="edit-depth-${d.id}" value="${d.simDepth.toFixed(1)}" 
+                    <input type="number" inputmode="numeric" pattern="[0-9]*" id="edit-depth-${d.id}" value="${d.simDepth.toFixed(1)}" 
                            style="width:120px; font-size:24px; font-weight:bold; border:2px solid #3498db; border-radius:8px; padding:5px; text-align:center;">
                     <br>
                     <input type="text" id="edit-cmt-${d.id}" value="${d.comment}" 
@@ -1148,7 +1191,9 @@
         return (yiq >= 170) ? '#000000' : '#ffffff';
     }
 
-    function getDepthColor(b) {
+    function getDepthColor(b, raw) {
+        if (Math.round(raw) === 999) return "#ffffff";
+        
         if (b < 20) return "#ff0000";    
         if (b < 40) return "#ffa500";    
         if (b < 60) return "#ffff00";    
@@ -1208,7 +1253,7 @@
         let listHtml = "";
         for (let h = 8; h <= 19; h++) {
             const tideVal = parseFloat(row[1 + h]) || 0;
-            const bgCol = getDepthColor(tideVal);
+            const bgCol = getDepthColor(tideVal, 0);
             const textCol = getContrastColor(bgCol);
 
             listHtml += `
@@ -1239,7 +1284,7 @@
         showLoading(true);
         try {
             const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(pointData) });
-            if ((await res.text()).trim() === "success") { await syncData(); document.getElementById('depth-input').value = ""; document.getElementById('comment-input').value = ""; }
+            if ((await res.text()).trim() === "success") { await syncData(false); document.getElementById('depth-input').value = ""; document.getElementById('comment-input').value = ""; }
         } catch (e) {}
         showLoading(false);
     }
@@ -1257,7 +1302,7 @@
                 method: 'POST', 
                 body: JSON.stringify({ method: 'UPDATE_POINT', password: ADMIN_SECRET, id: id, rawDepth: newDepth, baseDepth: newBaseDepth, comment: newCmt, type: newType }) 
             });
-            if ((await response.text()).trim() === "success") { await syncData(); alert("更新しました！"); closeActiveInfoWindow(); }
+            if ((await response.text()).trim() === "success") { await syncData(false); alert("更新しました！"); closeActiveInfoWindow(); }
         } catch (e) { alert("通信エラーが発生しました"); }
         showLoading(false);
     }
@@ -1267,7 +1312,7 @@
         showLoading(true);
         try {
             await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ method: 'DELETE', password: ADMIN_SECRET, id: id }) });
-            await syncData();
+            await syncData(false);
             closeActiveInfoWindow();
         } catch (e) {}
         showLoading(false);
@@ -1456,7 +1501,7 @@
                     body: JSON.stringify({ method: 'DELETE_BOAT', password: ADMIN_SECRET, name: name, lat: targetBoat.lat, lng: targetBoat.lng }) 
                 });
                 if ((await res.text()).trim() === "success") {
-                    await syncData(); 
+                    await syncData(false); 
                     alert(`「${name}」を完全に削除しました！`);
                 }
             } catch(e){
