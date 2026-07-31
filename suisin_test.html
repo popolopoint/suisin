@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.9.0 -->
-    <title>水深測っ太郎 v4.4.0 by Popolo App.com</title>
+    <!-- コード名: 6.9.1 -->
+    <title>水深測っ太郎 v4.4.1 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
         
-        /* 📱 アプリ名ヘッダー（絶対に消えません） */
+        /* 📱 アプリ名ヘッダー */
         #app-header {
             position: absolute;
             top: 0;
@@ -49,7 +49,6 @@
         .ui-panel { background: white; padding: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: transform 0.3s ease; }
         .ui-panel.hidden { transform: translateY(-140%); } 
         
-        /* 🔭 1段階目：日時パネルだけを残す共通スタイル */
         .ui-panel.datetime-only { background: transparent !important; box-shadow: none !important; padding: 0 !important; transform: translateY(0); }
         .ui-panel.datetime-only .datetime-panel { margin: 0 !important; box-shadow: 0 2px 6px rgba(0,0,0,0.2); background: white; border-radius: 0 0 8px 8px; border-top: none; }
         .ui-panel.datetime-only .mode-section { display: none !important; }
@@ -58,18 +57,12 @@
         .mode-section { display: none; }
         .mode-section.active { display: block; }
 
-        /* 時刻・潮位パネル */
         .datetime-panel { background: #ebf5fb; padding: 8px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #aed6f1; }
         .datetime-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
-        
-        /* 🕒 日時クイック操作ボタン群 */
         .datetime-quick-row { display: flex; gap: 4px; }
         .dt-quick-btn { flex: 1; background: #2980b9; color: white; border: none; padding: 8px 4px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; text-align: center; }
-        .dt-quick-btn:active { background: #1f618d; }
         .dt-quick-btn.day-btn { background: #8e44ad; }
-        .dt-quick-btn.day-btn.active, .dt-quick-btn.day-btn:active { background: #6c3483; }
 
-        /* 🕒 日時入力サイズ */
         #target-datetime {
             flex: 1;
             font-size: 1.2rem !important;
@@ -89,63 +82,52 @@
         #comment-input { width: 100%; padding: 15px; border: 2px solid #ccc; border-radius: 8px; margin-bottom: 8px; box-sizing: border-box; font-size: 1.6rem; }
         .btn-record { background: #2ecc71; color: white; flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: bold; font-size: 1.8rem; cursor: pointer; }
 
-        /* ワンタップ位置登録用ボタンスタイル */
         .quick-sync-panel { background: #eaf2f8; padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #a9cce3; }
         .quick-sync-title { font-size: 0.8rem; font-weight: bold; margin-bottom: 6px; color: #2471a3; text-align: center; }
         .quick-btn-row { display: flex; gap: 8px; width: 100%; box-sizing: border-box; }
-        .btn-quick-send { flex: 1; padding: 26px 10px; border: none; border-radius: 8px; color: white; font-weight: bold; font-size: 1.45rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: transform 0.1s, background-color 0.2s; }
-        .btn-quick-send:active { transform: scale(0.96); }
+        .btn-quick-send { flex: 1; padding: 26px 10px; border: none; border-radius: 8px; color: white; font-weight: bold; font-size: 1.45rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
         .btn-quick-send.boat { background-color: #1e90ff; }
         .btn-quick-send.buoy { background-color: #ff8c00; }
 
-        /* 音声入力ボタン */
         .voice-panel { background: #fdf2e9; padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #f5cba7; box-sizing: border-box; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; width: 100%; }
         .btn-voice { background: #e67e22; color: white; border: none; padding: 24px 12px; border-radius: 8px; font-weight: bold; font-size: 1.45rem; cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%; justify-content: center; box-sizing: border-box; }
         .btn-voice.listening { background: #e74c3c; animation: pulse 1.5s infinite; }
         .voice-status { font-size: 0.85rem; color: #d35400; font-weight: bold; width: 100%; text-align: center; word-wrap: break-word; line-height: 1.3; }
+        .voice-status .huge-command { font-size: 4.2rem; color: #e67e22; font-weight: 900; display: block; margin: 8px 0; letter-spacing: -2px; }
+        .voice-confirm-btn { display: none; width: 100%; background: #2ecc71; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 1.4rem; font-weight: bold; cursor: pointer; text-align: center; margin-top: 5px; }
 
-        .voice-status .huge-command { font-size: 4.2rem; color: #e67e22; font-weight: 900; display: block; margin: 8px 0; letter-spacing: -2px; text-shadow: 1px 1px 0px #fff, -1px -1px 0px #fff; }
-        .voice-confirm-btn { display: none; width: 100%; background: #2ecc71; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 1.4rem; font-weight: bold; cursor: pointer; text-align: center; box-sizing: border-box; margin-top: 5px; box-shadow: 0 4px 10px rgba(46,204,113,0.4); }
-
-        /* 🗺️ 位置登録パネル */
         .honbu-panel { background: #eef7f2; padding: 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #cceadb; box-sizing: border-box; }
         .honbu-title { font-size: 0.95rem; font-weight: bold; margin-bottom: 8px; color: #1e4620; text-align: center; }
-        
         .honbu-row { display: flex; gap: 8px; margin-bottom: 8px; width: 100%; }
         .honbu-row input { font-size: 1.5rem; padding: 12px 10px; border-radius: 8px; border: 2px solid #28a745; box-sizing: border-box; width: 100%; font-weight: bold; background: white; text-align: center; }
         #inputBoatName { text-align: left !important; }
-
         .honbu-buttons { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 4px; }
-        #btnSaveBoat { width: 100%; background: #28a745; color: white; border: none; padding: 36px 12px; border-radius: 8px; font-size: 1.8rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
-        #btnSaveBoat:active { background: #218838; transform: scale(0.98); }
+        #btnSaveBoat { width: 100%; background: #28a745; color: white; border: none; padding: 36px 12px; border-radius: 8px; font-size: 1.8rem; font-weight: bold; cursor: pointer; }
         #btnDeleteBoat { width: 100%; background: #dc3545; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
 
         .status-bar { font-size: 0.75rem; color: #666; text-align: center; margin-top: 5px; font-weight: bold; }
         
-        /* 📊 凡例スタイル */
         .depth-legend { position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.95); padding: 8px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border: 1px solid #ddd; z-index: 10; font-size: 0.7rem; font-weight: bold; cursor: pointer; user-select: none; }
         .legend-content.minimized { display: none; }
         .legend-item { display: flex; align-items: center; margin-bottom: 3px; }
         .color-box { width: 12px; height: 12px; margin-right: 6px; border: 1px solid #333; border-radius: 2px; }
 
-        /* 🧭 右下フローティングボタン群 */
         .view-toggle-btn { position: absolute; bottom: 20px; right: 10px; width: 50px; height: 50px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; }
-        .sync-button { position: absolute; bottom: 80px; right: 10px; width: 50px; height: 50px; background: #e67e22; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; transition: transform 0.2s; }
-        .sync-button:active { transform: scale(0.9); }
+        .sync-button { position: absolute; bottom: 80px; right: 10px; width: 50px; height: 50px; background: #e67e22; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; }
         .menu-main-btn { position: absolute; bottom: 140px; right: 10px; width: 50px; height: 50px; background: #2c3e50; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; }
         
         .sub-menu-container { display: none; flex-direction: column; gap: 10px; position: absolute; bottom: 200px; right: 10px; z-index: 3000; }
         .sub-menu-container.open { display: flex; }
         .sub-menu-btn { width: 50px; height: 50px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 22px; border: none; position: relative; }
         .sub-menu-btn.active { background: #2ecc71; color: white; }
-        .sub-menu-btn.hazard.active { background: #e74c3c; color: white; border-color: #c0392b; }
+        .sub-menu-btn.hazard.active { background: #e74c3c; color: white; }
 
-        .measure-clear-btn { position: absolute; bottom: 20px; left: 70px; width: 50px; height: 50px; background: #95a5a6; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: none; justify-content: center; align-items: center; z-index: 2000; cursor: pointer; font-size: 13px; font-weight: bold; border: none; text-align: center; line-height: 1.2; }
-        .clear-course-button { position: absolute; bottom: 20px; left: 10px; width: 50px; height: 50px; background: #e74c3c; color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 13px; border: none; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.3); line-height: 1.2; text-align: center; }
-        .measure-result-banner { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); background: rgba(46, 204, 113, 0.95); color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.25); z-index: 2500; display: none; text-align: center; white-space: nowrap; }
+        .measure-clear-btn { position: absolute; bottom: 20px; left: 70px; width: 50px; height: 50px; background: #95a5a6; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: none; justify-content: center; align-items: center; z-index: 2000; cursor: pointer; font-size: 13px; font-weight: bold; border: none; text-align: center; }
+        .clear-course-button { position: absolute; bottom: 20px; left: 10px; width: 50px; height: 50px; background: #e74c3c; color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 13px; border: none; font-weight: bold; text-align: center; }
+        .measure-result-banner { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); background: rgba(46, 204, 113, 0.95); color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; font-size: 1rem; z-index: 2500; display: none; white-space: nowrap; }
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 6000; font-weight: bold; color: #3498db; }
 
-        /* 🔒 商用利用同意モーダル（初回のみ強制表示） */
+        /* 🔒 商用利用同意モーダル */
         #commercial-modal {
             position: fixed;
             top: 0;
@@ -186,26 +168,29 @@
         }
         .checkbox-container {
             display: flex;
-            align-items: flex-start;
-            gap: 10px;
+            align-items: center;
+            gap: 12px;
             background: #fdf2e9;
-            padding: 12px;
+            padding: 14px 12px;
             border-radius: 8px;
             border: 1px solid #f5cba7;
             margin: 16px 0;
             cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
         }
-        .checkbox-container input {
-            width: 22px;
-            height: 22px;
-            margin-top: 2px;
+        .checkbox-container input[type="checkbox"] {
+            width: 26px;
+            height: 26px;
+            cursor: pointer;
             flex-shrink: 0;
         }
         .checkbox-container label {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             font-weight: bold;
             color: #d35400;
             cursor: pointer;
+            line-height: 1.4;
+            user-select: none;
         }
         .btn-agree {
             width: 100%;
@@ -222,9 +207,6 @@
         .btn-agree.active {
             background: #27ae60;
             cursor: pointer;
-        }
-        .btn-agree.active:active {
-            background: #219653;
         }
 
         .modal-body-scroll { max-height: 65vh; overflow-y: auto; margin-top: 10px; font-size: 0.9rem; line-height: 1.5; color: #333; }
@@ -253,9 +235,10 @@
         <p>「水深測っ太郎」は個人・趣味での利用を想定して開発されたアプリケーションです。</p>
         <p><strong>商用（ビジネス・業務）でのご利用は有料となります。</strong>ご使用の際は必ず事前に開発者へご連絡ください。</p>
         
-        <div class="checkbox-container" onclick="toggleAgreementCheckbox()">
+        <!-- チェックボックス部分：どこをタップしても確実にチェックが入るように改善 -->
+        <div class="checkbox-container" onclick="handleContainerClick(event)">
             <input type="checkbox" id="agree-checkbox" onchange="checkAgreementState()">
-            <label for="agree-checkbox">上記の内容を確認し、商用利用ではないこと（または連絡済みであること）に同意します。</label>
+            <label for="agree-checkbox">上記の内容を確認し、商用利用ではないことに同意します。</label>
         </div>
 
         <button id="btn-agree-start" class="btn-agree" onclick="handleAgreementComplete()" disabled>同意してアプリを開始する</button>
@@ -263,12 +246,11 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.4.0 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.4.1 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
     
-    <!-- 🎛️ パネル群 -->
     <div class="panel-wrapper" id="panel-wrapper">
         <div class="mode-tabs" id="mode-tabs">
             <button class="tab-btn" id="tab-input-mode" onclick="trySwitchToInputMode(this)">📊 データ入力</button>
@@ -292,7 +274,6 @@
                 <div id="status-display" class="status-bar">⚡ 高速起動完了</div>
             </div>
 
-            <!-- 1️⃣ データ入力 -->
             <div id="sec-input-mode" class="mode-section">
                 <div class="type-selector">
                     <button class="type-btn active" onclick="selectType('平地', this)">平地</button>
@@ -307,7 +288,6 @@
                 <input type="text" id="comment-input" placeholder="一言コメント（任意）">
             </div>
 
-            <!-- 2️⃣ 位置送受信 -->
             <div id="sec-sync-mode" class="mode-section active">
                 <div class="quick-sync-panel">
                     <div class="quick-sync-title">🗺️ ワンタップ現在位置送信</div>
@@ -331,11 +311,10 @@
                         ・海上から送信後、無線で連絡を受けたら右下の <strong>オレンジ色のリセット(🔄)</strong> を押して最新に更新できます。<br>
                         ・フネ、ブイを登録したら、陸上本部に「登録したよ」と教えてあげてね。
                     </div>
-                    <button onclick="speakInfoText()" style="background: #2980b9; color: white; border: none; padding: 10px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: bold; cursor: pointer; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.15);" title="インフォメーションを読み上げ">🔊 読み上げ</button>
+                    <button onclick="speakInfoText()" style="background: #2980b9; color: white; border: none; padding: 10px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: bold; cursor: pointer; flex-shrink: 0;" title="インフォメーションを読み上げ">🔊 読み上げ</button>
                 </div>
             </div>
 
-            <!-- 3️⃣ 位置登録 -->
             <div id="sec-register-mode" class="mode-section">
                 <div class="honbu-panel">
                     <div class="honbu-title">⚓ 船・ブイ配置 / タップして削除・編集</div>
@@ -449,8 +428,11 @@
     let pendingCommand = null; 
     let activeInfoWindow = null;
 
-    /* 🔒 商用利用同意チェックの制御 */
-    function toggleAgreementCheckbox() {
+    /* 🔒 商用利用同意チェックの制御（枠全体をタップしても動くように改善） */
+    function handleContainerClick(event) {
+        // チェックボックスやラベルそのものを直接タップしたときはデフォルト動作に任せる
+        if (event.target.tagName === 'INPUT' || event.target.tagName === 'LABEL') return;
+        
         const checkbox = document.getElementById('agree-checkbox');
         checkbox.checked = !checkbox.checked;
         checkAgreementState();
@@ -472,7 +454,6 @@
         const checkbox = document.getElementById('agree-checkbox');
         if (!checkbox.checked) return;
 
-        // 同意したことをスマホに記録（2回目以降は表示させない）
         localStorage.setItem('popolo_commercial_agreed', 'true');
         document.getElementById('commercial-modal').style.display = 'none';
     }
@@ -845,7 +826,6 @@
     }
 
     async function initMap() {
-        // 🔒 初回商用利用チェックの状態確認
         if (localStorage.getItem('popolo_commercial_agreed') === 'true') {
             document.getElementById('commercial-modal').style.display = 'none';
         } else {
