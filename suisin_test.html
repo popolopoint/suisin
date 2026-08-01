@@ -236,9 +236,16 @@ html_content = """<!DOCTYPE html>
 <!-- 🔒 初回商用利用同意モーダル -->
 <div id="commercial-modal">
     <div class="commercial-box">
-        <h3>⚠️ ご利用に関する重要なお知らせ</h3>
+        <h3>⚠️ ご利用に関する重要なお知らせ</h3>     
         <p>「水深測っ太郎」は個人・趣味での利用を想定して開発されたアプリケーションです。</p>
         <p><strong>商用（ビジネス・業務）でのご利用は有料となります。</strong>ご使用の際は必ず事前に開発者へご連絡ください。</p>
+
+        <p>
+  
+    <a href="mailto:popolopoint@gmail.com" style="color: #3498db; font-weight: bold; text-decoration: underline;">
+        ✉️ 開発者にメールを送る (popolopoint@gmail.com)
+    </a>
+</p>
         
         <div class="checkbox-container" onclick="handleContainerClick(event)">
             <input type="checkbox" id="agree-checkbox" onchange="checkAgreementState()">
