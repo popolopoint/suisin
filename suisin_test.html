@@ -1,12 +1,10 @@
-```python
-# Generating the updated v4.4.3 HTML file with fix for auto-centering and relocating "Center My Location" button.
-html_content = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.9.2 -->
-    <title>水深測っ太郎 v4.4.3 by Popolo App.com</title>
+    <!-- コード名: 6.9.3 -->
+    <title>水深測っ太郎 v4.5.0 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -109,16 +107,19 @@ html_content = """<!DOCTYPE html>
 
         .status-bar { font-size: 0.75rem; color: #666; text-align: center; margin-top: 5px; font-weight: bold; }
         
+        /* 📊 凡例＆モード切替スタイル */
         .depth-legend { position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.95); padding: 8px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border: 1px solid #ddd; z-index: 10; font-size: 0.7rem; font-weight: bold; cursor: pointer; user-select: none; }
         .legend-content.minimized { display: none; }
         .legend-item { display: flex; align-items: center; margin-bottom: 3px; }
         .color-box { width: 12px; height: 12px; margin-right: 6px; border: 1px solid #333; border-radius: 2px; }
+        
+        /* モード切替ボタン */
+        .mode-switch-badge { margin-top: 6px; padding: 4px 6px; background: #2c3e50; color: white; border-radius: 4px; text-align: center; font-size: 0.7rem; cursor: pointer; }
 
-        /* 🧭 右下フローティングボタン群（独立ボタン配置） */
+        /* 🧭 右下フローティングボタン群 */
         .view-toggle-btn { position: absolute; bottom: 20px; right: 10px; width: 50px; height: 50px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; }
         .sync-button { position: absolute; bottom: 80px; right: 10px; width: 50px; height: 50px; background: #e67e22; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; }
-        .location-button { position: absolute; bottom: 140px; right: 10px; width: 50px; height: 50px; background: #2980b9; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; transition: transform 0.1s; }
-        .location-button:active { transform: scale(0.9); }
+        .location-button { position: absolute; bottom: 140px; right: 10px; width: 50px; height: 50px; background: #2980b9; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; }
         .menu-main-btn { position: absolute; bottom: 200px; right: 10px; width: 50px; height: 50px; background: #2c3e50; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; }
         
         .sub-menu-container { display: none; flex-direction: column; gap: 10px; position: absolute; bottom: 260px; right: 10px; z-index: 3000; }
@@ -236,17 +237,16 @@ html_content = """<!DOCTYPE html>
 <!-- 🔒 初回商用利用同意モーダル -->
 <div id="commercial-modal">
     <div class="commercial-box">
-        <h3>⚠️ ご利用に関する重要なお知らせ</h3>     
+        <h3>⚠️ ご利用に関する重要なお知らせ</h3>
         <p>「水深測っ太郎」は個人・趣味での利用を想定して開発されたアプリケーションです。</p>
         <p><strong>商用（ビジネス・業務）でのご利用は有料となります。</strong>ご使用の際は必ず事前に開発者へご連絡ください。</p>
-
-        <p>
-  
-    <a href="mailto:popolopoint@gmail.com" style="color: #3498db; font-weight: bold; text-decoration: underline;">
-        ✉️ 開発者にメールを送る (popolopoint@gmail.com)
-    </a>
-</p>
         
+        <p>
+            <a href="mailto:popolopoint@gmail.com" style="color: #3498db; font-weight: bold; text-decoration: underline;">
+                ✉️ 開発者にメールを送る (popolopoint@gmail.com)
+            </a>
+        </p>
+
         <div class="checkbox-container" onclick="handleContainerClick(event)">
             <input type="checkbox" id="agree-checkbox" onchange="checkAgreementState()">
             <label for="agree-checkbox">上記の内容を確認し、商用利用ではないことに同意します。</label>
@@ -257,7 +257,7 @@ html_content = """<!DOCTYPE html>
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.4.3 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.5.0 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -356,19 +356,13 @@ html_content = """<!DOCTYPE html>
 
     <button class="measure-clear-btn" id="measure-clear-btn" onclick="clearMeasure()">距離<br>消去</button>
 
-    <div class="depth-legend" id="depth-legend-box" onclick="toggleLegendTap(event)" title="タップして縮小/展開">
-        <div id="legend-header">📊 凡例</div>
+    <!-- 📊 凡例＆モード切替ボックス -->
+    <div class="depth-legend" id="depth-legend-box" title="タップして縮小/展開">
+        <div id="legend-header" onclick="toggleLegendTap(event)">📊 凡例</div>
         <div class="legend-content" id="legend-content">
-            <div class="legend-item"><div class="color-box" style="background:#ff0000;"></div>20cm未満 (赤)</div>
-            <div class="legend-item"><div class="color-box" style="background:#ffa500;"></div>20-40cm (橙)</div>
-            <div class="legend-item"><div class="color-box" style="background:#ffff00;"></div>40-60cm (黄)</div>
-            <div class="legend-item"><div class="color-box" style="background:#adff2f;"></div>60-80cm (黄緑)</div>
-            <div class="legend-item"><div class="color-box" style="background:#a8e6cf;"></div>80-100cm (パステル緑)</div>
-            <div class="legend-item"><div class="color-box" style="background:#00ffff;"></div>100-120cm (水色)</div>
-            <div class="legend-item"><div class="color-box" style="background:#70a1ff;"></div>120-140cm</div>
-            <div class="legend-item"><div class="color-box" style="background:#a29bfe;"></div>140-160cm</div>
-            <div class="legend-item"><div class="color-box" style="background:#000080;"></div>160cm以上 (紺)</div>
+            <div id="legend-items-container"></div>
         </div>
+        <div class="mode-switch-badge" id="mode-switch-badge" onclick="toggleColorMode()">モード: ウインド</div>
     </div>
 
     <div id="measure-result" class="measure-result-banner"></div>
@@ -405,8 +399,8 @@ html_content = """<!DOCTYPE html>
             <p>・「⚓ フネ登録」や「🟧 ブイ登録」を押すと、現在のGPS位置が即座に送信されます。</p>
             <h4>🗺️ 3. 位置登録タブ</h4>
             <p>・本部船やブイのマーク名、緯度・経度を確認・微調整して配置や削除ができます。</p>
-            <h4>🍔 4. メニュー機能</h4>
-            <p>・<strong>❓</strong>: マニュアル<br>・<strong>⚠️</strong>: 危険物のみ表示<br>・<strong>📏</strong>: 距離測定<br>・<strong>🗺️</strong>: 背景切り替え<br>・<strong>📍</strong>: 現在位置を中心にする（独立ボタン）<br>・<strong>📊</strong>: 凡例<br>・<strong>🔄</strong>: 最新データの再読み込み</p>
+            <h4>⚙️ 4. 凡例モード切替</h4>
+            <p>・右上の凡例内にあるバッジをタップすると、<strong>「ウインドモード（従来）」</strong>と<strong>「フォイルモード（新基準）」</strong>を切り替えられます。</p>
         </div>
         <button onclick="closeModal('manual-modal')" style="width:100%; margin-top:12px; background:#3498db; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold; font-size:1rem; cursor:pointer;">閉じる</button>
     </div>
@@ -424,6 +418,9 @@ html_content = """<!DOCTYPE html>
     let selectedType = "平地";
     let mapStyleMode = 0; 
     let isHazardOnlyMode = false;
+
+    // カラーモード管理 ("wind" または "foil")
+    let currentDepthMode = "wind";
 
     let isMeasureMode = false;
     let measurePoints = []; 
@@ -650,6 +647,46 @@ html_content = """<!DOCTYPE html>
         document.getElementById('legend-header').innerHTML = content.classList.contains('minimized') ? "📊 凡例 (+)" : "📊 凡例";
     }
 
+    // 🚀 モード切替の処理 (ウインド ⇄ フォイル)
+    function toggleColorMode() {
+        currentDepthMode = (currentDepthMode === "wind") ? "foil" : "wind";
+        const badge = document.getElementById('mode-switch-badge');
+        if (currentDepthMode === "foil") {
+            badge.textContent = "モード: フォイル";
+            badge.style.background = "#e67e22";
+        } else {
+            badge.textContent = "モード: ウインド";
+            badge.style.background = "#2c3e50";
+        }
+        updateLegendUI();
+        refreshMarkersOnMap();
+    }
+
+    function updateLegendUI() {
+        const container = document.getElementById('legend-items-container');
+        if (currentDepthMode === "foil") {
+            container.innerHTML = `
+                <div class="legend-item"><div class="color-box" style="background:#000080;"></div>140cm以上 (濃紺)</div>
+                <div class="legend-item"><div class="color-box" style="background:#adff2f;"></div>120〜139cm (緑)</div>
+                <div class="legend-item"><div class="color-box" style="background:#ffff00;"></div>100〜119cm (黄色)</div>
+                <div class="legend-item"><div class="color-box" style="background:#ffa500;"></div>80〜99cm (オレンジ)</div>
+                <div class="legend-item"><div class="color-box" style="background:#ff0000;"></div>80cm未満 (赤)</div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="legend-item"><div class="color-box" style="background:#ff0000;"></div>20cm未満 (赤)</div>
+                <div class="legend-item"><div class="color-box" style="background:#ffa500;"></div>20-40cm (橙)</div>
+                <div class="legend-item"><div class="color-box" style="background:#ffff00;"></div>40-60cm (黄)</div>
+                <div class="legend-item"><div class="color-box" style="background:#adff2f;"></div>60-80cm (黄緑)</div>
+                <div class="legend-item"><div class="color-box" style="background:#a8e6cf;"></div>80-100cm (パステル緑)</div>
+                <div class="legend-item"><div class="color-box" style="background:#00ffff;"></div>100-120cm (水色)</div>
+                <div class="legend-item"><div class="color-box" style="background:#70a1ff;"></div>120-140cm</div>
+                <div class="legend-item"><div class="color-box" style="background:#a29bfe;"></div>140-160cm</div>
+                <div class="legend-item"><div class="color-box" style="background:#000080;"></div>160cm以上 (紺)</div>
+            `;
+        }
+    }
+
     function toggleMapStyle() {
         mapStyleMode = (mapStyleMode + 1) % 3;
         if (mapStyleMode === 0) { map.setMapTypeId('roadmap'); map.setOptions({ styles: [] }); }
@@ -840,6 +877,8 @@ html_content = """<!DOCTYPE html>
             document.getElementById('commercial-modal').style.display = 'flex';
         }
 
+        updateLegendUI(); // 初期凡例の描画
+
         initInfoWindowCloseTrigger(); 
         map = new google.maps.Map(document.getElementById("map"), {
             zoom: 19, center: { lat: 26.3318, lng: 127.9288 }, 
@@ -848,7 +887,6 @@ html_content = """<!DOCTYPE html>
         
         setNow();
         loadFromCache();
-        // 初回起動時のみ現在位置にセンター移動（2回目以降は勝手に動かないように修正）
         updateMyLocation(true);
         navigator.geolocation.watchPosition(updateMyLocationOnlyMarker, null, {enableHighAccuracy: true});
 
@@ -901,7 +939,6 @@ html_content = """<!DOCTYPE html>
         }
     }
 
-    // マーカーの位置だけを更新し、勝手に中心にスクロールさせない関数
     function updateMyLocationOnlyMarker(pos) {
         const latLng = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         if (!myLocationMarker) {
@@ -913,7 +950,6 @@ html_content = """<!DOCTYPE html>
         } else { myLocationMarker.setPosition(latLng); }
     }
 
-    // ボタンが押されたとき、または初回のみ中心へ移動する関数
     function updateMyLocation(panTo = false) {
         navigator.geolocation.getCurrentPosition((pos) => {
             const latLng = { lat: pos.coords.latitude, lng: pos.coords.longitude };
@@ -1049,11 +1085,23 @@ html_content = """<!DOCTYPE html>
         return (((r * 299) + (g * 587) + (b * 114)) / 1000 >= 170) ? '#000000' : '#ffffff';
     }
 
+    // 🎨 モードに応じたカラー判定
     function getDepthColor(b, raw) {
         if (Math.round(raw) === 999) return "#ffffff";
-        if (b < 20) return "#ff0000"; if (b < 40) return "#ffa500"; if (b < 60) return "#ffff00"; 
-        if (b < 80) return "#adff2f"; if (b < 100) return "#a8e6cf"; if (b < 120) return "#00ffff"; 
-        if (b < 140) return "#70a1ff"; if (b < 160) return "#a29bfe"; return "#000080"; 
+
+        if (currentDepthMode === "foil") {
+            // フォイルモード基準
+            if (b >= 140) return "#000080"; // 140以上、160以上は同じ（濃紺）
+            if (b >= 120) return "#adff2f"; // 120～139 (緑)
+            if (b >= 100) return "#ffff00"; // 100～119 (黄色)
+            if (b >= 80)  return "#ffa500"; // 80～99 (オレンジ)
+            return "#ff0000";               // 80未満 (赤)
+        } else {
+            // ウインドモード基準（従来）
+            if (b < 20) return "#ff0000"; if (b < 40) return "#ffa500"; if (b < 60) return "#ffff00"; 
+            if (b < 80) return "#adff2f"; if (b < 100) return "#a8e6cf"; if (b < 120) return "#00ffff"; 
+            if (b < 140) return "#70a1ff"; if (b < 160) return "#a29bfe"; return "#000080"; 
+        }
     }
 
     function openTideTableModal() {
@@ -1192,7 +1240,7 @@ html_content = """<!DOCTYPE html>
         const marker = new google.maps.Marker({
             position: pos, map: map, title: name,
             label: { text: name, color: '#000000', fontWeight: 'bold', fontSize: '12px' },
-            icon: { path: isBuoy ? "M -6,-8 L 6,-8 L 6,8 L -6,8 Z" : "M 0,-15 L 6,-5 L 5,10 L -5,10 L -6,-5 Z", scale: isBuogy ? 1 : 1.1, fillColor: isBuoy ? "#ff8c00" : "#1e90ff", fillOpacity: 1, strokeColor: "#ffffff", strokeWeight: 2 },
+            icon: { path: isBuoy ? "M -6,-8 L 6,-8 L 6,8 L -6,8 Z" : "M 0,-15 L 6,-5 L 5,10 L -5,10 L -6,-5 Z", scale: isBuoy ? 1 : 1.1, fillColor: isBuoy ? "#ff8c00" : "#1e90ff", fillOpacity: 1, strokeColor: "#ffffff", strokeWeight: 2 },
             zIndex: 1500 
         });
         marker.addListener('click', () => {
@@ -1223,7 +1271,7 @@ html_content = """<!DOCTYPE html>
             showLoading(true);
             try {
                 await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ method: 'DELETE_BOAT', password: ADMIN_SECRET, name: name, lat: targetBoat.lat, lng: targetBoat.lng }) });
-                await syncData(false); alert(`(` + name + `) を削除しました！`);
+                await syncData(false); alert(`(${name}) を削除しました！`);
             } catch(e){}
             showLoading(false);
         } else { alert("削除するマークが見つかりません。ピンをタップしてから削除を押してください。"); }
@@ -1231,36 +1279,3 @@ html_content = """<!DOCTYPE html>
 </script>
 </body>
 </html>
-"""
-
-import os
-with open("water_depth_app.html", "w", encoding="utf-8") as f:
-    f.write(html_content)
-
-print("HTML file created successfully.")
-
-
-```
-
-```text
-HTML file created successfully.
-
-
-```
-
-お気付きの通り、これまでのバージョンでは現在地の位置情報が更新されるたびに画面の中心が強制的に現在地へ引き戻されてしまっていたため、地図を自由に動かして確認したいときに非常に使いづらい状態になっておりました。大変失礼いたしました！
-
-今回の最新バージョン（**v4.4.2**）では以下の通り改善いたしました。
-
-1. **勝手に中心へ戻る現象を修正**:
-現在地を取得しても「マップの表示位置が勝手に移動しない（自分が今見たい場所を自由に確認できる）」ように動作を変更しました。
-2. **「現在位置を中心にする（📍）」ボタンをメニューの外に独立化**:
-画面右側のフローティングボタン（メニューの上あたり）に、青い専用の **`📍` ボタン** を新しく独立して配置しました。
-これにより、いざ自分の位置へ戻りたいときには、いつでもワンタップでスパッと中心に呼び出せるようになります。
-
-修正済みの最新フルコードファイルを生成いたしました。
-
-Your HTML file is ready
-
-
-これで地図の操作性が格段に良くなりますので、ぜひお試しください！
