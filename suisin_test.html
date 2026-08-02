@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 7.0.4 -->
-    <title>水深測っ太郎 v4.7.0 by Popolo App.com</title>
+    <title>水深測っ太郎 v4.7.1 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -104,12 +104,12 @@
 
         .status-bar { font-size: 0.75rem; color: #666; text-align: center; margin-top: 5px; font-weight: bold; }
         
-        .depth-legend { position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.85); padding: 8px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border: 1px solid rgba(221,221,221,0.6); z-index: 10; font-size: 0.7rem; font-weight: bold; cursor: pointer; user-select: none; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+        .depth-legend { position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.75); padding: 8px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); border: 1px solid rgba(221,221,221,0.4); z-index: 10; font-size: 0.7rem; font-weight: bold; cursor: pointer; user-select: none; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
         .legend-content.minimized { display: none; }
         .legend-item { display: flex; align-items: center; margin-bottom: 3px; }
         .color-box { width: 12px; height: 12px; margin-right: 6px; border: 1px solid #333; border-radius: 2px; }
         
-        .mode-switch-badge { margin-top: 6px; padding: 4px 6px; background: rgba(44, 62, 80, 0.8); color: white; border-radius: 4px; text-align: center; font-size: 0.7rem; cursor: pointer; }
+        .mode-switch-badge { margin-top: 6px; padding: 4px 6px; background: rgba(44, 62, 80, 0.5); color: white; border-radius: 4px; text-align: center; font-size: 0.7rem; cursor: pointer; }
 
         /* 🔍 ズームイン・アウトボタン（極薄・すりガラス風） */
         .zoom-control-container {
@@ -124,23 +124,23 @@
         .zoom-btn {
             width: 50px;
             height: 50px;
-            background: rgba(44, 62, 80, 0.45); /* より薄く変更 */
+            background: rgba(44, 62, 80, 0.35); /* さらに薄く */
             color: white;
             border-radius: 50%;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
             font-size: 26px;
             font-weight: bold;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
             backdrop-filter: blur(4px);
             -webkit-backdrop-filter: blur(4px);
             user-select: none;
         }
         .zoom-btn:active {
-            background: rgba(52, 152, 219, 0.7);
+            background: rgba(52, 152, 219, 0.6);
         }
 
         /* 🧭 上下左右 移動コントローラー（画面左下） */
@@ -157,10 +157,10 @@
                 "left .   right"
                 ".   down   .";
             gap: 4px;
-            pointer-events: none; /* コンテナ自体はタッチ透過 */
+            pointer-events: none;
         }
         .pan-btn {
-            background: rgba(44, 62, 80, 0.45); /* 薄い半透明 */
+            background: rgba(44, 62, 80, 0.35); /* さらに薄く */
             color: white;
             border-radius: 50%;
             border: 1.5px solid rgba(255, 255, 255, 0.3);
@@ -172,50 +172,51 @@
             cursor: pointer;
             backdrop-filter: blur(3px);
             -webkit-backdrop-filter: blur(3px);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            pointer-events: auto; /* ボタン自体は押せるようにする */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            pointer-events: auto;
             user-select: none;
         }
         .pan-btn:active {
-            background: rgba(52, 152, 219, 0.7);
+            background: rgba(52, 152, 219, 0.6);
         }
         .pan-up    { grid-area: up; width: 42px; height: 42px; justify-self: center; }
         .pan-left  { grid-area: left; width: 42px; height: 42px; align-self: center; }
         .pan-right { grid-area: right; width: 42px; height: 42px; align-self: center; }
         .pan-down  { grid-area: down; width: 42px; height: 42px; justify-self: center; }
 
-        /* 右下のその他の丸ボタンをすべて「薄い半透明」に統一 */
+        /* 右下のその他の丸ボタンをすべて「さらに薄い半透明」に統一 */
         .view-toggle-btn, .sync-button, .location-button, .menu-main-btn {
             position: absolute;
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 3000;
             cursor: pointer;
             font-size: 24px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
             backdrop-filter: blur(4px);
             -webkit-backdrop-filter: blur(4px);
         }
-        .view-toggle-btn { bottom: 20px; right: 10px; background: rgba(255, 255, 255, 0.55); color: #333; }
-        .sync-button     { bottom: 80px; right: 10px; background: rgba(230, 126, 34, 0.6); color: white; }
-        .location-button { bottom: 140px; right: 10px; background: rgba(41, 128, 185, 0.6); color: white; }
-        .menu-main-btn   { bottom: 200px; right: 10px; background: rgba(44, 62, 80, 0.6); color: white; }
+        .view-toggle-btn { bottom: 20px; right: 10px; background: rgba(255, 255, 255, 0.45); color: #333; }
+        .sync-button     { bottom: 80px; right: 10px; background: rgba(230, 126, 34, 0.45); color: white; }
+        .location-button { bottom: 140px; right: 10px; background: rgba(41, 128, 185, 0.45); color: white; }
+        .menu-main-btn   { bottom: 200px; right: 10px; background: rgba(44, 62, 80, 0.45); color: white; }
         
+        /* 🍔 サブメニュー（展開されるボタン群も薄くする） */
         .sub-menu-container { display: none; flex-direction: column; gap: 10px; position: absolute; bottom: 260px; right: 70px; z-index: 3000; }
         .sub-menu-container.open { display: flex; }
-        .sub-menu-btn { width: 50px; height: 50px; background: rgba(255, 255, 255, 0.55); border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 22px; border: 2px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); position: relative; }
-        .sub-menu-btn.active { background: rgba(46, 204, 113, 0.7); color: white; }
-        .sub-menu-btn.hazard.active { background: rgba(231, 76, 60, 0.7); color: white; }
+        .sub-menu-btn { width: 50px; height: 50px; background: rgba(255, 255, 255, 0.45); border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.15); display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 22px; border: 1.5px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); position: relative; color: #2c3e50; }
+        .sub-menu-btn.active { background: rgba(46, 204, 113, 0.55); color: white; }
+        .sub-menu-btn.hazard.active { background: rgba(231, 76, 60, 0.55); color: white; }
 
-        .measure-clear-btn { position: absolute; bottom: 20px; left: 140px; width: 50px; height: 50px; background: rgba(149, 165, 166, 0.6); color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.2); display: none; justify-content: center; align-items: center; z-index: 2000; cursor: pointer; font-size: 12px; font-weight: bold; border: 2px solid rgba(255,255,255,0.3); backdrop-filter: blur(4px); text-align: center; }
-        .clear-course-button { position: absolute; bottom: 20px; left: 10px; width: 50px; height: 50px; background: rgba(231, 76, 60, 0.6); color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 12px; border: 2px solid rgba(255,255,255,0.3); backdrop-filter: blur(4px); font-weight: bold; text-align: center; }
+        .measure-clear-btn { position: absolute; bottom: 20px; left: 140px; width: 50px; height: 50px; background: rgba(149, 165, 166, 0.45); color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.15); display: none; justify-content: center; align-items: center; z-index: 2000; cursor: pointer; font-size: 12px; font-weight: bold; border: 1.5px solid rgba(255,255,255,0.3); backdrop-filter: blur(4px); text-align: center; }
+        .clear-course-button { position: absolute; bottom: 20px; left: 10px; width: 50px; height: 50px; background: rgba(231, 76, 60, 0.45); color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 12px; border: 1.5px solid rgba(255,255,255,0.3); backdrop-filter: blur(4px); font-weight: bold; text-align: center; }
         
-        .measure-result-banner { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); background: rgba(46, 204, 113, 0.85); color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; font-size: 1rem; z-index: 2500; display: none; white-space: nowrap; backdrop-filter: blur(4px); }
+        .measure-result-banner { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); background: rgba(46, 204, 113, 0.75); color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; font-size: 1rem; z-index: 2500; display: none; white-space: nowrap; backdrop-filter: blur(4px); }
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 6000; font-weight: bold; color: #3498db; }
 
         #commercial-modal {
@@ -341,7 +342,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.7.0 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.7.1 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -698,7 +699,6 @@
     // 🧭 マップの上下左右移動
     function panMap(x, y) {
         if (!map) return;
-        // 画面サイズに応じて移動量を調整（例: 画面幅/高さの25%分移動）
         const moveX = x * 150;
         const moveY = y * 150;
         map.panBy(moveX, moveY);
@@ -767,10 +767,10 @@
         const badge = document.getElementById('mode-switch-badge');
         if (currentDepthMode === "foil") {
             badge.textContent = "モード: フォイル";
-            badge.style.background = "rgba(230, 126, 34, 0.8)";
+            badge.style.background = "rgba(230, 126, 34, 0.6)";
         } else {
             badge.textContent = "モード: ウインド";
-            badge.style.background = "rgba(44, 62, 80, 0.8)";
+            badge.style.background = "rgba(44, 62, 80, 0.6)";
         }
         updateLegendUI();
         refreshMarkersOnMap();
