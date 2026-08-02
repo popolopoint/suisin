@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 7.0.7 -->
-    <title>水深測っ太郎 v4.8.0 by Popolo App.com</title>
+    <!-- コード名: 7.0.8 -->
+    <title>水深測っ太郎 v4.8.1 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -146,9 +146,9 @@
             height: 140px;
             z-index: 3000;
             grid-template-areas:
-                "plus  up    minus"
-                "left  .     right"
-                ".     down  .";
+                "plus  up   minus"
+                "left  .    right"
+                ".     down   .";
             gap: 6px;
         }
         .pan-menu-container.open {
@@ -338,7 +338,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.8.0 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.8.1 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -1037,7 +1037,7 @@
         initInfoWindowCloseTrigger(); 
         map = new google.maps.Map(document.getElementById("map"), {
             zoom: 19, center: { lat: 26.3318, lng: 127.9288 }, 
-            mapTypeId: 'roadmap', disableDefaultUI: true, zoomControl: false, scaleControl: true       
+            mapTypeId: 'roadmap', disableDefaultUI: true, zoomControl: false, scaleControl: true        
         });
         
         setNow();
@@ -1123,12 +1123,6 @@
         }, null, {enableHighAccuracy: true});
     }
 
-    
-    
-    
-    
-    
-    // 🌐 JSONP方式による確実なデータ同期処理（CORS制限を完全回避）
     // 🌐 JSONP方式による確実なデータ同期処理（CORS制限を完全回避）
     function syncData(isSilent = false) {
         if (!isSilent) showLoading(true);
@@ -1173,26 +1167,6 @@
         }
 
         document.body.appendChild(script);
-    }
-
-    function calculateTideAndRefresh() {
-        const val = document.getElementById('target-datetime').value;
-        if (val && fullTideMasterData && fullTideMasterData.length > 0) {
-            const s = new Date(val);
-            const y = s.getFullYear(), m = s.getMonth() + 1, d = s.getDate(), h = s.getHours(), min = s.getMinutes();
-            const row = fullTideMasterData.find(r => {
-                if (!r[0]) return false;
-                const rd = new Date(r[0]);
-                return rd.getFullYear() === y && (rd.getMonth()+1) === m && rd.getDate() === d;
-            });
-            if (row) {
-                const t1 = parseFloat(row[1+h]), t2 = (h<23)?parseFloat(row[1+h+1]):t1;
-                if (!isNaN(t1)) {
-                    currentSelectedTide = t1 + (t2-t1)*(min/60);
-                }
-            }
-        }
-        refreshMarkersOnMap();
     }
 
     function calculateTideAndRefresh() {
