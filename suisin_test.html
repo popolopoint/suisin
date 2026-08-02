@@ -1123,6 +1123,12 @@
         }, null, {enableHighAccuracy: true});
     }
 
+    
+    
+    
+    
+    
+    // 🌐 JSONP方式による確実なデータ同期処理（CORS制限を完全回避）
     // 🌐 JSONP方式による確実なデータ同期処理（CORS制限を完全回避）
     function syncData(isSilent = false) {
         if (!isSilent) showLoading(true);
@@ -1167,6 +1173,26 @@
         }
 
         document.body.appendChild(script);
+    }
+
+    function calculateTideAndRefresh() {
+        const val = document.getElementById('target-datetime').value;
+        if (val && fullTideMasterData && fullTideMasterData.length > 0) {
+            const s = new Date(val);
+            const y = s.getFullYear(), m = s.getMonth() + 1, d = s.getDate(), h = s.getHours(), min = s.getMinutes();
+            const row = fullTideMasterData.find(r => {
+                if (!r[0]) return false;
+                const rd = new Date(r[0]);
+                return rd.getFullYear() === y && (rd.getMonth()+1) === m && rd.getDate() === d;
+            });
+            if (row) {
+                const t1 = parseFloat(row[1+h]), t2 = (h<23)?parseFloat(row[1+h+1]):t1;
+                if (!isNaN(t1)) {
+                    currentSelectedTide = t1 + (t2-t1)*(min/60);
+                }
+            }
+        }
+        refreshMarkersOnMap();
     }
 
     function calculateTideAndRefresh() {
