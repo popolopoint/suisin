@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 7.0.4 -->
-    <title>水深測っ太郎 v4.7.3 by Popolo App.com</title>
+    <!-- コード名: 7.0.8 -->
+    <title>水深測っ太郎 v4.8.3 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -99,7 +99,6 @@
         .honbu-row input { font-size: 1.5rem; padding: 12px 10px; border-radius: 8px; border: 2px solid #28a745; box-sizing: border-box; width: 100%; font-weight: bold; background: white; text-align: center; }
         #inputBoatName { text-align: left !important; }
         
-        /* 🗺️ 位置登録のボタンを同じ高さに修正 */
         .honbu-buttons { display: flex; gap: 8px; width: 100%; margin-top: 4px; }
         #btnSaveBoat { flex: 1; background: #28a745; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
         #btnDeleteBoat { flex: 1; background: #dc3545; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
@@ -113,7 +112,6 @@
         
         .mode-switch-badge { margin-top: 6px; padding: 4px 6px; background: rgba(44, 62, 80, 0.5); color: white; border-radius: 4px; text-align: center; font-size: 0.7rem; cursor: pointer; }
 
-        /* 🧭 左下：移動・ズームメニューボタンと展開メニュー */
         .pan-menu-main-btn {
             position: absolute;
             left: 10px;
@@ -148,9 +146,9 @@
             height: 140px;
             z-index: 3000;
             grid-template-areas:
-                "plus  up    minus"
-                "left  .     right"
-                ".     down  .";
+                "plus  up   minus"
+                "left  .    right"
+                ".     down   .";
             gap: 6px;
         }
         .pan-menu-container.open {
@@ -184,7 +182,6 @@
         .sub-right { grid-area: right; align-self: center; }
         .sub-down  { grid-area: down; justify-self: center; }
 
-        /* 右下のその他の丸ボタンをすべて薄い半透明に統一 */
         .view-toggle-btn, .sync-button, .location-button, .menu-main-btn {
             position: absolute;
             width: 50px;
@@ -341,7 +338,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.7.3 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.8.3 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -399,6 +396,10 @@
                     <div id="voice-status" class="voice-status">声で「フネ登録」や「ブイ登録」「深さ〇〇センチ」</div>
                     <button id="btn-voice-confirm" class="voice-confirm-btn" onclick="executePendingVoiceCommand()">✅ [ OK ] 登録する</button>
                 </div>
+
+                <button onclick="sendAllDataToToraKing()" style="width:100%; background:#ff9900; color:white; border:none; padding:12px; border-radius:8px; font-size:1.1rem; font-weight:bold; cursor:pointer; margin-bottom:8px; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">
+                    🐅 虎キングへ船・ブイを同時送信
+                </button>
 
                 <div style="background: #eaf2f8; padding: 10px; border-radius: 8px; border: 1px solid #a9cce3; font-size: 0.85rem; font-weight: bold; color: #2471a3; line-height: 1.4; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
                     <div>
@@ -491,10 +492,9 @@
             <p>・その場で測った水深(cm)と種類を選んで「記録」を押すと、現在地にピンが保存されます。</p>
             <h4>📡 2. 位置送受信タブ</h4>
             <p>・「⚓ フネ登録」や「🟧 ブイ登録」を押すと、現在のGPS位置が即座に送信されます。</p>
+            <p>・「🐅 虎キングへ同時送信」を押すと、登録された船やブイを虎キングアプリへ一度に共有できます。</p>
             <h4>🗺️ 3. 位置登録タブ</h4>
             <p>・本部船やブイのマーク名、緯度・経度を確認・微調整して配置や削除ができます。</p>
-            <h4>⚠️ 4. 危険物のみ表示ボタン</h4>
-            <p>・メニュー内の「⚠️」を押すと、平地が非表示になり、岩・岩大・杭のみに絞り込まれます。</p>
         </div>
         <button onclick="closeModal('manual-modal')" style="width:100%; margin-top:12px; background:#3498db; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold; font-size:1rem; cursor:pointer;">閉じる</button>
     </div>
@@ -503,7 +503,7 @@
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHhxSJK-IhYiT9XBRwE1MX7DHhghBQQQk&callback=initMap&loading=async" async defer></script>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwiK8FFUmfroHExXafF6nW0LAA4DTO0rZG74pjQEUnJFlAVFa1aipyAe-CzI0CHT_q1og/exec"; 
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwn7XNatlFh6zyIVP5nPdYBmCnwuzK0NPPpcuaNQlzvvHjTp4qqybYgNRe08av6z-oWRg/exec"; 
     const ADMIN_SECRET = "popolo2026"; 
     
     let map, markers = [], allPointsData = [], currentSelectedTide = 0;
@@ -528,6 +528,27 @@
     let isListening = false;
     let pendingCommand = null; 
     let activeInfoWindow = null;
+
+    function sendAllDataToToraKing() {
+        let toraKingUrl = "https://popolopoint.github.io/traking/traking_latest.html?mode=committee&course=custom";
+        let count = 0;
+        const keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'K', 'S'];
+        
+        if (customBoatsList && customBoatsList.length > 0) {
+            customBoatsList.forEach((boat, index) => {
+                let key = keys[index] || String.fromCharCode(65 + index);
+                toraKingUrl += `&lat${key}=${boat.lat}&lng${key}=${boat.lng}`;
+                count++;
+            });
+        }
+
+        if (count === 0) {
+            alert("送信できる船やブイのデータがありません。");
+            return;
+        }
+
+        window.open(toraKingUrl, '_blank');
+    }
 
     function handleContainerClick(event) {
         if (event.target.tagName === 'INPUT' || event.target.tagName === 'LABEL') return;
@@ -715,6 +736,7 @@
             try {
                 await fetch(WEB_APP_URL, {
                     method: 'POST',
+                    mode: 'no-cors',
                     body: JSON.stringify({ method: 'SAVE_BOAT', password: ADMIN_SECRET, name: name, lat: lat, lng: lng })
                 });
                 playSuccessBeep();
@@ -949,6 +971,7 @@
             try {
                 await fetch(WEB_APP_URL, {
                     method: 'POST',
+                    mode: 'no-cors',
                     body: JSON.stringify({ method: 'SAVE_BOAT', password: ADMIN_SECRET, name: cmd.name, lat: cmd.lat, lng: cmd.lng })
                 });
                 playSuccessBeep(); 
@@ -983,14 +1006,12 @@
             };
 
             try {
-                const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(pointData) });
-                if ((await res.text()).trim() === "success") { 
-                    playSuccessBeep(); await syncData(false); 
-                    document.getElementById('depth-input').value = ""; 
-                    document.getElementById('voice-status').textContent = `✅ 深さ ${cmd.value}cm (${prefix || '平地'}) を記録しました！`;
-                    speakText("登録しました");
-                    setTimeout(() => { if (recognition && !isListening) startVoiceFlowWithGuide(); }, 1500);
-                }
+                const res = await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(pointData) });
+                playSuccessBeep(); await syncData(false); 
+                document.getElementById('depth-input').value = ""; 
+                document.getElementById('voice-status').textContent = `✅ 深さ ${cmd.value}cm (${prefix || '平地'}) を記録しました！`;
+                speakText("登録しました");
+                setTimeout(() => { if (recognition && !isListening) startVoiceFlowWithGuide(); }, 1500);
             } catch (e) { document.getElementById('voice-status').textContent = "❌ 通信失敗"; }
         }
         showLoading(false);
@@ -1016,7 +1037,7 @@
         initInfoWindowCloseTrigger(); 
         map = new google.maps.Map(document.getElementById("map"), {
             zoom: 19, center: { lat: 26.3318, lng: 127.9288 }, 
-            mapTypeId: 'roadmap', disableDefaultUI: true, zoomControl: false, scaleControl: true       
+            mapTypeId: 'roadmap', disableDefaultUI: true, zoomControl: false, scaleControl: true        
         });
         
         setNow();
@@ -1102,31 +1123,50 @@
         }, null, {enableHighAccuracy: true});
     }
 
-    async function syncData(isSilent = false) {
+    // 🌐 JSONP方式による確実なデータ同期処理（CORS制限を完全回避）
+    function syncData(isSilent = false) {
         if (!isSilent) showLoading(true);
-        try {
-            const res = await fetch(WEB_APP_URL);
-            const data = await res.json();
-            fullTideMasterData = data.allTideData || [];
-            allPointsData = data.points || [];
 
-            try {
-                localStorage.setItem('popolo_cache_tide', JSON.stringify(fullTideMasterData));
-                localStorage.setItem('popolo_cache_points', JSON.stringify(allPointsData));
-                localStorage.setItem('popolo_cache_boats', JSON.stringify(data.boatList || []));
-            } catch(e){}
+        const callbackName = 'popolo_jsonp_cb_' + Math.round(Math.random() * 100000);
+        window[callbackName] = function(data) {
+            cleanup();
+            if (data) {
+                fullTideMasterData = data.allTideData || [];
+                allPointsData = data.points || [];
 
-            calculateTideAndRefresh();
-            clearAllCustomBoatsOnMap(); 
-            if (data.boatList && data.boatList.length > 0) {
-                data.boatList.forEach(boat => {
-                    const bLat = parseFloat(boat.lat), bLng = parseFloat(boat.lng), bName = String(boat.name);
-                    if (!isNaN(bLat) && !isNaN(bLng)) drawCustomBoat(bName, bLat, bLng, false); 
-                });
+                try {
+                    localStorage.setItem('popolo_cache_tide', JSON.stringify(fullTideMasterData));
+                    localStorage.setItem('popolo_cache_points', JSON.stringify(allPointsData));
+                    localStorage.setItem('popolo_cache_boats', JSON.stringify(data.boatList || []));
+                } catch(e){}
+
+                calculateTideAndRefresh();
+                clearAllCustomBoatsOnMap(); 
+                if (data.boatList && data.boatList.length > 0) {
+                    data.boatList.forEach(boat => {
+                        const bLat = parseFloat(boat.lat), bLng = parseFloat(boat.lng), bName = String(boat.name);
+                        if (!isNaN(bLat) && !isNaN(bLng)) drawCustomBoat(bName, bLat, bLng, false); 
+                    });
+                }
+                document.getElementById('status-display').textContent = `✅ 同期完了 (${allPointsData.length}件)`;
             }
-            document.getElementById('status-display').textContent = `✅ 同期完了 (${allPointsData.length}件)`;
-        } catch (e) { document.getElementById('status-display').textContent = "⚡ キャッシュ表示中"; }
-        if (!isSilent) showLoading(false);
+            if (!isSilent) showLoading(false);
+        };
+
+        const script = document.createElement('script');
+        script.src = `${WEB_APP_URL}?callback=${callbackName}`;
+        script.onerror = function() {
+            cleanup();
+            document.getElementById('status-display').textContent = `⚠️ 通信エラー (キャッシュ表示中)`;
+            if (!isSilent) showLoading(false);
+        };
+
+        function cleanup() {
+            if (script.parentNode) script.parentNode.removeChild(script);
+            delete window[callbackName];
+        }
+
+        document.body.appendChild(script);
     }
 
     function calculateTideAndRefresh() {
@@ -1143,7 +1183,6 @@
                 const t1 = parseFloat(row[1+h]), t2 = (h<23)?parseFloat(row[1+h+1]):t1;
                 if (!isNaN(t1)) {
                     currentSelectedTide = t1 + (t2-t1)*(min/60);
-                    document.getElementById('status-display').textContent = `潮位: ${currentSelectedTide.toFixed(1)}cm | 水深:${allPointsData.length}件`;
                 }
             }
         }
@@ -1337,12 +1376,10 @@
 
         showLoading(true);
         try {
-            const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(pointData) });
-            if ((await res.text()).trim() === "success") { 
-                await syncData(false); 
-                document.getElementById('depth-input').value = ""; 
-                document.getElementById('comment-input').value = ""; 
-            }
+            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(pointData) });
+            await syncData(false); 
+            document.getElementById('depth-input').value = ""; 
+            document.getElementById('comment-input').value = ""; 
         } catch (e) {}
         showLoading(false);
     }
@@ -1354,8 +1391,8 @@
         if (!newDepth) return alert("水深を入力してください");
         showLoading(true);
         try {
-            const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ method: 'UPDATE_POINT', password: ADMIN_SECRET, id: id, rawDepth: newDepth, baseDepth: parseFloat(newDepth) - currentSelectedTide, comment: newCmt, type: newType }) });
-            if ((await res.text()).trim() === "success") { await syncData(false); alert("更新しました！"); closeActiveInfoWindow(); }
+            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ method: 'UPDATE_POINT', password: ADMIN_SECRET, id: id, rawDepth: newDepth, baseDepth: parseFloat(newDepth) - currentSelectedTide, comment: newCmt, type: newType }) });
+            await syncData(false); alert("更新しました！"); closeActiveInfoWindow();
         } catch (e) { alert("通信エラー"); }
         showLoading(false);
     }
@@ -1364,7 +1401,7 @@
         if (!confirm("削除しますか？")) return;
         showLoading(true);
         try {
-            await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ method: 'DELETE', password: ADMIN_SECRET, id: id }) });
+            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ method: 'DELETE', password: ADMIN_SECRET, id: id }) });
             await syncData(false); closeActiveInfoWindow();
         } catch (e) {}
         showLoading(false);
@@ -1417,7 +1454,7 @@
         if (isNaN(lat) || !lat || isNaN(lng) || !lng) return alert("緯度と経度を入力してください。");
         drawCustomBoat(name, lat, lng, true);
         try {
-            await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ method: 'SAVE_BOAT', password: ADMIN_SECRET, name: name, lat: lat, lng: lng }) });
+            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ method: 'SAVE_BOAT', password: ADMIN_SECRET, name: name, lat: lat, lng: lng }) });
         } catch (e) {}
     }
 
@@ -1457,7 +1494,7 @@
             document.getElementById('inputBoatLat').value = ''; document.getElementById('inputBoatLng').value = '';
             showLoading(true);
             try {
-                await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ method: 'DELETE_BOAT', password: ADMIN_SECRET, name: name, lat: targetBoat.lat, lng: targetBoat.lng }) });
+                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ method: 'DELETE_BOAT', password: ADMIN_SECRET, name: name, lat: targetBoat.lat, lng: targetBoat.lng }) });
                 await syncData(false); alert(`(${name}) を削除しました！`);
             } catch(e){}
             showLoading(false);
