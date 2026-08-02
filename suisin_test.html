@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 7.0.5 -->
-    <title>水深測っ太郎 v4.7.5 by Popolo App.com</title>
+    <!-- コード名: 7.0.6 -->
+    <title>水深測っ太郎 v4.7.6 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -338,7 +338,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.7.5 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.7.6 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -397,7 +397,6 @@
                     <button id="btn-voice-confirm" class="voice-confirm-btn" onclick="executePendingVoiceCommand()">✅ [ OK ] 登録する</button>
                 </div>
 
-                <!-- 🐅 虎キング連携ボタン -->
                 <button onclick="sendAllDataToToraKing()" style="width:100%; background:#ff9900; color:white; border:none; padding:12px; border-radius:8px; font-size:1.1rem; font-weight:bold; cursor:pointer; margin-bottom:8px; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">
                     🐅 虎キングへ船・ブイを同時送信
                 </button>
@@ -530,11 +529,8 @@
     let pendingCommand = null; 
     let activeInfoWindow = null;
 
-    // 🐅 虎キングへ全データを送信する関数
     function sendAllDataToToraKing() {
-        // 虎キングのURL (必要に応じて実際のパスに変更してください)
         let toraKingUrl = "tora-king.html?mode=committee&course=custom";
-        
         let count = 0;
         const keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'K', 'S'];
         
@@ -1127,10 +1123,17 @@
         }, null, {enableHighAccuracy: true});
     }
 
+    // 🔄 安定した高速同期処理（タイムアウト付き）
     async function syncData(isSilent = false) {
         if (!isSilent) showLoading(true);
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8秒でタイムアウト
+
         try {
-            const res = await fetch(WEB_APP_URL);
+            const res = await fetch(WEB_APP_URL, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            
             const data = await res.json();
             fullTideMasterData = data.allTideData || [];
             allPointsData = data.points || [];
@@ -1150,7 +1153,11 @@
                 });
             }
             document.getElementById('status-display').textContent = `✅ 同期完了 (${allPointsData.length}件)`;
-        } catch (e) { document.getElementById('status-display').textContent = "⚡ キャッシュ表示中"; }
+        } catch (e) {
+            console.log("通信タイムアウトまたはエラー、キャッシュ表示継続", e);
+            document.getElementById('status-display').textContent = `⚠️ オフライン (キャッシュ表示中)`;
+        }
+        
         if (!isSilent) showLoading(false);
     }
 
@@ -1168,7 +1175,6 @@
                 const t1 = parseFloat(row[1+h]), t2 = (h<23)?parseFloat(row[1+h+1]):t1;
                 if (!isNaN(t1)) {
                     currentSelectedTide = t1 + (t2-t1)*(min/60);
-                    document.getElementById('status-display').textContent = `潮位: ${currentSelectedTide.toFixed(1)}cm | 水深:${allPointsData.length}件`;
                 }
             }
         }
