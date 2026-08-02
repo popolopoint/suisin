@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 7.0.4 -->
-    <title>水深測っ太郎 v4.6.8 by Popolo App.com</title>
+    <title>水深測っ太郎 v4.6.9 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -111,12 +111,44 @@
         
         .mode-switch-badge { margin-top: 6px; padding: 4px 6px; background: #2c3e50; color: white; border-radius: 4px; text-align: center; font-size: 0.7rem; cursor: pointer; }
 
+        /* 🔍 ズームイン・アウトボタン（半透明・すりガラス風） */
+        .zoom-control-container {
+            position: absolute;
+            right: 10px;
+            bottom: 260px; /* メニューボタンの下あたりに配置 */
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 3000;
+        }
+        .zoom-btn {
+            width: 50px;
+            height: 50px;
+            background: rgba(44, 62, 80, 0.75);
+            color: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 26px;
+            font-weight: bold;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            user-select: none;
+        }
+        .zoom-btn:active {
+            background: rgba(52, 152, 219, 0.9);
+        }
+
         .view-toggle-btn { position: absolute; bottom: 20px; right: 10px; width: 50px; height: 50px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; }
         .sync-button { position: absolute; bottom: 80px; right: 10px; width: 50px; height: 50px; background: #e67e22; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; }
         .location-button { position: absolute; bottom: 140px; right: 10px; width: 50px; height: 50px; background: #2980b9; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; }
         .menu-main-btn { position: absolute; bottom: 200px; right: 10px; width: 50px; height: 50px; background: #2c3e50; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; }
         
-        .sub-menu-container { display: none; flex-direction: column; gap: 10px; position: absolute; bottom: 260px; right: 10px; z-index: 3000; }
+        .sub-menu-container { display: none; flex-direction: column; gap: 10px; position: absolute; bottom: 260px; right: 70px; z-index: 3000; }
         .sub-menu-container.open { display: flex; }
         .sub-menu-btn { width: 50px; height: 50px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 22px; border: none; position: relative; }
         .sub-menu-btn.active { background: #2ecc71; color: white; }
@@ -250,7 +282,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.6.8 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.6.9 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -334,6 +366,12 @@
         </div>
     </div>
     
+    <!-- 🔍 ズームイン・アウトボタン（半透明） -->
+    <div class="zoom-control-container">
+        <button class="zoom-btn" onclick="zoomMap(1)" title="拡大">＋</button>
+        <button class="zoom-btn" onclick="zoomMap(-1)" title="縮小">－</button>
+    </div>
+
     <button class="view-toggle-btn" onclick="toggleUIPanel()" id="toggle-icon">🔭</button>
     <button class="sync-button" id="sync-btn" onclick="syncData(false)" title="手動更新">🔄</button>
     <button class="location-button" onclick="updateMyLocation(true)" title="現在位置を中心にする">📍</button>
@@ -401,7 +439,7 @@
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHhxSJK-IhYiT9XBRwE1MX7DHhghBQQQk&callback=initMap&loading=async" async defer></script>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz_xjh__2QPwKLh8xXndgmOcP2YIPUzT0tWrRiPxtDjeXDixJANmyxNxmX-5BQXvaSzuw/exec"; 
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwiK8FFUmfroHExXafF6nW0LAA4DTO0rZG74pjQEUnJFlAVFa1aipyAe-CzI0CHT_q1og/exec"; 
     const ADMIN_SECRET = "popolo2026"; 
     
     let map, markers = [], allPointsData = [], currentSelectedTide = 0;
@@ -579,6 +617,15 @@
         if (isHazardOnlyMode) btn.classList.add('active');
         else btn.classList.remove('active');
         refreshMarkersOnMap();
+    }
+
+    // 🔍 マップの拡大・縮小を行う関数
+    function zoomMap(delta) {
+        if (!map) return;
+        const currentZoom = map.getZoom();
+        if (currentZoom !== undefined) {
+            map.setZoom(currentZoom + delta);
+        }
     }
 
     function sendQuickLocation(type) {
