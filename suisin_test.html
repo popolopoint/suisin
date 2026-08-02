@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 7.0.4 -->
-    <title>水深測っ太郎 v4.6.5 by Popolo App.com</title>
+    <title>水深測っ太郎 v4.6.6 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -250,7 +250,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.6.5 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.6.6 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -397,7 +397,6 @@
         <button onclick="closeModal('manual-modal')" style="width:100%; margin-top:12px; background:#3498db; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold; font-size:1rem; cursor:pointer;">閉じる</button>
     </div>
 </div>
-
 
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHhxSJK-IhYiT9XBRwE1MX7DHhghBQQQk&callback=initMap&loading=async" async defer></script>
 
@@ -1044,7 +1043,9 @@
             const isBigRock = (pType === "岩大" || pType === "大きい岩" || pType === "大岩");
             const isRock = (pType === "岩");
             const isPost = (pType === "杭");
-            const isFlat = (!pType || pType === "平地");
+            
+            // 強制判定：岩・岩大・杭以外（空白や平地を含む）はすべて平地として扱う
+            const isFlat = (!pType || pType === "" || (!isBigRock && !isRock && !isPost));
 
             // 平地は通し番号をつけず空白にする。危険物だけスプレッドシートの番号を使用。
             let prefix = isFlat ? "" : (p[1] ? String(p[1]).trim() : "");
@@ -1058,7 +1059,7 @@
             
             createMarker({
                 id: p[0], lat: lat, lng: lng, rawDepth: rawDepth, 
-                baseDepth: baseDepth, simDepth: simDepth, type: pType || "平地", 
+                baseDepth: baseDepth, simDepth: simDepth, type: isFlat ? "平地" : pType, 
                 comment: p[8] || "", labelText: prefix, isFlat: isFlat
             });
         });
