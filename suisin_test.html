@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.9.5 -->
-    <title>水深測っ太郎 v4.5.2 by Popolo App.com</title>
+    <!-- コード名: 6.9.6 -->
+    <title>水深測っ太郎 v4.5.3 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -250,7 +250,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.5.2 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.5.3 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -349,7 +349,6 @@
 
     <button class="measure-clear-btn" id="measure-clear-btn" onclick="clearMeasure()">距離<br>消去</button>
 
-    <!-- 📊 凡例＆パネル全体タップ対応ボックス -->
     <div class="depth-legend" id="depth-legend-box" onclick="toggleLegendTap(event)" title="タップして開閉">
         <div id="legend-header">📊 凡例</div>
         <div class="legend-content" id="legend-content">
@@ -387,7 +386,7 @@
         </div>
         <div class="modal-body-scroll">
             <h4>📊 1. データ入力タブ</h4>
-            <p>・その場で測った水深(cm)と種類を選んで「記録」を押すと、現在地にピンが保存されます（平地はF、岩大はG、岩はR、杭はKの通し番号が付きます）。</p>
+            <p>・その場で測った水深(cm)と種類を選んで「記録」を押すと、現在地にピンが保存されます（平地はF、岩大はG、岩はR、杭はKの通し番号が付き、スプレッドシートにも保存されます）。</p>
             <h4>📡 2. 位置送受信タブ</h4>
             <p>・「⚓ フネ登録」や「🟧 ブイ登録」を押すと、現在のGPS位置が即座に送信されます。</p>
             <h4>🗺️ 3. 位置登録タブ</h4>
@@ -839,14 +838,35 @@
         } else if (cmd.type === 'DEPTH') {
             document.getElementById('depth-input').value = cmd.value;
             const baseDepth = parseFloat(cmd.value) - currentSelectedTide;
-            const pointData = { method: 'POST', password: ADMIN_SECRET, id: String(Date.now()), lat: cmd.lat, lng: cmd.lng, rawDepth: cmd.value, baseDepth: baseDepth, timestamp: document.getElementById('target-datetime').value, type: selectedType, comment: "" };
+            
+            // 音声入力時の仮のプレフィックス計算（現在データの最後尾番号を推測）
+            let prefix = "F1";
+            let countF = 0, countG = 0, countR = 0, countK = 0;
+            allPointsData.forEach(p => {
+                const t = p[6] || "";
+                if (t.includes("岩大") || t.includes("大岩")) countG++;
+                else if (t === "岩") countR++;
+                else if (t === "杭") countK++;
+                else countF++;
+            });
+            if (selectedType === "岩大") prefix = "G" + (countG + 1);
+            else if (selectedType === "岩") prefix = "R" + (countR + 1);
+            else if (selectedType === "杭") prefix = "K" + (countK + 1);
+            else prefix = "F" + (countF + 1);
+
+            const pointData = { 
+                method: 'POST', password: ADMIN_SECRET, id: String(Date.now()), 
+                lat: cmd.lat, lng: cmd.lng, rawDepth: cmd.value, baseDepth: baseDepth, 
+                timestamp: document.getElementById('target-datetime').value, type: selectedType, 
+                comment: "", markerName: prefix 
+            };
 
             try {
                 const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(pointData) });
                 if ((await res.text()).trim() === "success") { 
                     playSuccessBeep(); await syncData(false); 
                     document.getElementById('depth-input').value = ""; 
-                    document.getElementById('voice-status').textContent = `✅ 深さ ${cmd.value}cm を記録しました！`;
+                    document.getElementById('voice-status').textContent = `✅ 深さ ${cmd.value}cm (${prefix}) を記録しました！`;
                     speakText("登録しました");
                     setTimeout(() => { if (recognition && !isListening) startVoiceFlowWithGuide(); }, 1500);
                 }
@@ -891,7 +911,6 @@
             handleMeasureClick(e.latLng);
         });
 
-        // 🔍 ズーム変更時に記号の表示/非表示を切り替え
         map.addListener('zoom_changed', () => {
             refreshMarkersOnMap();
         });
@@ -1015,18 +1034,16 @@
         markers = [];
         if (!allPointsData || allPointsData.length === 0) return;
 
-        // 🔢 種類ごとの通し番号カウンタをリセット
-        let countF = 0; // 平地 (F)
-        let countG = 0; // 岩大 (G)
-        let countR = 0; // 岩 (R)
-        let countK = 0; // 杭 (K)
+        let countF = 0; 
+        let countG = 0; 
+        let countR = 0; 
+        let countK = 0; 
 
         allPointsData.forEach(p => {
             const lat = parseFloat(p[1]), lng = parseFloat(p[2]);
             if (isNaN(lat) || isNaN(lng)) return;
             const pType = p[6] || "";
 
-            // 種類に応じて通し番号をインクリメント
             let prefix = "F";
             if (pType === "岩大" || pType === "大きい岩" || pType === "大岩") {
                 countG++;
@@ -1073,7 +1090,6 @@
         let markerLabel = null;
         const currentZoom = map ? map.getZoom() : 19;
 
-        // 🎯 条件: 140cm未満 且つ マップ拡大時（ズーム18以上）のときのみ記号(ラベル)を表示
         if (d.simDepth < 140 && currentZoom >= 18) {
             markerLabel = {
                 text: d.labelText,
@@ -1189,11 +1205,39 @@
         const raw = document.getElementById('depth-input').value;
         const comment = document.getElementById('comment-input').value;
         if (!raw) return alert("水深を入力してください");
-        const pointData = { method: 'POST', password: ADMIN_SECRET, id: String(Date.now()), lat: latLng.lat(), lng: latLng.lng(), rawDepth: raw, baseDepth: parseFloat(raw) - currentSelectedTide, timestamp: document.getElementById('target-datetime').value, type: selectedType, comment: comment };
+
+        // 記録時点での種類別の数から、次に割り当てる番号（プレフィックス）を決定
+        let countF = 0, countG = 0, countR = 0, countK = 0;
+        allPointsData.forEach(p => {
+            const t = p[6] || "";
+            if (t.includes("岩大") || t.includes("大岩")) countG++;
+            else if (t === "岩") countR++;
+            else if (t === "杭") countK++;
+            else countF++;
+        });
+
+        let prefix = "F1";
+        if (selectedType === "岩大") prefix = "G" + (countG + 1);
+        else if (selectedType === "岩") prefix = "R" + (countR + 1);
+        else if (selectedType === "杭") prefix = "K" + (countK + 1);
+        else prefix = "F" + (countF + 1);
+
+        const pointData = { 
+            method: 'POST', password: ADMIN_SECRET, id: String(Date.now()), 
+            lat: latLng.lat(), lng: latLng.lng(), rawDepth: raw, 
+            baseDepth: parseFloat(raw) - currentSelectedTide, 
+            timestamp: document.getElementById('target-datetime').value, 
+            type: selectedType, comment: comment, markerName: prefix 
+        };
+
         showLoading(true);
         try {
             const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(pointData) });
-            if ((await res.text()).trim() === "success") { await syncData(false); document.getElementById('depth-input').value = ""; document.getElementById('comment-input').value = ""; }
+            if ((await res.text()).trim() === "success") { 
+                await syncData(false); 
+                document.getElementById('depth-input').value = ""; 
+                document.getElementById('comment-input').value = ""; 
+            }
         } catch (e) {}
         showLoading(false);
     }
@@ -1293,7 +1337,6 @@
     }
 
     function clearAllCustomBoatsOnMap() {
-        customBoatsList.byName = [];
         customBoatsList.forEach(b => { if (b.marker) b.marker.setMap(null); });
         customBoatsList = [];
     }
