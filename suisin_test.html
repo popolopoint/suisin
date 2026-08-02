@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.9.8 -->
-    <title>水深測っ太郎 v4.5.5 by Popolo App.com</title>
+    <!-- コード名: 6.9.9 -->
+    <title>水深測っ太郎 v4.5.6 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -250,7 +250,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.5.5 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.5.6 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -386,13 +386,13 @@
         </div>
         <div class="modal-body-scroll">
             <h4>📊 1. データ入力タブ</h4>
-            <p>・その場で測った水深(cm)と種類を選んで「記録」を押すと、現在地にピンが保存されます（岩・岩大・杭には番号が表示されます）。</p>
+            <p>・その場で測った水深(cm)と種類を選んで「記録」を押すと、現在地にピンが保存されます。</p>
             <h4>📡 2. 位置送受信タブ</h4>
             <p>・「⚓ フネ登録」や「🟧 ブイ登録」を押すと、現在のGPS位置が即座に送信されます。</p>
             <h4>🗺️ 3. 位置登録タブ</h4>
             <p>・本部船やブイのマーク名、緯度・経度を確認・微調整して配置や削除ができます。</p>
-            <h4>⚙️ 4. 凡例モード切替</h4>
-            <p>・右上の凡例内にあるバッジをタップすると、<strong>「ウインドモード（従来）」</strong>と<strong>「フォイルモード（新基準）」</strong>を切り替えられます。</p>
+            <h4>⚠️ 4. 危険物のみ表示ボタン</h4>
+            <p>・メニュー内の「⚠️」を押すと、平地が非表示になり、岩・岩大・杭のみに絞り込まれます。さらに拡大すると番号が表示されます。</p>
         </div>
         <button onclick="closeModal('manual-modal')" style="width:100%; margin-top:12px; background:#3498db; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold; font-size:1rem; cursor:pointer;">閉じる</button>
     </div>
@@ -850,7 +850,7 @@
             if (selectedType === "岩大") prefix = "G" + (countG + 1);
             else if (selectedType === "岩") prefix = "R" + (countR + 1);
             else if (selectedType === "杭") prefix = "K" + (countK + 1);
-            else prefix = ""; // 平地は番号なし
+            else prefix = "";
 
             const pointData = { 
                 method: 'POST', password: ADMIN_SECRET, id: String(Date.now()), 
@@ -1041,11 +1041,11 @@
             if (isNaN(lat) || isNaN(lng)) return;
             const pType = p[7] || "";
 
-            let prefix = "";
             const isBigRock = (pType === "岩大" || pType === "大きい岩" || pType === "大岩");
             const isRock = (pType === "岩");
             const isPost = (pType === "杭");
 
+            let prefix = "";
             if (isBigRock) {
                 countG++;
                 prefix = "G" + countG;
@@ -1055,10 +1055,9 @@
             } else if (isPost) {
                 countK++;
                 prefix = "K" + countK;
-            } else {
-                prefix = ""; // 平地は番号非表示
             }
             
+            // ⚠️ボタンがオンのときは、平地を非表示にして危険物(岩・岩大・杭)だけにする
             if (isHazardOnlyMode) {
                 const isHazard = (isBigRock || isRock || isPost);
                 if (!isHazard) return;
@@ -1090,8 +1089,8 @@
         let markerLabel = null;
         const currentZoom = map ? map.getZoom() : 19;
 
-        // 危険物(岩・岩大・杭)のみ、かつ文字サイズを大きめに設定 (13pxに変更)
-        if (d.labelText && currentZoom >= 18) {
+        // ⚠️(hazard)モードがON、かつ危険物(岩・岩大・杭)であり、ズーム18以上の場合にのみ通し番号を表示
+        if (isHazardOnlyMode && d.labelText && currentZoom >= 18) {
             markerLabel = {
                 text: d.labelText,
                 color: getContrastColor(getDepthColor(d.simDepth, d.rawDepth)),
@@ -1219,7 +1218,7 @@
         if (selectedType === "岩大") prefix = "G" + (countG + 1);
         else if (selectedType === "岩") prefix = "R" + (countR + 1);
         else if (selectedType === "杭") prefix = "K" + (countK + 1);
-        else prefix = ""; // 平地は番号なし
+        else prefix = "";
 
         const pointData = { 
             method: 'POST', password: ADMIN_SECRET, id: String(Date.now()), 
