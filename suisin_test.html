@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 7.0.1 -->
-    <title>水深測っ太郎 v4.5.8 by Popolo App.com</title>
+    <!-- コード名: 7.0.2 -->
+    <title>水深測っ太郎 v4.5.9 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -250,7 +250,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.5.8 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.5.9 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -1039,6 +1039,7 @@
         let countH = 0;
 
         allPointsData.forEach(p => {
+            // 新・列順：ID(0), 通し番号(1), 緯度(2), 経度(3), 実測水深(4), 基準水深(5), 日時(6), 種別(7), コメント(8)
             const lat = parseFloat(p[2]), lng = parseFloat(p[3]);
             if (isNaN(lat) || isNaN(lng)) return;
             const pType = p[7] || "平地";
@@ -1048,19 +1049,13 @@
             const isPost = (pType === "杭");
             const isFlat = (!isBigRock && !isRock && !isPost);
 
-            let prefix = "";
-            if (isBigRock) {
-                countG++;
-                prefix = "G" + countG;
-            } else if (isRock) {
-                countR++;
-                prefix = "R" + countR;
-            } else if (isPost) {
-                countK++;
-                prefix = "K" + countK;
-            } else {
-                countH++;
-                prefix = "H" + countH;
+            // スプレッドシート側に入っている通し番号（p[1]）を優先し、空欄なら自動生成
+            let prefix = p[1] ? String(p[1]) : "";
+            if (!prefix) {
+                if (isBigRock) { countG++; prefix = "G" + countG; } 
+                else if (isRock) { countR++; prefix = "R" + countR; } 
+                else if (isPost) { countK++; prefix = "K" + countK; } 
+                else { countH++; prefix = "H" + countH; }
             }
             
             // ⚠️ボタンがオンのときは、平地を非表示にする
