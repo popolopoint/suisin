@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.9.3 -->
-    <title>水深測っ太郎 v4.5.0 by Popolo App.com</title>
+    <!-- コード名: 6.9.4 -->
+    <title>水深測っ太郎 v4.5.1 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
         
-        /* 📱 アプリ名ヘッダー */
         #app-header {
             position: absolute;
             top: 0;
@@ -26,7 +25,6 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
-        /* 🗺️ マップコンテナ */
         #map-container {
             position: absolute;
             top: 36px;
@@ -36,7 +34,6 @@
         }
         #map { width: 100%; height: 100%; }
 
-        /* 🎛️ パネル群 */
         .panel-wrapper { position: absolute; top: 0; left: 0; width: 100%; z-index: 3000; pointer-events: none; display: flex; flex-direction: column; transition: transform 0.3s ease; }
         .panel-wrapper > * { pointer-events: auto; }
 
@@ -107,13 +104,12 @@
 
         .status-bar { font-size: 0.75rem; color: #666; text-align: center; margin-top: 5px; font-weight: bold; }
         
-        /* 📊 凡例＆モード切替スタイル */
+        /* 📊 凡例＆パネル全体タップ対応スタイル */
         .depth-legend { position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.95); padding: 8px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border: 1px solid #ddd; z-index: 10; font-size: 0.7rem; font-weight: bold; cursor: pointer; user-select: none; }
         .legend-content.minimized { display: none; }
         .legend-item { display: flex; align-items: center; margin-bottom: 3px; }
         .color-box { width: 12px; height: 12px; margin-right: 6px; border: 1px solid #333; border-radius: 2px; }
         
-        /* モード切替ボタン */
         .mode-switch-badge { margin-top: 6px; padding: 4px 6px; background: #2c3e50; color: white; border-radius: 4px; text-align: center; font-size: 0.7rem; cursor: pointer; }
 
         /* 🧭 右下フローティングボタン群 */
@@ -257,7 +253,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.5.0 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.5.1 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -356,13 +352,13 @@
 
     <button class="measure-clear-btn" id="measure-clear-btn" onclick="clearMeasure()">距離<br>消去</button>
 
-    <!-- 📊 凡例＆モード切替ボックス -->
-    <div class="depth-legend" id="depth-legend-box" title="タップして縮小/展開">
-        <div id="legend-header" onclick="toggleLegendTap(event)">📊 凡例</div>
+    <!-- 📊 凡例＆パネル全体タップ対応ボックス -->
+    <div class="depth-legend" id="depth-legend-box" onclick="toggleLegendTap(event)" title="タップして開閉">
+        <div id="legend-header">📊 凡例</div>
         <div class="legend-content" id="legend-content">
             <div id="legend-items-container"></div>
         </div>
-        <div class="mode-switch-badge" id="mode-switch-badge" onclick="toggleColorMode()">モード: ウインド</div>
+        <div class="mode-switch-badge" id="mode-switch-badge" onclick="event.stopPropagation(); toggleColorMode()">モード: ウインド</div>
     </div>
 
     <div id="measure-result" class="measure-result-banner"></div>
@@ -419,7 +415,6 @@
     let mapStyleMode = 0; 
     let isHazardOnlyMode = false;
 
-    // カラーモード管理 ("wind" または "foil")
     let currentDepthMode = "wind";
 
     let isMeasureMode = false;
@@ -641,13 +636,16 @@
         else { box.style.display = 'none'; subBtn.classList.remove('active'); }
     }
 
+    // 📊 凡例パネル全体をタップして開閉する処理
     function toggleLegendTap(event) {
+        // モード切替バッジを押したときは、パネルの開閉をさせずにモード切替だけに留める
+        if (event.target.id === 'mode-switch-badge' || event.target.closest('#mode-switch-badge')) return;
+
         const content = document.getElementById('legend-content');
         content.classList.toggle('minimized');
         document.getElementById('legend-header').innerHTML = content.classList.contains('minimized') ? "📊 凡例 (+)" : "📊 凡例";
     }
 
-    // 🚀 モード切替の処理 (ウインド ⇄ フォイル)
     function toggleColorMode() {
         currentDepthMode = (currentDepthMode === "wind") ? "foil" : "wind";
         const badge = document.getElementById('mode-switch-badge');
@@ -666,11 +664,12 @@
         const container = document.getElementById('legend-items-container');
         if (currentDepthMode === "foil") {
             container.innerHTML = `
-                <div class="legend-item"><div class="color-box" style="background:#000080;"></div>140cm以上 (濃紺)</div>
-                <div class="legend-item"><div class="color-box" style="background:#adff2f;"></div>120〜139cm (緑)</div>
-                <div class="legend-item"><div class="color-box" style="background:#ffff00;"></div>100〜119cm (黄色)</div>
-                <div class="legend-item"><div class="color-box" style="background:#ffa500;"></div>80〜99cm (オレンジ)</div>
-                <div class="legend-item"><div class="color-box" style="background:#ff0000;"></div>80cm未満 (赤)</div>
+                <div class="legend-item"><div class="color-box" style="background:#000080;"></div>160cm以上（濃紺）</div>
+                <div class="legend-item"><div class="color-box" style="background:#70a1ff;"></div>140～160cm（青）</div>
+                <div class="legend-item"><div class="color-box" style="background:#adff2f;"></div>120～140cm（緑）</div>
+                <div class="legend-item"><div class="color-box" style="background:#ffff00;"></div>100～120cm（黄色）</div>
+                <div class="legend-item"><div class="color-box" style="background:#ffa500;"></div>80～100cm（オレンジ）</div>
+                <div class="legend-item"><div class="color-box" style="background:#ff0000;"></div>80cm未満（赤）</div>
             `;
         } else {
             container.innerHTML = `
@@ -877,7 +876,7 @@
             document.getElementById('commercial-modal').style.display = 'flex';
         }
 
-        updateLegendUI(); // 初期凡例の描画
+        updateLegendUI();
 
         initInfoWindowCloseTrigger(); 
         map = new google.maps.Map(document.getElementById("map"), {
@@ -1085,19 +1084,18 @@
         return (((r * 299) + (g * 587) + (b * 114)) / 1000 >= 170) ? '#000000' : '#ffffff';
     }
 
-    // 🎨 モードに応じたカラー判定
+    // 🎨 フォイルモードのカラー基準調整
     function getDepthColor(b, raw) {
         if (Math.round(raw) === 999) return "#ffffff";
 
         if (currentDepthMode === "foil") {
-            // フォイルモード基準
-            if (b >= 140) return "#000080"; // 140以上、160以上は同じ（濃紺）
-            if (b >= 120) return "#adff2f"; // 120～139 (緑)
-            if (b >= 100) return "#ffff00"; // 100～119 (黄色)
-            if (b >= 80)  return "#ffa500"; // 80～99 (オレンジ)
-            return "#ff0000";               // 80未満 (赤)
+            if (b >= 160) return "#000080"; // 160cm以上（濃紺）
+            if (b >= 140) return "#70a1ff"; // 140～160cm（青）
+            if (b >= 120) return "#adff2f"; // 120～140cm（緑）
+            if (b >= 100) return "#ffff00"; // 100～120cm（黄色）
+            if (b >= 80)  return "#ffa500"; // 80～100cm（オレンジ）
+            return "#ff0000";               // 80cm未満（赤）
         } else {
-            // ウインドモード基準（従来）
             if (b < 20) return "#ff0000"; if (b < 40) return "#ffa500"; if (b < 60) return "#ffff00"; 
             if (b < 80) return "#adff2f"; if (b < 100) return "#a8e6cf"; if (b < 120) return "#00ffff"; 
             if (b < 140) return "#70a1ff"; if (b < 160) return "#a29bfe"; return "#000080"; 
