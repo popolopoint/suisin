@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 7.0.3 -->
-    <title>水深測っ太郎 v4.6.0 by Popolo App.com</title>
+    <title>水深測っ太郎 v4.6.1 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -250,7 +250,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.6.0 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.6.1 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -1028,6 +1028,7 @@
         refreshMarkersOnMap();
     }
 
+   
     function refreshMarkersOnMap() {
         markers.forEach(m => m.setMap(null));
         markers = [];
@@ -1047,16 +1048,21 @@
             const isBigRock = (pType === "岩大" || pType === "大きい岩" || pType === "大岩");
             const isRock = (pType === "岩");
             const isPost = (pType === "杭");
-            
-            // 種別が空欄、または「平地」であれば平地とみなす
             const isFlat = (!pType || pType === "平地");
 
-            let prefix = p[1] ? String(p[1]) : "";
-            if (!prefix) {
+            // ★修正：通し番号が空白であっても、種類に応じて自動で採番する
+            let prefix = p[1] ? String(p[1]).trim() : "";
+            if (!prefix || prefix === "") {
                 if (isBigRock) { countG++; prefix = "G" + countG; } 
                 else if (isRock) { countR++; prefix = "R" + countR; } 
                 else if (isPost) { countK++; prefix = "K" + countK; } 
                 else { countH++; prefix = "H" + countH; }
+            } else {
+                // すでに番号がある場合はそれぞれのカウントをカウントアップ
+                if (prefix.startsWith("G")) countG = Math.max(countG, parseInt(prefix.replace("G", "")) || countG);
+                else if (prefix.startsWith("R")) countR = Math.max(countR, parseInt(prefix.replace("R", "")) || countR);
+                else if (prefix.startsWith("K")) countK = Math.max(countK, parseInt(prefix.replace("K", "")) || countK);
+                else if (prefix.startsWith("H")) countH = Math.max(countH, parseInt(prefix.replace("H", "")) || countH);
             }
             
             // ⚠️ボタンがオンのときは、平地を非表示にする
@@ -1073,6 +1079,8 @@
             });
         });
     }
+    
+    
 
     function createMarker(d) {
         let sym = google.maps.SymbolPath.CIRCLE;
