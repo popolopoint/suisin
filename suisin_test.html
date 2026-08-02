@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 7.0.8 -->
-    <title>水深測っ太郎 v4.8.4 by Popolo App.com</title>
+    <title>水深測っ太郎 v4.8.5 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -338,7 +338,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.8.4 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.8.5 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -397,9 +397,14 @@
                     <button id="btn-voice-confirm" class="voice-confirm-btn" onclick="executePendingVoiceCommand()">✅ [ OK ] 登録する</button>
                 </div>
 
-                <button onclick="sendAllDataToToraKing()" style="width:100%; background:#ff9900; color:white; border:none; padding:12px; border-radius:8px; font-size:1.1rem; font-weight:bold; cursor:pointer; margin-bottom:8px; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">
-                    🐅 虎キングへ船・ブイを同時送信
-                </button>
+                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+    <button onclick="sendAllDataToToraKing('latest')" style="flex: 2; background:#ff9900; color:white; border:none; padding:12px 8px; border-radius:8px; font-size:1.05rem; font-weight:bold; cursor:pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">
+        🐅 虎キング(現行版)へ送信
+    </button>
+    <button onclick="sendAllDataToToraKing('test')" style="flex: 1; background:#e67e22; color:white; border:none; padding:12px 6px; border-radius:8px; font-size:0.85rem; font-weight:bold; cursor:pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">
+        🧪 テスト版へ
+    </button>
+</div>
 
                 <div style="background: #eaf2f8; padding: 10px; border-radius: 8px; border: 1px solid #a9cce3; font-size: 0.85rem; font-weight: bold; color: #2471a3; line-height: 1.4; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
                     <div>
@@ -529,9 +534,12 @@
     let pendingCommand = null; 
     let activeInfoWindow = null;
 
-function sendAllDataToToraKing() {
-        // テスト版のURLに変更する場合
-        let toraKingUrl = "https://popolopoint.github.io/traking/traking_test.html?mode=committee&course=custom";
+function sendAllDataToToraKing(targetVersion = 'latest') {
+        let baseUrl = (targetVersion === 'test')
+            ? "https://popolopoint.github.io/traking/traking_test.html"
+            : "https://popolopoint.github.io/traking/traking_latest.html";
+
+        let toraKingUrl = baseUrl + "?mode=committee&course=custom";
         let count = 0;
         const keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'K', 'S'];
         
@@ -551,6 +559,7 @@ function sendAllDataToToraKing() {
         window.open(toraKingUrl, '_blank');
     }
 
+    
     function handleContainerClick(event) {
         if (event.target.tagName === 'INPUT' || event.target.tagName === 'LABEL') return;
         const checkbox = document.getElementById('agree-checkbox');
