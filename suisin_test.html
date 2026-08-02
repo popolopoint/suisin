@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.9.9 -->
-    <title>水深測っ太郎 v4.5.6 by Popolo App.com</title>
+    <!-- コード名: 7.0.0 -->
+    <title>水深測っ太郎 v4.5.7 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -250,7 +250,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.5.6 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.5.7 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -392,7 +392,7 @@
             <h4>🗺️ 3. 位置登録タブ</h4>
             <p>・本部船やブイのマーク名、緯度・経度を確認・微調整して配置や削除ができます。</p>
             <h4>⚠️ 4. 危険物のみ表示ボタン</h4>
-            <p>・メニュー内の「⚠️」を押すと、平地が非表示になり、岩・岩大・杭のみに絞り込まれます。さらに拡大すると番号が表示されます。</p>
+            <p>・メニュー内の「⚠️」を押すと、平地が非表示になり、岩・岩大・杭のみに絞り込まれます。さらに少し引いた状態から番号が表示されます。</p>
         </div>
         <button onclick="closeModal('manual-modal')" style="width:100%; margin-top:12px; background:#3498db; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold; font-size:1rem; cursor:pointer;">閉じる</button>
     </div>
@@ -1089,8 +1089,8 @@
         let markerLabel = null;
         const currentZoom = map ? map.getZoom() : 19;
 
-        // ⚠️(hazard)モードがON、かつ危険物(岩・岩大・杭)であり、ズーム18以上の場合にのみ通し番号を表示
-        if (isHazardOnlyMode && d.labelText && currentZoom >= 18) {
+        // ⚠️(hazard)モードがON、かつ危険物であり、ズーム16以上の場合に通し番号を表示（以前より引き気味でも表示）
+        if (isHazardOnlyMode && d.labelText && currentZoom >= 16) {
             markerLabel = {
                 text: d.labelText,
                 color: getContrastColor(getDepthColor(d.simDepth, d.rawDepth)),
