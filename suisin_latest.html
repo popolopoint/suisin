@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 7.0.4 -->
-    <title>水深測っ太郎 v4.6.8 by Popolo App.com</title>
+    <title>水深測っ太郎 v4.7.3 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -98,33 +98,124 @@
         .honbu-row { display: flex; gap: 8px; margin-bottom: 8px; width: 100%; }
         .honbu-row input { font-size: 1.5rem; padding: 12px 10px; border-radius: 8px; border: 2px solid #28a745; box-sizing: border-box; width: 100%; font-weight: bold; background: white; text-align: center; }
         #inputBoatName { text-align: left !important; }
-        .honbu-buttons { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 4px; }
-        #btnSaveBoat { width: 100%; background: #28a745; color: white; border: none; padding: 36px 12px; border-radius: 8px; font-size: 1.8rem; font-weight: bold; cursor: pointer; }
-        #btnDeleteBoat { width: 100%; background: #dc3545; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
+        
+        /* 🗺️ 位置登録のボタンを同じ高さに修正 */
+        .honbu-buttons { display: flex; gap: 8px; width: 100%; margin-top: 4px; }
+        #btnSaveBoat { flex: 1; background: #28a745; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
+        #btnDeleteBoat { flex: 1; background: #dc3545; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
 
         .status-bar { font-size: 0.75rem; color: #666; text-align: center; margin-top: 5px; font-weight: bold; }
         
-        .depth-legend { position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.95); padding: 8px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border: 1px solid #ddd; z-index: 10; font-size: 0.7rem; font-weight: bold; cursor: pointer; user-select: none; }
+        .depth-legend { position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.75); padding: 8px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); border: 1px solid rgba(221,221,221,0.4); z-index: 10; font-size: 0.7rem; font-weight: bold; cursor: pointer; user-select: none; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
         .legend-content.minimized { display: none; }
         .legend-item { display: flex; align-items: center; margin-bottom: 3px; }
         .color-box { width: 12px; height: 12px; margin-right: 6px; border: 1px solid #333; border-radius: 2px; }
         
-        .mode-switch-badge { margin-top: 6px; padding: 4px 6px; background: #2c3e50; color: white; border-radius: 4px; text-align: center; font-size: 0.7rem; cursor: pointer; }
+        .mode-switch-badge { margin-top: 6px; padding: 4px 6px; background: rgba(44, 62, 80, 0.5); color: white; border-radius: 4px; text-align: center; font-size: 0.7rem; cursor: pointer; }
 
-        .view-toggle-btn { position: absolute; bottom: 20px; right: 10px; width: 50px; height: 50px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; }
-        .sync-button { position: absolute; bottom: 80px; right: 10px; width: 50px; height: 50px; background: #e67e22; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; }
-        .location-button { position: absolute; bottom: 140px; right: 10px; width: 50px; height: 50px; background: #2980b9; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; }
-        .menu-main-btn { position: absolute; bottom: 200px; right: 10px; width: 50px; height: 50px; background: #2c3e50; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 24px; border: none; }
+        /* 🧭 左下：移動・ズームメニューボタンと展開メニュー */
+        .pan-menu-main-btn {
+            position: absolute;
+            left: 10px;
+            bottom: 80px;
+            width: 50px;
+            height: 50px;
+            background: rgba(44, 62, 80, 0.45);
+            color: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            cursor: pointer;
+            font-size: 24px;
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            user-select: none;
+        }
+        .pan-menu-main-btn:active {
+            background: rgba(52, 152, 219, 0.6);
+        }
+
+        .pan-menu-container {
+            display: none;
+            position: absolute;
+            left: 10px;
+            bottom: 140px;
+            width: 140px;
+            height: 140px;
+            z-index: 3000;
+            grid-template-areas:
+                "plus  up    minus"
+                "left  .     right"
+                ".     down  .";
+            gap: 6px;
+        }
+        .pan-menu-container.open {
+            display: grid;
+        }
+        .pan-sub-btn {
+            background: rgba(44, 62, 80, 0.40);
+            color: white;
+            border-radius: 50%;
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            user-select: none;
+            width: 40px;
+            height: 40px;
+        }
+        .pan-sub-btn:active {
+            background: rgba(52, 152, 219, 0.7);
+        }
+        .sub-plus  { grid-area: plus; }
+        .sub-up    { grid-area: up; justify-self: center; }
+        .sub-minus { grid-area: minus; }
+        .sub-left  { grid-area: left; align-self: center; }
+        .sub-right { grid-area: right; align-self: center; }
+        .sub-down  { grid-area: down; justify-self: center; }
+
+        /* 右下のその他の丸ボタンをすべて薄い半透明に統一 */
+        .view-toggle-btn, .sync-button, .location-button, .menu-main-btn {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            cursor: pointer;
+            font-size: 24px;
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+        .view-toggle-btn { bottom: 20px; right: 10px; background: rgba(255, 255, 255, 0.45); color: #333; }
+        .sync-button     { bottom: 80px; right: 10px; background: rgba(230, 126, 34, 0.45); color: white; }
+        .location-button { bottom: 140px; right: 10px; background: rgba(41, 128, 185, 0.45); color: white; }
+        .menu-main-btn   { bottom: 200px; right: 10px; background: rgba(44, 62, 80, 0.45); color: white; }
         
-        .sub-menu-container { display: none; flex-direction: column; gap: 10px; position: absolute; bottom: 260px; right: 10px; z-index: 3000; }
+        .sub-menu-container { display: none; flex-direction: column; gap: 10px; position: absolute; bottom: 260px; right: 70px; z-index: 3000; }
         .sub-menu-container.open { display: flex; }
-        .sub-menu-btn { width: 50px; height: 50px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 22px; border: none; position: relative; }
-        .sub-menu-btn.active { background: #2ecc71; color: white; }
-        .sub-menu-btn.hazard.active { background: #e74c3c; color: white; }
+        .sub-menu-btn { width: 50px; height: 50px; background: rgba(255, 255, 255, 0.45); border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.15); display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 22px; border: 1.5px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); position: relative; color: #2c3e50; }
+        .sub-menu-btn.active { background: rgba(46, 204, 113, 0.55); color: white; }
+        .sub-menu-btn.hazard.active { background: rgba(231, 76, 60, 0.55); color: white; }
 
-        .measure-clear-btn { position: absolute; bottom: 20px; left: 70px; width: 50px; height: 50px; background: #95a5a6; color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: none; justify-content: center; align-items: center; z-index: 2000; cursor: pointer; font-size: 13px; font-weight: bold; border: none; text-align: center; }
-        .clear-course-button { position: absolute; bottom: 20px; left: 10px; width: 50px; height: 50px; background: #e74c3c; color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 13px; border: none; font-weight: bold; text-align: center; }
-        .measure-result-banner { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); background: rgba(46, 204, 113, 0.95); color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; font-size: 1rem; z-index: 2500; display: none; white-space: nowrap; }
+        .measure-clear-btn { position: absolute; bottom: 20px; left: 140px; width: 50px; height: 50px; background: rgba(149, 165, 166, 0.45); color: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.15); display: none; justify-content: center; align-items: center; z-index: 2000; cursor: pointer; font-size: 12px; font-weight: bold; border: 1.5px solid rgba(255,255,255,0.3); backdrop-filter: blur(4px); text-align: center; }
+        .clear-course-button { position: absolute; bottom: 20px; left: 10px; width: 50px; height: 50px; background: rgba(231, 76, 60, 0.45); color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; font-size: 12px; border: 1.5px solid rgba(255,255,255,0.3); backdrop-filter: blur(4px); font-weight: bold; text-align: center; }
+        
+        .measure-result-banner { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); background: rgba(46, 204, 113, 0.75); color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; font-size: 1rem; z-index: 2500; display: none; white-space: nowrap; backdrop-filter: blur(4px); }
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 6000; font-weight: bold; color: #3498db; }
 
         #commercial-modal {
@@ -250,7 +341,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.6.8 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.7.3 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -334,6 +425,17 @@
         </div>
     </div>
     
+    <!-- 🧭 左下：移動・ズームメニューボタンと展開メニュー -->
+    <button class="pan-menu-main-btn" onclick="togglePanMenu()" title="移動・ズームメニュー">🧭</button>
+    <div class="pan-menu-container" id="pan-menu">
+        <button class="pan-sub-btn sub-plus" onclick="zoomMap(1)" title="拡大">＋</button>
+        <button class="pan-sub-btn sub-up" onclick="panMap(0, -1)" title="上へ移動">▲</button>
+        <button class="pan-sub-btn sub-minus" onclick="zoomMap(-1)" title="縮小">－</button>
+        <button class="pan-sub-btn sub-left" onclick="panMap(-1, 0)" title="左へ移動">◀</button>
+        <button class="pan-sub-btn sub-right" onclick="panMap(1, 0)" title="右へ移動">▶</button>
+        <button class="pan-sub-btn sub-down" onclick="panMap(0, 1)" title="下へ移動">▼</button>
+    </div>
+
     <button class="view-toggle-btn" onclick="toggleUIPanel()" id="toggle-icon">🔭</button>
     <button class="sync-button" id="sync-btn" onclick="syncData(false)" title="手動更新">🔄</button>
     <button class="location-button" onclick="updateMyLocation(true)" title="現在位置を中心にする">📍</button>
@@ -401,7 +503,7 @@
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHhxSJK-IhYiT9XBRwE1MX7DHhghBQQQk&callback=initMap&loading=async" async defer></script>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz_xjh__2QPwKLh8xXndgmOcP2YIPUzT0tWrRiPxtDjeXDixJANmyxNxmX-5BQXvaSzuw/exec"; 
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwiK8FFUmfroHExXafF6nW0LAA4DTO0rZG74pjQEUnJFlAVFa1aipyAe-CzI0CHT_q1og/exec"; 
     const ADMIN_SECRET = "popolo2026"; 
     
     let map, markers = [], allPointsData = [], currentSelectedTide = 0;
@@ -490,6 +592,10 @@
 
     function toggleSubMenu() {
         document.getElementById('sub-menu').classList.toggle('open');
+    }
+
+    function togglePanMenu() {
+        document.getElementById('pan-menu').classList.toggle('open');
     }
 
     function openManualModal() {
@@ -581,6 +687,21 @@
         refreshMarkersOnMap();
     }
 
+    function zoomMap(delta) {
+        if (!map) return;
+        const currentZoom = map.getZoom();
+        if (currentZoom !== undefined) {
+            map.setZoom(currentZoom + delta);
+        }
+    }
+
+    function panMap(x, y) {
+        if (!map) return;
+        const moveX = x * 150;
+        const moveY = y * 150;
+        map.panBy(moveX, moveY);
+    }
+
     function sendQuickLocation(type) {
         showLoading(true);
         navigator.geolocation.getCurrentPosition(async (pos) => {
@@ -644,10 +765,10 @@
         const badge = document.getElementById('mode-switch-badge');
         if (currentDepthMode === "foil") {
             badge.textContent = "モード: フォイル";
-            badge.style.background = "#e67e22";
+            badge.style.background = "rgba(230, 126, 34, 0.6)";
         } else {
             badge.textContent = "モード: ウインド";
-            badge.style.background = "#2c3e50";
+            badge.style.background = "rgba(44, 62, 80, 0.6)";
         }
         updateLegendUI();
         refreshMarkersOnMap();
@@ -852,7 +973,7 @@
             if (selectedType === "岩大") prefix = "G" + (countG + 1);
             else if (selectedType === "岩") prefix = "R" + (countR + 1);
             else if (selectedType === "杭") prefix = "K" + (countK + 1);
-            else prefix = ""; // 平地は空白
+            else prefix = ""; 
 
             const pointData = { 
                 method: 'POST', password: ADMIN_SECRET, id: String(Date.now()), 
@@ -1035,7 +1156,6 @@
         if (!allPointsData || allPointsData.length === 0) return;
 
         allPointsData.forEach(p => {
-            // 列順: ID(0), 通し番号(1), 緯度(2), 経度(3), 実測水深(4), 基準水深(5), 日時(6), 種別(7), コメント(8)
             const lat = parseFloat(p[2]), lng = parseFloat(p[3]);
             if (isNaN(lat) || isNaN(lng)) return;
             
@@ -1044,13 +1164,9 @@
             const isRock = (pType === "岩");
             const isPost = (pType === "杭");
             
-            // 強制判定：岩・岩大・杭以外（空白や平地を含む）はすべて平地として扱う
             const isFlat = (!pType || pType === "" || (!isBigRock && !isRock && !isPost));
-
-            // 平地は通し番号をつけず空白にする。危険物だけスプレッドシートの番号を使用。
             let prefix = isFlat ? "" : (p[1] ? String(p[1]).trim() : "");
             
-            // ⚠️ボタンがオンのときは、平地を非表示にする
             if (isHazardOnlyMode && isFlat) return;
 
             const rawDepth = parseFloat(p[4]) || 0;
@@ -1078,10 +1194,6 @@
 
         let markerLabel = null;
         const currentZoom = map ? map.getZoom() : 19;
-
-        // 通し番号の表示条件:
-        // ① ⚠️モードがONのときは危険物に番号を表示
-        // ② 通常モードのときはズーム18以上で危険物に番号を表示（平地には番号を表示しない）
         const showLabelCondition = isHazardOnlyMode ? !d.isFlat : (currentZoom >= 18 && !d.isFlat);
 
         if (d.labelText && showLabelCondition) {
@@ -1213,7 +1325,7 @@
         if (selectedType === "岩大") prefix = "G" + (countG + 1);
         else if (selectedType === "岩") prefix = "R" + (countR + 1);
         else if (selectedType === "杭") prefix = "K" + (countK + 1);
-        else prefix = ""; // 平地は空白
+        else prefix = ""; 
 
         const pointData = { 
             method: 'POST', password: ADMIN_SECRET, id: String(Date.now()), 
