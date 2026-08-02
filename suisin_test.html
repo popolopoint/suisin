@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.9.6 -->
-    <title>水深測っ太郎 v4.5.3 by Popolo App.com</title>
+    <!-- コード名: 6.9.7 -->
+    <title>水深測っ太郎 v4.5.4 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -250,7 +250,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.5.3 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.5.4 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -386,7 +386,7 @@
         </div>
         <div class="modal-body-scroll">
             <h4>📊 1. データ入力タブ</h4>
-            <p>・その場で測った水深(cm)と種類を選んで「記録」を押すと、現在地にピンが保存されます（平地はF、岩大はG、岩はR、杭はKの通し番号が付き、スプレッドシートにも保存されます）。</p>
+            <p>・その場で測った水深(cm)と種類を選んで「記録」を押すと、現在地にピンが保存されます。</p>
             <h4>📡 2. 位置送受信タブ</h4>
             <p>・「⚓ フネ登録」や「🟧 ブイ登録」を押すと、現在のGPS位置が即座に送信されます。</p>
             <h4>🗺️ 3. 位置登録タブ</h4>
@@ -839,11 +839,10 @@
             document.getElementById('depth-input').value = cmd.value;
             const baseDepth = parseFloat(cmd.value) - currentSelectedTide;
             
-            // 音声入力時の仮のプレフィックス計算（現在データの最後尾番号を推測）
             let prefix = "F1";
             let countF = 0, countG = 0, countR = 0, countK = 0;
             allPointsData.forEach(p => {
-                const t = p[6] || "";
+                const t = p[7] || ""; // 修正: 種別はインデックス7 (H列)
                 if (t.includes("岩大") || t.includes("大岩")) countG++;
                 else if (t === "岩") countR++;
                 else if (t === "杭") countK++;
@@ -1040,9 +1039,10 @@
         let countK = 0; 
 
         allPointsData.forEach(p => {
-            const lat = parseFloat(p[1]), lng = parseFloat(p[2]);
+            // 新しい列並びに対応: 緯度=C列(index 2), 経度=D列(index 3)
+            const lat = parseFloat(p[2]), lng = parseFloat(p[3]);
             if (isNaN(lat) || isNaN(lng)) return;
-            const pType = p[6] || "";
+            const pType = p[7] || ""; // 種別=H列(index 7)
 
             let prefix = "F";
             if (pType === "岩大" || pType === "大きい岩" || pType === "大岩") {
@@ -1064,14 +1064,15 @@
                 if (!isHazard) return;
             }
 
-            const rawDepth = parseFloat(p[3]) || 0;
-            const baseDepth = parseFloat(p[4]) || 0;
+            // 実測水深=E列(index 4), 基準水深=F列(index 5)
+            const rawDepth = parseFloat(p[4]) || 0;
+            const baseDepth = parseFloat(p[5]) || 0;
             const simDepth = baseDepth + currentSelectedTide;
             
             createMarker({
                 id: p[0], lat: lat, lng: lng, rawDepth: rawDepth, 
                 baseDepth: baseDepth, simDepth: simDepth, type: pType, 
-                comment: p[7] || "", labelText: prefix
+                comment: p[8] || "", labelText: prefix // コメント=I列(index 8)
             });
         });
     }
@@ -1206,10 +1207,9 @@
         const comment = document.getElementById('comment-input').value;
         if (!raw) return alert("水深を入力してください");
 
-        // 記録時点での種類別の数から、次に割り当てる番号（プレフィックス）を決定
         let countF = 0, countG = 0, countR = 0, countK = 0;
         allPointsData.forEach(p => {
-            const t = p[6] || "";
+            const t = p[7] || "";
             if (t.includes("岩大") || t.includes("大岩")) countG++;
             else if (t === "岩") countR++;
             else if (t === "杭") countK++;
