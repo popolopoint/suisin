@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 6.9.7 -->
-    <title>水深測っ太郎 v4.5.4 by Popolo App.com</title>
+    <!-- コード名: 6.9.8 -->
+    <title>水深測っ太郎 v4.5.5 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -250,7 +250,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.5.4 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.5.5 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -386,7 +386,7 @@
         </div>
         <div class="modal-body-scroll">
             <h4>📊 1. データ入力タブ</h4>
-            <p>・その場で測った水深(cm)と種類を選んで「記録」を押すと、現在地にピンが保存されます。</p>
+            <p>・その場で測った水深(cm)と種類を選んで「記録」を押すと、現在地にピンが保存されます（岩・岩大・杭には番号が表示されます）。</p>
             <h4>📡 2. 位置送受信タブ</h4>
             <p>・「⚓ フネ登録」や「🟧 ブイ登録」を押すと、現在のGPS位置が即座に送信されます。</p>
             <h4>🗺️ 3. 位置登録タブ</h4>
@@ -839,19 +839,18 @@
             document.getElementById('depth-input').value = cmd.value;
             const baseDepth = parseFloat(cmd.value) - currentSelectedTide;
             
-            let prefix = "F1";
-            let countF = 0, countG = 0, countR = 0, countK = 0;
+            let prefix = "";
+            let countG = 0, countR = 0, countK = 0;
             allPointsData.forEach(p => {
-                const t = p[7] || ""; // 修正: 種別はインデックス7 (H列)
+                const t = p[7] || "";
                 if (t.includes("岩大") || t.includes("大岩")) countG++;
                 else if (t === "岩") countR++;
                 else if (t === "杭") countK++;
-                else countF++;
             });
             if (selectedType === "岩大") prefix = "G" + (countG + 1);
             else if (selectedType === "岩") prefix = "R" + (countR + 1);
             else if (selectedType === "杭") prefix = "K" + (countK + 1);
-            else prefix = "F" + (countF + 1);
+            else prefix = ""; // 平地は番号なし
 
             const pointData = { 
                 method: 'POST', password: ADMIN_SECRET, id: String(Date.now()), 
@@ -865,7 +864,7 @@
                 if ((await res.text()).trim() === "success") { 
                     playSuccessBeep(); await syncData(false); 
                     document.getElementById('depth-input').value = ""; 
-                    document.getElementById('voice-status').textContent = `✅ 深さ ${cmd.value}cm (${prefix}) を記録しました！`;
+                    document.getElementById('voice-status').textContent = `✅ 深さ ${cmd.value}cm (${prefix || '平地'}) を記録しました！`;
                     speakText("登録しました");
                     setTimeout(() => { if (recognition && !isListening) startVoiceFlowWithGuide(); }, 1500);
                 }
@@ -1033,38 +1032,38 @@
         markers = [];
         if (!allPointsData || allPointsData.length === 0) return;
 
-        let countF = 0; 
         let countG = 0; 
         let countR = 0; 
         let countK = 0; 
 
         allPointsData.forEach(p => {
-            // 新しい列並びに対応: 緯度=C列(index 2), 経度=D列(index 3)
             const lat = parseFloat(p[2]), lng = parseFloat(p[3]);
             if (isNaN(lat) || isNaN(lng)) return;
-            const pType = p[7] || ""; // 種別=H列(index 7)
+            const pType = p[7] || "";
 
-            let prefix = "F";
-            if (pType === "岩大" || pType === "大きい岩" || pType === "大岩") {
+            let prefix = "";
+            const isBigRock = (pType === "岩大" || pType === "大きい岩" || pType === "大岩");
+            const isRock = (pType === "岩");
+            const isPost = (pType === "杭");
+
+            if (isBigRock) {
                 countG++;
                 prefix = "G" + countG;
-            } else if (pType === "岩") {
+            } else if (isRock) {
                 countR++;
                 prefix = "R" + countR;
-            } else if (pType === "杭") {
+            } else if (isPost) {
                 countK++;
                 prefix = "K" + countK;
             } else {
-                countF++;
-                prefix = "F" + countF;
+                prefix = ""; // 平地は番号非表示
             }
             
             if (isHazardOnlyMode) {
-                const isHazard = (pType === "岩大" || pType === "大きい岩" || pType === "大岩" || pType === "岩" || pType === "杭");
+                const isHazard = (isBigRock || isRock || isPost);
                 if (!isHazard) return;
             }
 
-            // 実測水深=E列(index 4), 基準水深=F列(index 5)
             const rawDepth = parseFloat(p[4]) || 0;
             const baseDepth = parseFloat(p[5]) || 0;
             const simDepth = baseDepth + currentSelectedTide;
@@ -1072,7 +1071,7 @@
             createMarker({
                 id: p[0], lat: lat, lng: lng, rawDepth: rawDepth, 
                 baseDepth: baseDepth, simDepth: simDepth, type: pType, 
-                comment: p[8] || "", labelText: prefix // コメント=I列(index 8)
+                comment: p[8] || "", labelText: prefix
             });
         });
     }
@@ -1091,12 +1090,13 @@
         let markerLabel = null;
         const currentZoom = map ? map.getZoom() : 19;
 
-        if (d.simDepth < 140 && currentZoom >= 18) {
+        // 危険物(岩・岩大・杭)のみ、かつ文字サイズを大きめに設定 (13pxに変更)
+        if (d.labelText && currentZoom >= 18) {
             markerLabel = {
                 text: d.labelText,
                 color: getContrastColor(getDepthColor(d.simDepth, d.rawDepth)),
                 fontWeight: "bold",
-                fontSize: "11px"
+                fontSize: "13px"
             };
         }
 
@@ -1110,7 +1110,7 @@
         const info = new google.maps.InfoWindow({
             content: `
                 <div style="font-size:24px; width:280px; padding:10px; line-height:1.4; box-sizing:border-box;">
-                    <div style="font-size:16px; font-weight:bold; color:#2980b9; margin-bottom:6px;">ID: ${d.labelText}</div>
+                    <div style="font-size:16px; font-weight:bold; color:#2980b9; margin-bottom:6px;">ID: ${d.labelText || '平地'}</div>
                     <select id="edit-type-${d.id}" style="font-size:24px; font-weight:bold; margin-bottom:10px; width:100%; padding:5px; border:2px solid #3498db; border-radius:8px;">
                         <option value="平地" ${(!isBigRock && !isRock && !isPost) ? 'selected' : ''}>平地</option>
                         <option value="岩" ${isRock ? 'selected' : ''}>岩</option>
@@ -1207,20 +1207,19 @@
         const comment = document.getElementById('comment-input').value;
         if (!raw) return alert("水深を入力してください");
 
-        let countF = 0, countG = 0, countR = 0, countK = 0;
+        let prefix = "";
+        let countG = 0, countR = 0, countK = 0;
         allPointsData.forEach(p => {
             const t = p[7] || "";
             if (t.includes("岩大") || t.includes("大岩")) countG++;
             else if (t === "岩") countR++;
             else if (t === "杭") countK++;
-            else countF++;
         });
 
-        let prefix = "F1";
         if (selectedType === "岩大") prefix = "G" + (countG + 1);
         else if (selectedType === "岩") prefix = "R" + (countR + 1);
         else if (selectedType === "杭") prefix = "K" + (countK + 1);
-        else prefix = "F" + (countF + 1);
+        else prefix = ""; // 平地は番号なし
 
         const pointData = { 
             method: 'POST', password: ADMIN_SECRET, id: String(Date.now()), 
