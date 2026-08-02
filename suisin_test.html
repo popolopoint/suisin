@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 7.0.2 -->
-    <title>水深測っ太郎 v4.5.9 by Popolo App.com</title>
+    <!-- コード名: 7.0.3 -->
+    <title>水深測っ太郎 v4.6.0 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -250,7 +250,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.5.9 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.6.0 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -842,7 +842,7 @@
             let prefix = "";
             let countG = 0, countR = 0, countK = 0, countH = 0;
             allPointsData.forEach(p => {
-                const t = p[7] || "平地";
+                const t = String(p[7] || "").trim();
                 if (t.includes("岩大") || t.includes("大岩")) countG++;
                 else if (t === "岩") countR++;
                 else if (t === "杭") countK++;
@@ -1039,17 +1039,18 @@
         let countH = 0;
 
         allPointsData.forEach(p => {
-            // 新・列順：ID(0), 通し番号(1), 緯度(2), 経度(3), 実測水深(4), 基準水深(5), 日時(6), 種別(7), コメント(8)
+            // 列順: ID(0), 通し番号(1), 緯度(2), 経度(3), 実測水深(4), 基準水深(5), 日時(6), 種別(7), コメント(8)
             const lat = parseFloat(p[2]), lng = parseFloat(p[3]);
             if (isNaN(lat) || isNaN(lng)) return;
-            const pType = p[7] || "平地";
-
+            
+            const pType = String(p[7] || "").trim();
             const isBigRock = (pType === "岩大" || pType === "大きい岩" || pType === "大岩");
             const isRock = (pType === "岩");
             const isPost = (pType === "杭");
-            const isFlat = (!isBigRock && !isRock && !isPost);
+            
+            // 種別が空欄、または「平地」であれば平地とみなす
+            const isFlat = (!pType || pType === "平地");
 
-            // スプレッドシート側に入っている通し番号（p[1]）を優先し、空欄なら自動生成
             let prefix = p[1] ? String(p[1]) : "";
             if (!prefix) {
                 if (isBigRock) { countG++; prefix = "G" + countG; } 
@@ -1067,7 +1068,7 @@
             
             createMarker({
                 id: p[0], lat: lat, lng: lng, rawDepth: rawDepth, 
-                baseDepth: baseDepth, simDepth: simDepth, type: pType, 
+                baseDepth: baseDepth, simDepth: simDepth, type: pType || "平地", 
                 comment: p[8] || "", labelText: prefix, isFlat: isFlat
             });
         });
@@ -1087,8 +1088,12 @@
         let markerLabel = null;
         const currentZoom = map ? map.getZoom() : 19;
 
-        // ⚠️(hazard)モードがONかつ危険物、または通常モードで十分拡大されている場合（ズーム16以上）に通し番号を表示
-        if (d.labelText && ((isHazardOnlyMode && !d.isFlat) || (!isHazardOnlyMode && currentZoom >= 16))) {
+        // 通し番号の表示条件:
+        // ① ⚠️モードがONのときは、危険物のみに番号を表示
+        // ② 通常モードのときは、十分に拡大されている場合（ズーム18以上）のみ危険物（または平地）に番号を表示
+        const showLabelCondition = isHazardOnlyMode ? !d.isFlat : (currentZoom >= 18 && !d.isFlat);
+
+        if (d.labelText && showLabelCondition) {
             markerLabel = {
                 text: d.labelText,
                 color: getContrastColor(getDepthColor(d.simDepth, d.rawDepth)),
@@ -1207,7 +1212,7 @@
         let prefix = "";
         let countG = 0, countR = 0, countK = 0, countH = 0;
         allPointsData.forEach(p => {
-            const t = p[7] || "平地";
+            const t = String(p[7] || "").trim();
             if (t.includes("岩大") || t.includes("大岩")) countG++;
             else if (t === "岩") countR++;
             else if (t === "杭") countK++;
