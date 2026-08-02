@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 7.0.4 -->
-    <title>水深測っ太郎 v4.7.1 by Popolo App.com</title>
+    <title>水深測っ太郎 v4.7.2 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -111,56 +111,51 @@
         
         .mode-switch-badge { margin-top: 6px; padding: 4px 6px; background: rgba(44, 62, 80, 0.5); color: white; border-radius: 4px; text-align: center; font-size: 0.7rem; cursor: pointer; }
 
-        /* 🔍 ズームイン・アウトボタン（極薄・すりガラス風） */
-        .zoom-control-container {
+        /* 🧭 左下の「移動・ズームメニュー」のメインボタンと展開コンテナ */
+        .pan-menu-main-btn {
             position: absolute;
-            right: 10px;
-            bottom: 260px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            z-index: 3000;
-        }
-        .zoom-btn {
+            left: 10px;
+            bottom: 80px;
             width: 50px;
             height: 50px;
-            background: rgba(44, 62, 80, 0.35); /* さらに薄く */
+            background: rgba(44, 62, 80, 0.45);
             color: white;
             border-radius: 50%;
             box-shadow: 0 2px 6px rgba(0,0,0,0.15);
             display: flex;
             justify-content: center;
             align-items: center;
+            z-index: 3000;
             cursor: pointer;
-            font-size: 26px;
-            font-weight: bold;
+            font-size: 24px;
             border: 1.5px solid rgba(255, 255, 255, 0.3);
             backdrop-filter: blur(4px);
             -webkit-backdrop-filter: blur(4px);
             user-select: none;
         }
-        .zoom-btn:active {
+        .pan-menu-main-btn:active {
             background: rgba(52, 152, 219, 0.6);
         }
 
-        /* 🧭 上下左右 移動コントローラー（画面左下） */
-        .pan-control-container {
+        .pan-menu-container {
+            display: none;
             position: absolute;
             left: 10px;
-            bottom: 80px;
-            width: 120px;
-            height: 120px;
+            bottom: 140px;
+            width: 140px;
+            height: 140px;
             z-index: 3000;
-            display: grid;
             grid-template-areas:
-                ".    up    ."
-                "left .   right"
-                ".   down   .";
-            gap: 4px;
-            pointer-events: none;
+                "plus  up    minus"
+                "left  .     right"
+                ".     down  .";
+            gap: 6px;
         }
-        .pan-btn {
-            background: rgba(44, 62, 80, 0.35); /* さらに薄く */
+        .pan-menu-container.open {
+            display: grid;
+        }
+        .pan-sub-btn {
+            background: rgba(44, 62, 80, 0.40);
             color: white;
             border-radius: 50%;
             border: 1.5px solid rgba(255, 255, 255, 0.3);
@@ -170,21 +165,24 @@
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            backdrop-filter: blur(3px);
-            -webkit-backdrop-filter: blur(3px);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
             box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-            pointer-events: auto;
             user-select: none;
+            width: 40px;
+            height: 40px;
         }
-        .pan-btn:active {
-            background: rgba(52, 152, 219, 0.6);
+        .pan-sub-btn:active {
+            background: rgba(52, 152, 219, 0.7);
         }
-        .pan-up    { grid-area: up; width: 42px; height: 42px; justify-self: center; }
-        .pan-left  { grid-area: left; width: 42px; height: 42px; align-self: center; }
-        .pan-right { grid-area: right; width: 42px; height: 42px; align-self: center; }
-        .pan-down  { grid-area: down; width: 42px; height: 42px; justify-self: center; }
+        .sub-plus  { grid-area: plus; }
+        .sub-up    { grid-area: up; justify-self: center; }
+        .sub-minus { grid-area: minus; }
+        .sub-left  { grid-area: left; align-self: center; }
+        .sub-right { grid-area: right; align-self: center; }
+        .sub-down  { grid-area: down; justify-self: center; }
 
-        /* 右下のその他の丸ボタンをすべて「さらに薄い半透明」に統一 */
+        /* 右下のその他の丸ボタンをすべて薄い半透明に統一 */
         .view-toggle-btn, .sync-button, .location-button, .menu-main-btn {
             position: absolute;
             width: 50px;
@@ -342,7 +340,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.7.1 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.7.2 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -426,18 +424,15 @@
         </div>
     </div>
     
-    <!-- 🧭 上下左右 移動コントローラー（画面左下） -->
-    <div class="pan-control-container">
-        <button class="pan-btn pan-up" onclick="panMap(0, -1)" title="上へ移動">▲</button>
-        <button class="pan-btn pan-left" onclick="panMap(-1, 0)" title="左へ移動">◀</button>
-        <button class="pan-btn pan-right" onclick="panMap(1, 0)" title="右へ移動">▶</button>
-        <button class="pan-btn pan-down" onclick="panMap(0, 1)" title="下へ移動">▼</button>
-    </div>
-
-    <!-- 🔍 ズームイン・アウトボタン（半透明） -->
-    <div class="zoom-control-container">
-        <button class="zoom-btn" onclick="zoomMap(1)" title="拡大">＋</button>
-        <button class="zoom-btn" onclick="zoomMap(-1)" title="縮小">－</button>
+    <!-- 🧭 左下：移動・ズームメニューボタンと展開メニュー -->
+    <button class="pan-menu-main-btn" onclick="togglePanMenu()" title="移動・ズームメニュー">🧭</button>
+    <div class="pan-menu-container" id="pan-menu">
+        <button class="pan-sub-btn sub-plus" onclick="zoomMap(1)" title="拡大">＋</button>
+        <button class="pan-sub-btn sub-up" onclick="panMap(0, -1)" title="上へ移動">▲</button>
+        <button class="pan-sub-btn sub-minus" onclick="zoomMap(-1)" title="縮小">－</button>
+        <button class="pan-sub-btn sub-left" onclick="panMap(-1, 0)" title="左へ移動">◀</button>
+        <button class="pan-sub-btn sub-right" onclick="panMap(1, 0)" title="右へ移動">▶</button>
+        <button class="pan-sub-btn sub-down" onclick="panMap(0, 1)" title="下へ移動">▼</button>
     </div>
 
     <button class="view-toggle-btn" onclick="toggleUIPanel()" id="toggle-icon">🔭</button>
@@ -596,6 +591,11 @@
 
     function toggleSubMenu() {
         document.getElementById('sub-menu').classList.toggle('open');
+    }
+
+    // 🧭 移動・ズームメニューの開閉
+    function togglePanMenu() {
+        document.getElementById('pan-menu').classList.toggle('open');
     }
 
     function openManualModal() {
