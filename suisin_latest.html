@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 7.0.8 -->
-    <title>水深測っ太郎 v4.8.3 by Popolo App.com</title>
+    <title>水深測っ太郎 v4.8.7 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -86,6 +86,21 @@
         .btn-quick-send.boat { background-color: #1e90ff; }
         .btn-quick-send.buoy { background-color: #ff8c00; }
 
+
+/* 新しいボタン用カラー定義 */
+        .btn-quick-send.buoy { background-color: #d35400; } /* 濃いオレンジ */
+        .btn-quick-send.traking-latest { background-color: #c0392b; } /* 鮮やかな赤 */
+        .btn-quick-send.traking-test { background-color: #27ae60; } /* 綺麗な緑 */
+        
+        /* 音声ボタンのカスタマイズ */
+        .btn-voice { background: #8e44ad; color: white; border: none; padding: 24px 12px; border-radius: 8px; font-weight: bold; font-size: 1.45rem; cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%; justify-content: center; box-sizing: border-box; }
+        .btn-voice.listening { background: #e74c3c; animation: pulse 1.5s infinite; }
+
+
+
+
+
+        
         .voice-panel { background: #fdf2e9; padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #f5cba7; box-sizing: border-box; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; width: 100%; }
         .btn-voice { background: #e67e22; color: white; border: none; padding: 24px 12px; border-radius: 8px; font-weight: bold; font-size: 1.45rem; cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%; justify-content: center; box-sizing: border-box; }
         .btn-voice.listening { background: #e74c3c; animation: pulse 1.5s infinite; }
@@ -338,7 +353,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.8.3 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.8.7 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -380,7 +395,7 @@
                 <input type="text" id="comment-input" placeholder="一言コメント（任意）">
             </div>
 
-            <div id="sec-sync-mode" class="mode-section active">
+           <div id="sec-sync-mode" class="mode-section active">
                 <div class="quick-sync-panel">
                     <div class="quick-sync-title">🗺️ ワンタップ現在位置送信</div>
                     <div class="quick-btn-row">
@@ -397,9 +412,14 @@
                     <button id="btn-voice-confirm" class="voice-confirm-btn" onclick="executePendingVoiceCommand()">✅ [ OK ] 登録する</button>
                 </div>
 
-                <button onclick="sendAllDataToToraKing()" style="width:100%; background:#ff9900; color:white; border:none; padding:12px; border-radius:8px; font-size:1.1rem; font-weight:bold; cursor:pointer; margin-bottom:8px; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">
-                    🐅 虎キングへ船・ブイを同時送信
-                </button>
+                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <button onclick="sendAllDataToToraKing('latest')" style="flex: 2; background:#c0392b; color:white; border:none; padding:12px 8px; border-radius:8px; font-size:1.05rem; font-weight:bold; cursor:pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">
+                        🐅 虎キング(現行版)へ送信
+                    </button>
+                    <button onclick="sendAllDataToToraKing('test')" style="flex: 1; background:#27ae60; color:white; border:none; padding:12px 6px; border-radius:8px; font-size:0.85rem; font-weight:bold; cursor:pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">
+                        🧪 テスト版へ
+                    </button>
+                </div>
 
                 <div style="background: #eaf2f8; padding: 10px; border-radius: 8px; border: 1px solid #a9cce3; font-size: 0.85rem; font-weight: bold; color: #2471a3; line-height: 1.4; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
                     <div>
@@ -411,6 +431,7 @@
                 </div>
             </div>
 
+                
             <div id="sec-register-mode" class="mode-section">
                 <div class="honbu-panel">
                     <div class="honbu-title">⚓ 船・ブイ配置 / タップして削除・編集</div>
@@ -529,8 +550,12 @@
     let pendingCommand = null; 
     let activeInfoWindow = null;
 
-    function sendAllDataToToraKing() {
-        let toraKingUrl = "https://popolopoint.github.io/traking/traking_latest.html?mode=committee&course=custom";
+function sendAllDataToToraKing(targetVersion = 'latest') {
+        let baseUrl = (targetVersion === 'test')
+            ? "https://popolopoint.github.io/traking/traking_test.html"
+            : "https://popolopoint.github.io/traking/traking_latest.html";
+
+        let toraKingUrl = baseUrl + "?mode=committee&course=custom";
         let count = 0;
         const keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'K', 'S'];
         
@@ -550,6 +575,7 @@
         window.open(toraKingUrl, '_blank');
     }
 
+    
     function handleContainerClick(event) {
         if (event.target.tagName === 'INPUT' || event.target.tagName === 'LABEL') return;
         const checkbox = document.getElementById('agree-checkbox');
