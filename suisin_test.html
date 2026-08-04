@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 7.0.11 -->
-    <title>水深測っ太郎 v4.8.10 by Popolo App.com</title>
+    <!-- コード名: 7.0.12 -->
+    <title>水深測っ太郎 v4.9.0 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -108,12 +108,13 @@
 
         .status-bar { font-size: 0.75rem; color: #666; text-align: center; margin-top: 5px; font-weight: bold; }
         
-        .depth-legend { position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.75); padding: 8px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); border: 1px solid rgba(221,221,221,0.4); z-index: 10; font-size: 0.7rem; font-weight: bold; cursor: pointer; user-select: none; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+        /* 📊 凡例のスタイル：日時パネルの右側、または下方に重ならないように配置 */
+        .depth-legend { position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.85); padding: 8px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); border: 1px solid rgba(221,221,221,0.4); z-index: 10; font-size: 0.7rem; font-weight: bold; cursor: pointer; user-select: none; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); max-width: 145px; }
         .legend-content.minimized { display: none; }
         .legend-item { display: flex; align-items: center; margin-bottom: 3px; }
-        .color-box { width: 12px; height: 12px; margin-right: 6px; border: 1px solid #333; border-radius: 2px; }
+        .color-box { width: 12px; height: 12px; margin-right: 6px; border: 1px solid #333; border-radius: 2px; flex-shrink: 0; }
         
-        .mode-switch-badge { margin-top: 6px; padding: 4px 6px; background: rgba(44, 62, 80, 0.5); color: white; border-radius: 4px; text-align: center; font-size: 0.7rem; cursor: pointer; }
+        .mode-switch-badge { margin-top: 6px; padding: 4px 6px; background: rgba(44, 62, 80, 0.6); color: white; border-radius: 4px; text-align: center; font-size: 0.7rem; cursor: pointer; }
 
         .pan-menu-main-btn {
             position: absolute;
@@ -341,7 +342,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.8.10 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.9.0 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -512,7 +513,7 @@
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHhxSJK-IhYiT9XBRwE1MX7DHhghBQQQk&callback=initMap&loading=async" async defer></script>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz3Q4QaJxG-QAsRbykjZD8-DC1w9Y-6SaK1y2RWnS-xVmuzlgz_J2bXXUhrxD9gZQqPtQ/exec"; 
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwn7XNatlFh6zyIVP5nPdYBmCnwuzK0NPPpcuaNQlzvvHjTp4qqybYgNRe08av6z-oWRg/exec"; 
     const ADMIN_SECRET = "popolo2026"; 
     
     let map, markers = [], allPointsData = [], currentSelectedTide = 0;
@@ -1184,13 +1185,12 @@
 
     function calculateTideAndRefresh() {
         const val = document.getElementById('target-datetime').value;
-        currentSelectedTide = 0; // デフォルト初期値
+        currentSelectedTide = 0; 
         
         if (val && fullTideMasterData && fullTideMasterData.length > 0) {
             const s = new Date(val);
             const y = s.getFullYear(), m = s.getMonth() + 1, d = s.getDate(), h = s.getHours(), min = s.getMinutes();
             
-            // A列の日付(r[0])と一致する行を正確に検索 (B列=0時分はインデックス1、H時=インデックス1+h)
             const row = fullTideMasterData.find(r => {
                 if (!r[0]) return false;
                 const rd = new Date(r[0]);
@@ -1199,9 +1199,7 @@
             });
 
             if (row) {
-                // index 1 が 0:00 の潮位、index 2 が 1:00 の潮位 ... index 24 が 23:00、index 25 が 24:00
-                // h は 0～23 の時間
-                let colIdx1 = 1 + h; // 0:00が列1なので、h=0ならindex1(2列目=B列)
+                let colIdx1 = 1 + h; 
                 let colIdx2 = colIdx1 + 1;
                 
                 let t1 = parseFloat(row[colIdx1]);
@@ -1351,7 +1349,6 @@
         if (!row) { hlContainer.style.display = 'none'; listContainer.innerHTML = ""; openModal('tide-modal'); return; }
 
         let hlHtml = "";
-        // 満潮・干潮データ（もし列があれば表示。無ければスキップ）
         if (row.length >= 29 && row[25]) hlHtml += `<strong>【満潮】</strong> ${row[25]} (${row[26]}cm) / ${row[27] || ''} (${row[28] || ''}cm)<br>`;
         if (row.length >= 33 && row[29]) hlHtml += `<strong>【干潮】</strong> ${row[29]} (${row[30]}cm) / ${row[31] || ''} (${row[32] || ''}cm)`;
         
@@ -1359,7 +1356,6 @@
         hlContainer.innerHTML = hlHtml;
 
         let listHtml = "";
-        // B列(index 1 = 0:00) から Y列(index 24 = 23:00 または index 25) までを表示
         for (let h = 0; h <= 23; h++) {
             const tideVal = parseFloat(row[1 + h]) || 0;
             const bgCol = getDepthColor(tideVal, 0);
