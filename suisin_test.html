@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 7.0.12 -->
-    <title>水深測っ太郎 v4.9.0 by Popolo App.com</title>
+    <!-- コード名: 7.0.13 -->
+    <title>水深測っ太郎 v4.9.1 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -37,13 +37,16 @@
         .panel-wrapper { position: absolute; top: 0; left: 0; width: 100%; z-index: 3000; pointer-events: none; display: flex; flex-direction: column; transition: transform 0.3s ease; }
         .panel-wrapper > * { pointer-events: auto; }
 
-        .mode-tabs { display: flex; background: #2c3e50; padding: 2px; gap: 2px; transition: transform 0.3s ease, opacity 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        /* 📱 タブを上部に、ui-panel（中身）を下部に配置するため、コンテナ内の順序を調整 */
+        .panel-wrapper { display: flex; flex-direction: column; }
+
+        .mode-tabs { display: flex; background: #2c3e50; padding: 2px; gap: 2px; transition: transform 0.3s ease, opacity 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1); order: 1; }
         .mode-tabs.hidden { transform: translateY(-120%); opacity: 0; pointer-events: none; } 
 
         .tab-btn { flex: 1; padding: 12px 6px; border: none; background: #34495e; color: #bdc3c7; font-weight: bold; font-size: 0.85rem; cursor: pointer; transition: background 0.2s, color 0.2s; text-align: center; }
         .tab-btn.active { background: #3498db; color: white; border-bottom: 3px solid #2980b9; }
 
-        .ui-panel { background: white; padding: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: transform 0.3s ease; }
+        .ui-panel { background: white; padding: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: transform 0.3s ease; order: 2; }
         .ui-panel.hidden { transform: translateY(-140%); } 
         
         .ui-panel.datetime-only { background: transparent !important; box-shadow: none !important; padding: 0 !important; transform: translateY(0); }
@@ -85,9 +88,6 @@
         .btn-quick-send { flex: 1; padding: 26px 10px; border: none; border-radius: 8px; color: white; font-weight: bold; font-size: 1.45rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
         .btn-quick-send.boat { background-color: #1e90ff; }
         .btn-quick-send.buoy { background-color: #d35400; }
-
-        .btn-quick-send.traking-latest { background-color: #c0392b; }
-        .btn-quick-send.traking-test { background-color: #27ae60; }
         
         .voice-panel { background: #fdf2e9; padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #f5cba7; box-sizing: border-box; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; width: 100%; }
         .btn-voice { background: #8e44ad; color: white; border: none; padding: 24px 12px; border-radius: 8px; font-weight: bold; font-size: 1.45rem; cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%; justify-content: center; box-sizing: border-box; }
@@ -108,13 +108,13 @@
 
         .status-bar { font-size: 0.75rem; color: #666; text-align: center; margin-top: 5px; font-weight: bold; }
         
-        /* 📊 凡例のスタイル：日時パネルの右側、または下方に重ならないように配置 */
-        .depth-legend { position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.85); padding: 8px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); border: 1px solid rgba(221,221,221,0.4); z-index: 10; font-size: 0.7rem; font-weight: bold; cursor: pointer; user-select: none; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); max-width: 145px; }
+        /* 📊 凡例のスタイル：タブと重ならないよう、少し下（top: 55px）に配置してコンパクト化 */
+        .depth-legend { position: absolute; top: 55px; right: 10px; background: rgba(255, 255, 255, 0.9); padding: 6px 8px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); border: 1px solid rgba(221,221,221,0.4); z-index: 2900; font-size: 0.68rem; font-weight: bold; cursor: pointer; user-select: none; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); max-width: 140px; }
         .legend-content.minimized { display: none; }
-        .legend-item { display: flex; align-items: center; margin-bottom: 3px; }
-        .color-box { width: 12px; height: 12px; margin-right: 6px; border: 1px solid #333; border-radius: 2px; flex-shrink: 0; }
+        .legend-item { display: flex; align-items: center; margin-bottom: 2px; }
+        .color-box { width: 10px; height: 10px; margin-right: 5px; border: 1px solid #333; border-radius: 2px; flex-shrink: 0; }
         
-        .mode-switch-badge { margin-top: 6px; padding: 4px 6px; background: rgba(44, 62, 80, 0.6); color: white; border-radius: 4px; text-align: center; font-size: 0.7rem; cursor: pointer; }
+        .mode-switch-badge { margin-top: 4px; padding: 3px 5px; background: rgba(44, 62, 80, 0.6); color: white; border-radius: 4px; text-align: center; font-size: 0.65rem; cursor: pointer; }
 
         .pan-menu-main-btn {
             position: absolute;
@@ -342,18 +342,20 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.9.0 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.9.1 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
     
     <div class="panel-wrapper" id="panel-wrapper">
+        <!-- タブ切り替えパネル（上部） -->
         <div class="mode-tabs" id="mode-tabs">
             <button class="tab-btn" id="tab-input-mode" onclick="trySwitchToInputMode(this)">📊 データ入力</button>
             <button class="tab-btn active" id="tab-sync-mode" onclick="switchViewMode('sync-mode', this)">📡 位置送受信</button>
             <button class="tab-btn" id="tab-register-mode" onclick="switchViewMode('register-mode', this)">🗺️ 位置登録</button>
         </div>
 
+        <!-- ui-panel（タブの下部） -->
         <div class="ui-panel" id="ui-panel">
             <div class="datetime-panel" id="global-datetime-panel">
                 <div class="datetime-row">
@@ -419,7 +421,6 @@
                     <button onclick="speakInfoText()" style="background: #2980b9; color: white; border: none; padding: 10px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: bold; cursor: pointer; flex-shrink: 0;" title="インフォメーションを読み上げ">🔊 読み上げ</button>
                 </div>
             </div>
-
                 
             <div id="sec-register-mode" class="mode-section">
                 <div class="honbu-panel">
@@ -564,7 +565,6 @@
         window.open(toraKingUrl, '_blank');
     }
 
-    
     function handleContainerClick(event) {
         if (event.target.tagName === 'INPUT' || event.target.tagName === 'LABEL') return;
         const checkbox = document.getElementById('agree-checkbox');
