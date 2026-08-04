@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 7.0.14 -->
+    <!-- コード名: 7.0.15 -->
     <title>水深測っ太郎 v4.9.2 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
@@ -34,24 +34,28 @@
         }
         #map { width: 100%; height: 100%; }
 
+        /* 📱 パネル全体のコンテナ：上から [日時パネル] -> [タブ切り替え] -> [各タブの中身] の順に配置 */
         .panel-wrapper { position: absolute; top: 0; left: 0; width: 100%; z-index: 3000; pointer-events: none; display: flex; flex-direction: column; transition: transform 0.3s ease; }
         .panel-wrapper > * { pointer-events: auto; }
 
-        /* 📱 上部に日時パネル、その下にタブ切り替えパネルを配置 */
-        .panel-wrapper { display: flex; flex-direction: column; }
+        /* 📊 凡例のスタイル：右上のボタンと重ならないよう少し下（top: 140px付近、または邪魔にならない位置）へ調整 */
+        .depth-legend { position: absolute; top: 180px; right: 10px; background: rgba(255, 255, 255, 0.92); padding: 6px 8px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); border: 1px solid rgba(221,221,221,0.4); z-index: 2500; font-size: 0.68rem; font-weight: bold; cursor: pointer; user-select: none; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); max-width: 135px; }
+        .legend-content.minimized { display: none; }
+        .legend-item { display: flex; align-items: center; margin-bottom: 2px; }
+        .color-box { width: 10px; height: 10px; margin-right: 5px; border: 1px solid #333; border-radius: 2px; flex-shrink: 0; }
+        .mode-switch-badge { margin-top: 4px; padding: 3px 5px; background: rgba(44, 62, 80, 0.6); color: white; border-radius: 4px; text-align: center; font-size: 0.65rem; cursor: pointer; }
 
         /* タブ切り替えパネル */
-        .mode-tabs { display: flex; background: #2c3e50; padding: 2px; gap: 2px; transition: transform 0.3s ease, opacity 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1); order: 2; }
+        .mode-tabs { display: flex; background: #2c3e50; padding: 2px; gap: 2px; transition: transform 0.3s ease, opacity 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .mode-tabs.hidden { transform: translateY(-120%); opacity: 0; pointer-events: none; } 
 
         .tab-btn { flex: 1; padding: 12px 6px; border: none; background: #34495e; color: #bdc3c7; font-weight: bold; font-size: 0.85rem; cursor: pointer; transition: background 0.2s, color 0.2s; text-align: center; }
         .tab-btn.active { background: #3498db; color: white; border-bottom: 3px solid #2980b9; }
 
-        /* ui-panel（中身のセクション） */
-        .ui-panel { background: white; padding: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: transform 0.3s ease; order: 1; }
+        /* ui-panel（各タブの中身） */
+        .ui-panel { background: white; padding: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: transform 0.3s ease; }
         .ui-panel.hidden { transform: translateY(-140%); } 
         
-        /* 🔭ボタン1回押して「日時パネルだけ」にするモード */
         .ui-panel.datetime-only { background: transparent !important; box-shadow: none !important; padding: 0 !important; transform: translateY(0); }
         .ui-panel.datetime-only .datetime-panel { margin: 0 !important; box-shadow: 0 2px 6px rgba(0,0,0,0.2); background: white; border-radius: 0 0 8px 8px; border-top: none; }
         .ui-panel.datetime-only .mode-section { display: none !important; }
@@ -60,6 +64,7 @@
         .mode-section { display: none; }
         .mode-section.active { display: block; }
 
+        /* 日時パネル */
         .datetime-panel { background: #ebf5fb; padding: 8px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #aed6f1; }
         .datetime-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
         .datetime-quick-row { display: flex; gap: 4px; }
@@ -110,14 +115,6 @@
         #btnDeleteBoat { flex: 1; background: #dc3545; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
 
         .status-bar { font-size: 0.75rem; color: #666; text-align: center; margin-top: 5px; font-weight: bold; }
-        
-        /* 📊 凡例のスタイル：右上固定かつ常に表示（隠れないように z-index を高く設定） */
-        .depth-legend { position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.9); padding: 6px 8px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); border: 1px solid rgba(221,221,221,0.4); z-index: 4000; font-size: 0.68rem; font-weight: bold; cursor: pointer; user-select: none; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); max-width: 140px; }
-        .legend-content.minimized { display: none; }
-        .legend-item { display: flex; align-items: center; margin-bottom: 2px; }
-        .color-box { width: 10px; height: 10px; margin-right: 5px; border: 1px solid #333; border-radius: 2px; flex-shrink: 0; }
-        
-        .mode-switch-badge { margin-top: 4px; padding: 3px 5px; background: rgba(44, 62, 80, 0.6); color: white; border-radius: 4px; text-align: center; font-size: 0.65rem; cursor: pointer; }
 
         .pan-menu-main-btn {
             position: absolute;
@@ -351,7 +348,7 @@
     <div id="map"></div>
     
     <div class="panel-wrapper" id="panel-wrapper">
-        <!-- ui-panel（上部に日時パネルを表示） -->
+        <!-- 1番上：ui-panel（内部に日時パネル、各タブの中身を配置） -->
         <div class="ui-panel" id="ui-panel">
             <div class="datetime-panel" id="global-datetime-panel">
                 <div class="datetime-row">
@@ -368,6 +365,7 @@
                 <div id="status-display" class="status-bar">⚡ 高速起動完了</div>
             </div>
 
+            <!-- 各タブの中身（水深入力など） -->
             <div id="sec-input-mode" class="mode-section">
                 <div class="type-selector">
                     <button class="type-btn active" onclick="selectType('平地', this)">平地</button>
@@ -432,7 +430,7 @@
             </div>
         </div>
 
-        <!-- タブ切り替えパネル（下部） -->
+        <!-- 日時パネルと各タブコンテンツの真下：タブ切り替えパネル -->
         <div class="mode-tabs" id="mode-tabs">
             <button class="tab-btn" id="tab-input-mode" onclick="trySwitchToInputMode(this)">📊 データ入力</button>
             <button class="tab-btn active" id="tab-sync-mode" onclick="switchViewMode('sync-mode', this)">📡 位置送受信</button>
@@ -466,7 +464,7 @@
 
     <button class="measure-clear-btn" id="measure-clear-btn" onclick="clearMeasure()">距離<br>消去</button>
 
-    <!-- 📊 凡例ボックス：どのモードでも常に非表示にならず右上に表示 -->
+    <!-- 📊 凡例ボックス：コンパクトに配置（右上のボタン類と被らない位置） -->
     <div class="depth-legend" id="depth-legend-box" onclick="toggleLegendTap(event)" title="タップして開閉">
         <div id="legend-header">📊 凡例</div>
         <div class="legend-content" id="legend-content">
