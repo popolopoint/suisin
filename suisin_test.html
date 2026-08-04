@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 7.0.13 -->
-    <title>水深測っ太郎 v4.9.1 by Popolo App.com</title>
+    <!-- コード名: 7.0.14 -->
+    <title>水深測っ太郎 v4.9.2 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -37,18 +37,21 @@
         .panel-wrapper { position: absolute; top: 0; left: 0; width: 100%; z-index: 3000; pointer-events: none; display: flex; flex-direction: column; transition: transform 0.3s ease; }
         .panel-wrapper > * { pointer-events: auto; }
 
-        /* 📱 タブを上部に、ui-panel（中身）を下部に配置するため、コンテナ内の順序を調整 */
+        /* 📱 上部に日時パネル、その下にタブ切り替えパネルを配置 */
         .panel-wrapper { display: flex; flex-direction: column; }
 
-        .mode-tabs { display: flex; background: #2c3e50; padding: 2px; gap: 2px; transition: transform 0.3s ease, opacity 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1); order: 1; }
+        /* タブ切り替えパネル */
+        .mode-tabs { display: flex; background: #2c3e50; padding: 2px; gap: 2px; transition: transform 0.3s ease, opacity 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1); order: 2; }
         .mode-tabs.hidden { transform: translateY(-120%); opacity: 0; pointer-events: none; } 
 
         .tab-btn { flex: 1; padding: 12px 6px; border: none; background: #34495e; color: #bdc3c7; font-weight: bold; font-size: 0.85rem; cursor: pointer; transition: background 0.2s, color 0.2s; text-align: center; }
         .tab-btn.active { background: #3498db; color: white; border-bottom: 3px solid #2980b9; }
 
-        .ui-panel { background: white; padding: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: transform 0.3s ease; order: 2; }
+        /* ui-panel（中身のセクション） */
+        .ui-panel { background: white; padding: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: transform 0.3s ease; order: 1; }
         .ui-panel.hidden { transform: translateY(-140%); } 
         
+        /* 🔭ボタン1回押して「日時パネルだけ」にするモード */
         .ui-panel.datetime-only { background: transparent !important; box-shadow: none !important; padding: 0 !important; transform: translateY(0); }
         .ui-panel.datetime-only .datetime-panel { margin: 0 !important; box-shadow: 0 2px 6px rgba(0,0,0,0.2); background: white; border-radius: 0 0 8px 8px; border-top: none; }
         .ui-panel.datetime-only .mode-section { display: none !important; }
@@ -108,8 +111,8 @@
 
         .status-bar { font-size: 0.75rem; color: #666; text-align: center; margin-top: 5px; font-weight: bold; }
         
-        /* 📊 凡例のスタイル：タブと重ならないよう、少し下（top: 55px）に配置してコンパクト化 */
-        .depth-legend { position: absolute; top: 55px; right: 10px; background: rgba(255, 255, 255, 0.9); padding: 6px 8px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); border: 1px solid rgba(221,221,221,0.4); z-index: 2900; font-size: 0.68rem; font-weight: bold; cursor: pointer; user-select: none; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); max-width: 140px; }
+        /* 📊 凡例のスタイル：右上固定かつ常に表示（隠れないように z-index を高く設定） */
+        .depth-legend { position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.9); padding: 6px 8px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); border: 1px solid rgba(221,221,221,0.4); z-index: 4000; font-size: 0.68rem; font-weight: bold; cursor: pointer; user-select: none; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); max-width: 140px; }
         .legend-content.minimized { display: none; }
         .legend-item { display: flex; align-items: center; margin-bottom: 2px; }
         .color-box { width: 10px; height: 10px; margin-right: 5px; border: 1px solid #333; border-radius: 2px; flex-shrink: 0; }
@@ -342,20 +345,13 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.9.1 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.9.2 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
     
     <div class="panel-wrapper" id="panel-wrapper">
-        <!-- タブ切り替えパネル（上部） -->
-        <div class="mode-tabs" id="mode-tabs">
-            <button class="tab-btn" id="tab-input-mode" onclick="trySwitchToInputMode(this)">📊 データ入力</button>
-            <button class="tab-btn active" id="tab-sync-mode" onclick="switchViewMode('sync-mode', this)">📡 位置送受信</button>
-            <button class="tab-btn" id="tab-register-mode" onclick="switchViewMode('register-mode', this)">🗺️ 位置登録</button>
-        </div>
-
-        <!-- ui-panel（タブの下部） -->
+        <!-- ui-panel（上部に日時パネルを表示） -->
         <div class="ui-panel" id="ui-panel">
             <div class="datetime-panel" id="global-datetime-panel">
                 <div class="datetime-row">
@@ -435,6 +431,13 @@
                 </div>
             </div>
         </div>
+
+        <!-- タブ切り替えパネル（下部） -->
+        <div class="mode-tabs" id="mode-tabs">
+            <button class="tab-btn" id="tab-input-mode" onclick="trySwitchToInputMode(this)">📊 データ入力</button>
+            <button class="tab-btn active" id="tab-sync-mode" onclick="switchViewMode('sync-mode', this)">📡 位置送受信</button>
+            <button class="tab-btn" id="tab-register-mode" onclick="switchViewMode('register-mode', this)">🗺️ 位置登録</button>
+        </div>
     </div>
     
     <!-- 🧭 左下：移動・ズームメニューボタンと展開メニュー -->
@@ -463,6 +466,7 @@
 
     <button class="measure-clear-btn" id="measure-clear-btn" onclick="clearMeasure()">距離<br>消去</button>
 
+    <!-- 📊 凡例ボックス：どのモードでも常に非表示にならず右上に表示 -->
     <div class="depth-legend" id="depth-legend-box" onclick="toggleLegendTap(event)" title="タップして開閉">
         <div id="legend-header">📊 凡例</div>
         <div class="legend-content" id="legend-content">
