@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 7.0.20 -->
-    <title>水深測っ太郎 v5.0.2 by Popolo App.com</title>
+    <title>水深測っ太郎 v5.0.3 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -113,14 +113,16 @@
         .btn-quick-send.boat { background-color: #1e90ff; }
         .btn-quick-send.buoy { background-color: #d35400; }
         
-        .voice-panel { background: #fdf2e9; padding: 8px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #f5cba7; box-sizing: border-box; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; width: 100%; }
+.voice-panel { background: #fdf2e9; padding: 8px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #f5cba7; box-sizing: border-box; width: 100%; }
+        .voice-toggle-header { font-size: 0.85rem; font-weight: bold; color: #d35400; cursor: pointer; display: flex; align-items: center; justify-content: space-between; user-select: none; padding: 4px; }
+        .voice-body { display: none; margin-top: 6px; flex-direction: column; align-items: flex-start; gap: 6px; width: 100%; }
+        .voice-panel.open .voice-body { display: flex; }
+
         .btn-voice { background: #8e44ad; color: white; border: none; padding: 16px 12px; border-radius: 8px; font-weight: bold; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%; justify-content: center; box-sizing: border-box; }
         .btn-voice.listening { background: #e74c3c; animation: pulse 1.5s infinite; }
         .voice-status { font-size: 0.8rem; color: #d35400; font-weight: bold; width: 100%; text-align: center; word-wrap: break-word; line-height: 1.2; }
         .voice-status .huge-command { font-size: 2.8rem; color: #e67e22; font-weight: 900; display: block; margin: 4px 0; letter-spacing: -1px; }
-        .voice-confirm-btn { display: none; width: 100%; background: #2ecc71; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; text-align: center; margin-top: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-
-        .honbu-panel { background: #eef7f2; padding: 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #cceadb; box-sizing: border-box; }
+        .voice-confirm-btn { display: none; width: 100%; background: #2ecc71; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; text-align: center; margin-top: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }     .honbu-panel { background: #eef7f2; padding: 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #cceadb; box-sizing: border-box; }
         .honbu-title { font-size: 0.95rem; font-weight: bold; margin-bottom: 8px; color: #1e4620; text-align: center; }
         .honbu-row { display: flex; gap: 8px; margin-bottom: 8px; width: 100%; }
         .honbu-row input { font-size: 1.5rem; padding: 12px 10px; border-radius: 8px; border: 2px solid #28a745; box-sizing: border-box; width: 100%; font-weight: bold; background: white; text-align: center; }
@@ -358,7 +360,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v5.0.2 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v5.0.3 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -405,15 +407,22 @@
                         <button class="btn-quick-send buoy" onclick="sendQuickLocation('BUOY')">🟧 ブイ登録</button>
                     </div>
                 </div>
-
-                <div class="voice-panel">
-                    <button id="btn-voice-start" class="btn-voice" onclick="toggleSpeechRecognition()">
-                        <span id="voice-icon">🎙️</span> 音声入力開始
-                    </button>
-                    <div id="voice-status" class="voice-status">声で「フネ登録」や「ブイ登録」「深さ〇〇センチ」</div>
-                    <button id="btn-voice-confirm" class="voice-confirm-btn" onclick="executePendingVoiceCommand()">✅ [ OK ] 登録する</button>
+<div class="voice-panel" id="voice-panel-box">
+                    <div class="voice-toggle-header" onclick="toggleVoicePanel()">
+                        <span>🎙️ 音声入力を開く（タップで展開）</span>
+                        <span id="voice-toggle-arrow">▼</span>
+                    </div>
+                    <div class="voice-body">
+                        <button id="btn-voice-start" class="btn-voice" onclick="toggleSpeechRecognition()">
+                            <span id="voice-icon">🎙️</span> 音声入力開始
+                        </button>
+                        <div id="voice-status" class="voice-status">声で「フネ登録」や「ブイ登録」「深さ〇〇センチ」</div>
+                        <button id="btn-voice-confirm" class="voice-confirm-btn" onclick="executePendingVoiceCommand()">✅ [ OK ] 登録する</button>
+                    </div>
                 </div>
 
+
+               
                 <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                     <button onclick="sendAllDataToToraKing('latest')" style="flex: 2; background:#c0392b; color:white; border:none; padding:12px 8px; border-radius:8px; font-size:1.05rem; font-weight:bold; cursor:pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">
                         🐅 虎キング(現行版)へ送信
@@ -642,6 +651,22 @@
         } catch(e) { console.log("オーディオ再生失敗", e); }
     }
 
+
+
+function toggleVoicePanel() {
+        const box = document.getElementById('voice-panel-box');
+        const arrow = document.getElementById('voice-toggle-arrow');
+        box.classList.toggle('open');
+        if (box.classList.contains('open')) {
+            arrow.textContent = "▲";
+        } else {
+            arrow.textContent = "▼";
+        }
+    }
+
+
+
+    
     function speakInfoText() {
         const msg = "送受信インフォメーション。海上から送信後、無線で連絡を受けたら、右下のオレンジ色のリセットボタンを押して、位置情報を画面へ反映してください。また、フネやブイを登録したら、陸上本部に、登録したよ、と教えてあげてください。";
         speakText(msg);
