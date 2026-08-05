@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 7.0.20 -->
-    <title>水深測っ太郎 v4.9.8 by Popolo App.com</title>
+    <title>水深測っ太郎 v4.9.8a by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -358,7 +358,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.9.8 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.9.8a by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -543,7 +543,7 @@
     let mapStyleMode = 0; 
     
     // ⚠️ 危険物表示モードのステップ (0: 危険物のみ・番号なし, 1: 危険物のみ・番号つき, 2: すべて・番号なし)
-    let hazardModeState = 0;
+    let hazardModeState = 2;
 
     let currentDepthMode = "wind";
 
@@ -1097,6 +1097,8 @@
         }
 
         updateLegendUI();
+        // 起動時は3段階目（すべて表示）なので hazard-filter-btn の active を外す
+    document.getElementById('hazard-filter-btn').classList.remove('active');
 
         initInfoWindowCloseTrigger(); 
         map = new google.maps.Map(document.getElementById("map"), {
