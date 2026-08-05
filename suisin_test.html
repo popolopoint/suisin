@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 7.0.20 -->
-    <title>水深測っ太郎 v5.0.1 by Popolo App.com</title>
+    <title>水深測っ太郎 v5.0.2 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -358,7 +358,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v5.0.1 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v5.0.2 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -1390,13 +1390,13 @@
         return (((r * 299) + (g * 587) + (b * 114)) / 1000 >= 170) ? '#000000' : '#ffffff';
     }
 
-    function getDepthColor(b, raw) {
+  function getDepthColor(b, raw) {
         if (Math.round(raw) === 999) return "#ffffff";
 
         if (currentDepthMode === "foil") {
             if (b >= 160) return "#000080"; 
-            if (b >= 140) return "#70a1ff"; 
-            if (b >= 130) return "#a29bfe"; 
+            if (b >= 140) return "#a29bfe"; // 140～160 の色 (#a29bfe：薄紫)
+            if (b >= 130) return "#70a1ff"; // 130～140 の色 (#70a1ff：青)
             if (b >= 120) return "#00ffff"; 
             if (b >= 110) return "#a8e6cf"; 
             if (b >= 100) return "#adff2f"; 
@@ -1409,6 +1409,8 @@
         }
     }
 
+
+    
     function openTideTableModal() {
         const val = document.getElementById('target-datetime').value;
         if (!val || fullTideMasterData.length === 0) {
