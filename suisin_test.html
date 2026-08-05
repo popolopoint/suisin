@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 7.0.16 -->
-    <title>水深測っ太郎 v4.9.5 by Popolo App.com</title>
+    <!-- コード名: 7.0.18 -->
+    <title>水深測っ太郎 v4.9.6 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -67,11 +67,29 @@
         .datetime-panel { background: #ebf5fb; padding: 8px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #aed6f1; }
         .datetime-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
         .datetime-quick-row { display: flex; gap: 4px; }
+        
+        /* 🌊 日時と同じ文字サイズの潮位表示ブロック */
+        .current-tide-box {
+            flex: 1;
+            background: white;
+            border: 2px solid #9b59b6;
+            border-radius: 6px;
+            font-size: 1.2rem !important;
+            font-weight: bold !important;
+            padding: 8px 5px !important;
+            color: #9b59b6 !important;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
         .dt-quick-btn { flex: 1; background: #2980b9; color: white; border: none; padding: 8px 4px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; text-align: center; }
         .dt-quick-btn.day-btn { background: #8e44ad; }
 
         #target-datetime {
-            flex: 1;
+            flex: 1.4;
             font-size: 1.2rem !important;
             font-weight: bold !important;
             padding: 8px 5px !important;
@@ -341,7 +359,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v4.9.5 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v4.9.6 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -352,6 +370,8 @@
             <div class="datetime-panel" id="global-datetime-panel">
                 <div class="datetime-row">
                     <input type="datetime-local" id="target-datetime" onchange="calculateTideAndRefresh()">
+                    <!-- 🌊 日時と同じフォントサイズ・レイアウトの潮位表示 -->
+                    <div id="current-tide-val" class="current-tide-box">--- cm</div>
                     <button onclick="setNow()" style="padding: 10px 8px; background: #3498db; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight:bold;">現在</button>
                     <button onclick="openTideTableModal()" style="padding: 10px 8px; background: #9b59b6; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight:bold;">潮位</button>
                 </div>
@@ -926,13 +946,11 @@
     function handleVoiceCommand(text) {
         const textLower = text.toLowerCase();
         
-        // 肯定応答の判定（はい、オッケー、okなど）
         if (pendingCommand && (textLower === "はい" || textLower.includes("はい") || textLower.includes("オッケー") || textLower.includes("ok") || textLower.includes("オーケー"))) {
             executePendingVoiceCommand();
             return;
         }
 
-        // フネ登録の判定
         if (textLower.includes("フネ登録") || textLower.includes("船登録") || textLower.includes("フネ") || textLower.includes("船")) {
             if (recognition) recognition.abort(); 
             navigator.geolocation.getCurrentPosition((pos) => {
@@ -949,7 +967,6 @@
             return;
         }
 
-        // ブイ登録の判定（ブイ、マーク、浮きなど幅広くキャッチ）
         if (textLower.includes("ブイ登録") || textLower.includes("マーク登録") || textLower.includes("ブイ") || textLower.includes("マーク") || textLower.includes("浮き")) {
             if (recognition) recognition.abort();
             navigator.geolocation.getCurrentPosition((pos) => {
@@ -966,7 +983,6 @@
             return;
         }
 
-        // 水深・深さの判定
         if (textLower.includes("深さ") || textLower.includes("ふかさ") || textLower.includes("水深")) {
             const numMatch = textLower.match(/\d+/);
             if (numMatch) {
@@ -1228,6 +1244,13 @@
                 }
             }
         }
+
+        // 🌊 潮位表示部分を更新（日時と同じサイズ）
+        const tideBox = document.getElementById('current-tide-val');
+        if (tideBox) {
+            tideBox.textContent = (currentSelectedTide >= 0 ? "+" : "") + currentSelectedTide.toFixed(1) + " cm";
+        }
+
         refreshMarkersOnMap();
     }
 
