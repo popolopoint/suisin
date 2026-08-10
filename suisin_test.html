@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 7.0.20 -->
-    <title>水深測っ太郎 v5.0.3 by Popolo App.com</title>
+    <!-- コード名: 7.0.21 -->
+    <title>水深測っ太郎 v5.0.4 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -113,7 +113,7 @@
         .btn-quick-send.boat { background-color: #1e90ff; }
         .btn-quick-send.buoy { background-color: #d35400; }
         
-.voice-panel { background: #fdf2e9; padding: 8px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #f5cba7; box-sizing: border-box; width: 100%; }
+        .voice-panel { background: #fdf2e9; padding: 8px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #f5cba7; box-sizing: border-box; width: 100%; }
         .voice-toggle-header { font-size: 0.85rem; font-weight: bold; color: #d35400; cursor: pointer; display: flex; align-items: center; justify-content: space-between; user-select: none; padding: 4px; }
         .voice-body { display: none; margin-top: 6px; flex-direction: column; align-items: flex-start; gap: 6px; width: 100%; }
         .voice-panel.open .voice-body { display: flex; }
@@ -122,7 +122,9 @@
         .btn-voice.listening { background: #e74c3c; animation: pulse 1.5s infinite; }
         .voice-status { font-size: 0.8rem; color: #d35400; font-weight: bold; width: 100%; text-align: center; word-wrap: break-word; line-height: 1.2; }
         .voice-status .huge-command { font-size: 2.8rem; color: #e67e22; font-weight: 900; display: block; margin: 4px 0; letter-spacing: -1px; }
-        .voice-confirm-btn { display: none; width: 100%; background: #2ecc71; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; text-align: center; margin-top: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }     .honbu-panel { background: #eef7f2; padding: 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #cceadb; box-sizing: border-box; }
+        .voice-confirm-btn { display: none; width: 100%; background: #2ecc71; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; text-align: center; margin-top: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }   
+        
+        .honbu-panel { background: #eef7f2; padding: 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #cceadb; box-sizing: border-box; }
         .honbu-title { font-size: 0.95rem; font-weight: bold; margin-bottom: 8px; color: #1e4620; text-align: center; }
         .honbu-row { display: flex; gap: 8px; margin-bottom: 8px; width: 100%; }
         .honbu-row input { font-size: 1.5rem; padding: 12px 10px; border-radius: 8px; border: 2px solid #28a745; box-sizing: border-box; width: 100%; font-weight: bold; background: white; text-align: center; }
@@ -360,7 +362,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v5.0.3 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v5.0.4 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -408,18 +410,18 @@
                     </div>
                 </div>
 <div class="voice-panel" id="voice-panel-box">
-                    <div class="voice-toggle-header" onclick="toggleVoicePanel()">
-                        <span>🎙️ 音声入力を開く（タップで展開）</span>
-                        <span id="voice-toggle-arrow">▼</span>
-                    </div>
-                    <div class="voice-body">
-                        <button id="btn-voice-start" class="btn-voice" onclick="toggleSpeechRecognition()">
-                            <span id="voice-icon">🎙️</span> 音声入力開始
-                        </button>
-                        <div id="voice-status" class="voice-status">声で「フネ登録」や「ブイ登録」「深さ〇〇センチ」</div>
-                        <button id="btn-voice-confirm" class="voice-confirm-btn" onclick="executePendingVoiceCommand()">✅ [ OK ] 登録する</button>
-                    </div>
+                <div class="voice-toggle-header" onclick="toggleVoicePanel()">
+                    <span>🎙️ 音声入力を開く（タップで展開）</span>
+                    <span id="voice-toggle-arrow">▼</span>
                 </div>
+                <div class="voice-body">
+                    <button id="btn-voice-start" class="btn-voice" onclick="toggleSpeechRecognition()">
+                        <span id="voice-icon">🎙️</span> 音声入力開始
+                    </button>
+                    <div id="voice-status" class="voice-status">声で「フネ登録」や「ブイ登録」「深さ〇〇センチ」</div>
+                    <button id="btn-voice-confirm" class="voice-confirm-btn" onclick="executePendingVoiceCommand()">✅ [ OK ] 登録する</button>
+                </div>
+            </div>
 
 
                
@@ -530,8 +532,8 @@
             <h4>📊 1. データ入力タブ</h4>
             <p>・その場で測った水深(cm)と種類を選んで「記録」を押すと、現在地にピンが保存されます。</p>
             <h4>📡 2. 位置送受信タブ</h4>
-            <p>・「⚓ フネ登録」や「🟧 ブイ登録」を押すと、現在のGPS位置が即座に送信されます。</p>
-            <p>・「🐅 虎キングへ同時送信」を押すと、登録された船やブイを虎キングアプリへ一度に共有できます。</p>
+            <p>・「⚓ フネ登録」や<b>「🟧 ブイ登録」</b>を押すと、現在のGPS位置が即座に送信されます。</p>
+            <p>・「🐅 虎キングへ送信」を押すと、登録された船やブイを虎キングアプリへ一度に共有できます。</p>
             <h4>🗺️ 3. 位置登録タブ</h4>
             <p>・本部船やブイのマーク名、緯度・経度を確認・微調整して配置や削除ができます。</p>
         </div>
@@ -539,9 +541,25 @@
     </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHhxSJK-IhYiT9XBRwE1MX7DHhghBQQQk&callback=initMap&loading=async" async defer></script>
 
 <script>
+    const firebaseConfig = { 
+        apiKey: "AIzaSyB_OOgXiE1YkFzQK0Nujhnx3lNM_7dp66U", 
+        authDomain: "tra-king.firebaseapp.com", 
+        databaseURL: "https://tra-king-default-rtdb.firebaseio.com", 
+        projectId: "tra-king", 
+        storageBucket: "tra-king.firebasestorage.app", 
+        messagingSenderId: "355068381368", 
+        appId: "1:355068381368:web:440efbe59649791404cc4d" 
+    };
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const rtdb = firebase.database();
+
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz3Q4QaJxG-QAsRbykjZD8-DC1w9Y-6SaK1y2RWnS-xVmuzlgz_J2bXXUhrxD9gZQqPtQ/exec"; 
     const ADMIN_SECRET = "popolo2026"; 
     
@@ -579,10 +597,22 @@
         let count = 0;
         const keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'K', 'S'];
         
+        let firebaseObjects = {};
+
         if (customBoatsList && customBoatsList.length > 0) {
             customBoatsList.forEach((boat, index) => {
                 let key = keys[index] || String.fromCharCode(65 + index);
                 toraKingUrl += `&lat${key}=${boat.lat}&lng${key}=${boat.lng}`;
+                
+                firebaseObjects[key] = {
+                    type: 'buoy',
+                    color: '#ff3b30',
+                    lat: boat.lat,
+                    lng: boat.lng,
+                    comment: `${boat.name || key} (水深測っ太郎)`,
+                    assignedLabel: key,
+                    ts: Date.now()
+                };
                 count++;
             });
         }
@@ -592,7 +622,14 @@
             return;
         }
 
-        window.open(toraKingUrl, '_blank');
+        // Firebaseへも直接データを書き込んでリアルタイム同期させる
+        rtdb.ref('objects').update(firebaseObjects, (error) => {
+            if (!error) {
+                window.open(toraKingUrl, '_blank');
+            } else {
+                alert("送信データの同期に失敗しました。");
+            }
+        });
     }
 
     function handleContainerClick(event) {
@@ -884,7 +921,7 @@ function toggleVoicePanel() {
                 <div class="legend-item"><div class="color-box" style="background:#adff2f;"></div>110～120 黄緑</div>
                 <div class="legend-item"><div class="color-box" style="background:#ffff00;"></div>100～110 黄色</div>
                 <div class="legend-item"><div class="color-box" style="background:#ffa500;"></div>80～100 オレンジ</div>
-                <div class="legend-item"><div class="color-box" style="background:#ff0000;"></div>80以下　赤</div>
+                <div class="legend-item"><div class="color-box" style="background:#ff0000;"></div>80以下 赤</div>
             `;
         } else {
             container.innerHTML = `
