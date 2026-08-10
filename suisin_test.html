@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 7.0.5 -->
-    <title>水深測っ太郎 v5.0.5 by Popolo App.com</title>
+    <!-- コード名: 7.0.6 -->
+    <title>水深測っ太郎 v5.0.6 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -65,36 +65,39 @@
 
         /* 日時パネル */
         .datetime-panel { background: #ebf5fb; padding: 8px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #aed6f1; }
-        .datetime-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+        .datetime-row { display: flex; gap: 4px; align-items: center; margin-bottom: 6px; }
         .datetime-quick-row { display: flex; gap: 4px; }
         
         .current-tide-box {
-            flex: 1;
+            width: 72px;
             background: white;
             border: 2px solid #9b59b6;
             border-radius: 6px;
-            font-size: 1.2rem !important;
+            font-size: 1.0rem !important;
             font-weight: bold !important;
-            padding: 8px 5px !important;
+            padding: 8px 2px !important;
             color: #9b59b6 !important;
             text-align: center;
             display: flex;
             align-items: center;
             justify-content: center;
             white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .dt-quick-btn { flex: 1; background: #2980b9; color: white; border: none; padding: 8px 4px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; text-align: center; }
         .dt-quick-btn.day-btn { background: #8e44ad; }
 
         #target-datetime {
-            flex: 1.4;
-            font-size: 1.2rem !important;
+            width: 145px;
+            flex-shrink: 0;
+            font-size: 0.9rem !important;
             font-weight: bold !important;
-            padding: 8px 5px !important;
+            padding: 8px 4px !important;
             color: #2c3e50 !important;
             border: 1px solid #3498db;
             border-radius: 6px;
+            text-align: center;
         }
 
         .type-selector { display: flex; gap: 5px; margin-bottom: 8px; }
@@ -253,7 +256,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v5.0.5 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v5.0.6 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -265,8 +268,8 @@
                 <div class="datetime-row">
                     <input type="datetime-local" id="target-datetime" onchange="calculateTideAndRefresh()">
                     <div id="current-tide-val" class="current-tide-box">--- cm</div>
-                    <button onclick="setNow()" style="padding: 10px 8px; background: #3498db; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight:bold;">現在</button>
-                    <button onclick="openTideTableModal()" style="padding: 10px 8px; background: #9b59b6; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight:bold;">潮位</button>
+                    <button onclick="setNow()" style="padding: 10px 6px; background: #3498db; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight:bold; flex-shrink: 0;">現在</button>
+                    <button onclick="openTideTableModal()" style="padding: 10px 6px; background: #9b59b6; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight:bold; flex-shrink: 0;">潮位</button>
                 </div>
                 <div class="datetime-quick-row">
                     <button class="dt-quick-btn day-btn" onclick="adjustDateTime(-24)">◀ 前日</button>
