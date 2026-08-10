@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 7.4.9 -->
-    <title>水深測っ太郎 v5.0.4 by Popolo App.com</title>
+    <!-- コード名: 7.0.5 -->
+    <title>水深測っ太郎 v5.0.5 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -137,68 +137,26 @@
         .status-bar { font-size: 0.75rem; color: #666; text-align: center; margin-top: 5px; font-weight: bold; }
 
         .pan-menu-main-btn {
-            position: absolute;
-            left: 10px;
-            bottom: 80px;
-            width: 50px;
-            height: 50px;
-            background: rgba(44, 62, 80, 0.45);
-            color: white;
-            border-radius: 50%;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 3000;
-            cursor: pointer;
-            font-size: 24px;
-            border: 1.5px solid rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            user-select: none;
+            position: absolute; left: 10px; bottom: 80px; width: 50px; height: 50px;
+            background: rgba(44, 62, 80, 0.45); color: white; border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15); display: flex; justify-content: center;
+            align-items: center; z-index: 3000; cursor: pointer; font-size: 24px;
+            border: 1.5px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(4px); user-select: none;
         }
-        .pan-menu-main-btn:active {
-            background: rgba(52, 152, 219, 0.6);
-        }
+        .pan-menu-main-btn:active { background: rgba(52, 152, 219, 0.6); }
 
         .pan-menu-container {
-            display: none;
-            position: absolute;
-            left: 10px;
-            bottom: 140px;
-            width: 140px;
-            height: 140px;
-            z-index: 3000;
-            grid-template-areas:
-                "plus  up   minus"
-                "left  .    right"
-                ".     down    .";
-            gap: 6px;
+            display: none; position: absolute; left: 10px; bottom: 140px; width: 140px; height: 140px; z-index: 3000;
+            grid-template-areas: "plus up minus" "left . right" ". down ."; gap: 6px;
         }
-        .pan-menu-container.open {
-            display: grid;
-        }
+        .pan-menu-container.open { display: grid; }
         .pan-sub-btn {
-            background: rgba(44, 62, 80, 0.40);
-            color: white;
-            border-radius: 50%;
-            border: 1.5px solid rgba(255, 255, 255, 0.3);
-            font-size: 18px;
-            font-weight: bold;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-            user-select: none;
-            width: 40px;
-            height: 40px;
+            background: rgba(44, 62, 80, 0.40); color: white; border-radius: 50%;
+            border: 1.5px solid rgba(255, 255, 255, 0.3); font-size: 18px; font-weight: bold;
+            display: flex; justify-content: center; align-items: center; cursor: pointer;
+            backdrop-filter: blur(4px); box-shadow: 0 2px 5px rgba(0,0,0,0.15); user-select: none; width: 40px; height: 40px;
         }
-        .pan-sub-btn:active {
-            background: rgba(52, 152, 219, 0.7);
-        }
+        .pan-sub-btn:active { background: rgba(52, 152, 219, 0.7); }
         .sub-plus  { grid-area: plus; }
         .sub-up    { grid-area: up; justify-self: center; }
         .sub-minus { grid-area: minus; }
@@ -207,20 +165,10 @@
         .sub-down  { grid-area: down; justify-self: center; }
 
         .view-toggle-btn, .sync-button, .location-button, .menu-main-btn {
-            position: absolute;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 3000;
-            cursor: pointer;
-            font-size: 24px;
-            border: 1.5px solid rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
+            position: absolute; width: 50px; height: 50px; border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15); display: flex; justify-content: center;
+            align-items: center; z-index: 3000; cursor: pointer; font-size: 24px;
+            border: 1.5px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(4px);
         }
         .view-toggle-btn { bottom: 20px; right: 10px; background: rgba(255, 255, 255, 0.45); color: #333; }
         .sync-button     { bottom: 80px; right: 10px; background: rgba(230, 126, 34, 0.45); color: white; }
@@ -229,7 +177,7 @@
         
         .sub-menu-container { display: none; flex-direction: column; gap: 10px; position: absolute; bottom: 260px; right: 70px; z-index: 3000; }
         .sub-menu-container.open { display: flex; }
-        .sub-menu-btn { width: 50px; height: 50px; background: rgba(255, 255, 255, 0.45); border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.15); display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 22px; border: 1.5px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); position: relative; color: #2c3e50; }
+        .sub-menu-btn { width: 50px; height: 50px; background: rgba(255, 255, 255, 0.45); border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.15); display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 22px; border: 1.5px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(4px); color: #2c3e50; }
         .sub-menu-btn.active { background: rgba(46, 204, 113, 0.55); color: white; }
         .sub-menu-btn.hazard.active { background: rgba(231, 76, 60, 0.55); color: white; }
 
@@ -240,85 +188,28 @@
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 6000; font-weight: bold; color: #3498db; }
 
         #commercial-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 9999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 16px;
-            box-sizing: border-box;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85);
+            z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 16px; box-sizing: border-box;
         }
         .commercial-box {
-            background: white;
-            padding: 24px 20px;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 400px;
-            box-sizing: border-box;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            text-align: left;
+            background: white; padding: 24px 20px; border-radius: 12px; width: 100%; max-width: 400px;
+            box-sizing: border-box; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: left;
         }
         .commercial-box h3 {
-            margin-top: 0;
-            color: #c0392b;
-            font-size: 1.2rem;
-            text-align: center;
-            border-bottom: 2px solid #e74c3c;
-            padding-bottom: 8px;
+            margin-top: 0; color: #c0392b; font-size: 1.2rem; text-align: center; border-bottom: 2px solid #e74c3c; padding-bottom: 8px;
         }
-        .commercial-box p {
-            font-size: 0.9rem;
-            line-height: 1.6;
-            color: #333;
-            margin: 12px 0;
-        }
+        .commercial-box p { font-size: 0.9rem; line-height: 1.6; color: #333; margin: 12px 0; }
         .checkbox-container {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: #fdf2e9;
-            padding: 14px 12px;
-            border-radius: 8px;
-            border: 1px solid #f5cba7;
-            margin: 16px 0;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
+            display: flex; align-items: center; gap: 12px; background: #fdf2e9; padding: 14px 12px;
+            border-radius: 8px; border: 1px solid #f5cba7; margin: 16px 0; cursor: pointer;
         }
-        .checkbox-container input[type="checkbox"] {
-            width: 26px;
-            height: 26px;
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-        .checkbox-container label {
-            font-size: 0.95rem;
-            font-weight: bold;
-            color: #d35400;
-            cursor: pointer;
-            line-height: 1.4;
-            user-select: none;
-        }
+        .checkbox-container input[type="checkbox"] { width: 26px; height: 26px; cursor: pointer; flex-shrink: 0; }
+        .checkbox-container label { font-size: 0.95rem; font-weight: bold; color: #d35400; cursor: pointer; line-height: 1.4; user-select: none; }
         .btn-agree {
-            width: 100%;
-            background: #bdc3c7;
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: not-allowed;
-            transition: background 0.2s;
+            width: 100%; background: #bdc3c7; color: white; border: none; padding: 14px;
+            border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: not-allowed; transition: background 0.2s;
         }
-        .btn-agree.active {
-            background: #27ae60;
-            cursor: pointer;
-        }
+        .btn-agree.active { background: #27ae60; cursor: pointer; }
 
         .modal-body-scroll { max-height: 65vh; overflow-y: auto; margin-top: 10px; font-size: 0.9rem; line-height: 1.5; color: #333; }
         .modal-body-scroll h4 { color: #2c3e50; margin: 12px 0 4px 0; border-bottom: 2px solid #3498db; padding-bottom: 2px; font-size: 0.95rem; }
@@ -362,7 +253,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v5.0.4 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v5.0.5 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -424,16 +315,19 @@
                     </div>
                 </div>
                
-                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                    <button onclick="sendAllDataToToraKing('latest')" style="flex: 2; background:#c0392b; color:white; border:none; padding:12px 8px; border-radius:8px; font-size:1.05rem; font-weight:bold; cursor:pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">
-                        🐅 虎キングへ自動同期送信
+                <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+                    <button onclick="sendAllDataToToraKing('latest')" style="flex: 1; background:#c0392b; color:white; border:none; padding:10px 4px; border-radius:8px; font-size:0.95rem; font-weight:bold; cursor:pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">
+                        🐅 虎キング(完全)同期
+                    </button>
+                    <button onclick="sendAllDataToToraKing('test')" style="flex: 1; background:#d35400; color:white; border:none; padding:10px 4px; border-radius:8px; font-size:0.95rem; font-weight:bold; cursor:pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">
+                        🧪 虎キング(テスト)同期
                     </button>
                 </div>
 
                 <div style="background: #eaf2f8; padding: 10px; border-radius: 8px; border: 1px solid #a9cce3; font-size: 0.85rem; font-weight: bold; color: #2471a3; line-height: 1.4; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
                     <div>
                         📣 <strong>送受信インフォメーション</strong><br>
-                        ・ボタン一つで虎キング側とリアルタイム連動します<br>
+                        ・ボタンで虎キングの完全版・テスト版へ切り替え同期できます<br>
                         ・フネ、ブイを登録したら、陸上本部に連絡
                     </div>
                     <button onclick="speakInfoText()" style="background: #2980b9; color: white; border: none; padding: 10px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: bold; cursor: pointer; flex-shrink: 0;" title="インフォメーションを読み上げ">🔊</button>
@@ -528,8 +422,8 @@
             <h4>📊 1. データ入力タブ</h4>
             <p>・その場で測った水深(cm)と種類を選んで「記録」を押すと、現在地にピンが保存されます。</p>
             <h4>📡 2. 位置送受信タブ</h4>
-            <p>・「⚓ フネ登録」やK「🟧 ブイ登録」を押すと、現在のGPS位置が即座に送信されます。</p>
-            <p>・「🐅 虎キングへ自動同期送信」を押すと、登録された船やブイをFirebase経由で虎キングアプリへ瞬時に同期できます。</p>
+            <p>・「⚓ フネ登録」や「🟧 ブイ登録」を押すと、現在のGPS位置が即座に送信されます。</p>
+            <p>・「虎キング(完全)同期」または「虎キング(テスト)同期」を押すと、Firebase経由でそれぞれの虎キングアプリへ瞬時に同期できます。</p>
             <h4>🗺️ 3. 位置登録タブ</h4>
             <p>・本部船やブイのマーク名、緯度・経度を確認・微調整して配置や削除ができます。</p>
         </div>
@@ -581,7 +475,7 @@
     let pendingCommand = null; 
     let activeInfoWindow = null;
 
-    function sendAllDataToToraKing(targetVersion = 'latest') {
+    function sendAllDataToToraKing(targetType = 'latest') {
         if (!customBoatsList || customBoatsList.length === 0) {
             alert("送信できる船やブイのデータがありません。");
             return;
@@ -604,8 +498,13 @@
 
         db.ref().update(updates, (error) => {
             if (!error) {
-                alert("🐅 虎キングのアプリへFirebase経由でデータを自動同期しました！");
-                let toraKingUrl = "https://popolopoint.github.io/traking/traking_latest.html";
+                const targetName = (targetType === 'test') ? "テスト版" : "完全版";
+                alert(`🐅 虎キング(${targetName})へFirebase経由でデータを自動同期しました！`);
+                
+                let toraKingUrl = (targetType === 'test') 
+                    ? "https://popolopoint.github.io/traking/traking_test.html" 
+                    : "https://popolopoint.github.io/traking/traking_latest.html";
+                
                 window.open(toraKingUrl, '_blank');
             } else {
                 alert("同期に失敗しました: " + error.message);
@@ -672,30 +571,18 @@
         const box = document.getElementById('voice-panel-box');
         const arrow = document.getElementById('voice-toggle-arrow');
         box.classList.toggle('open');
-        if (box.classList.contains('open')) {
-            arrow.textContent = "▲";
-        } else {
-            arrow.textContent = "▼";
-        }
+        if (box.classList.contains('open')) arrow.textContent = "▲";
+        else arrow.textContent = "▼";
     }
 
     function speakInfoText() {
-        const msg = "送受信インフォメーション。虎キングのアプリへ自動同期できます。フネやブイを登録したら、陸上本部に教えてあげてください。";
+        const msg = "送受信インフォメーション。虎キングの完全版とテスト版へそれぞれ切り替えて自動同期できます。フネやブイを登録したら、陸上本部に教えてあげてください。";
         speakText(msg);
     }
 
-    function toggleSubMenu() {
-        document.getElementById('sub-menu').classList.toggle('open');
-    }
-
-    function togglePanMenu() {
-        document.getElementById('pan-menu').classList.toggle('open');
-    }
-
-    function openManualModal() {
-        toggleSubMenu(); 
-        openModal('manual-modal');
-    }
+    function toggleSubMenu() { document.getElementById('sub-menu').classList.toggle('open'); }
+    function togglePanMenu() { document.getElementById('pan-menu').classList.toggle('open'); }
+    function openManualModal() { toggleSubMenu(); openModal('manual-modal'); }
 
     function adjustDateTime(hoursDelta) {
         const input = document.getElementById('target-datetime');
@@ -731,11 +618,9 @@
 
     function switchViewMode(targetMode, btnElement) {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        if (btnElement) {
-            btnElement.classList.add('active');
-        } else {
-            if(targetMode === 'sync-mode') document.getElementById('tab-sync-mode').classList.add('active');
-        }
+        if (btnElement) btnElement.classList.add('active');
+        else if(targetMode === 'sync-mode') document.getElementById('tab-sync-mode').classList.add('active');
+        
         document.querySelectorAll('.mode-section').forEach(sec => sec.classList.remove('active'));
         
         const panel = document.getElementById('ui-panel');
@@ -776,34 +661,13 @@
     function toggleHazardMode() {
         hazardModeState = (hazardModeState + 1) % 3;
         const btn = document.getElementById('hazard-filter-btn');
-        
-        if (hazardModeState === 0) {
-            btn.classList.add('active');
-            btn.title = "危険物のみ表示（番号なし）";
-        } else if (hazardModeState === 1) {
-            btn.classList.add('active');
-            btn.title = "危険物のみ表示（番号つき）";
-        } else {
-            btn.classList.remove('active');
-            btn.title = "すべて表示（番号なし）";
-        }
+        if (hazardModeState === 0 || hazardModeState === 1) btn.classList.add('active');
+        else btn.classList.remove('active');
         refreshMarkersOnMap();
     }
 
-    function zoomMap(delta) {
-        if (!map) return;
-        const currentZoom = map.getZoom();
-        if (currentZoom !== undefined) {
-            map.setZoom(currentZoom + delta);
-        }
-    }
-
-    function panMap(x, y) {
-        if (!map) return;
-        const moveX = x * 150;
-        const moveY = y * 150;
-        map.panBy(moveX, moveY);
-    }
+    function zoomMap(delta) { if (map) map.setZoom(map.getZoom() + delta); }
+    function panMap(x, y) { if (map) map.panBy(x * 150, y * 150); }
 
     function sendQuickLocation(type) {
         showLoading(true);
@@ -817,8 +681,7 @@
 
             try {
                 await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
+                    method: 'POST', mode: 'no-cors',
                     body: JSON.stringify({ method: 'SAVE_BOAT', password: ADMIN_SECRET, name: name, lat: lat, lng: lng })
                 });
                 playSuccessBeep();
@@ -1067,8 +930,7 @@
 
             try {
                 await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
+                    method: 'POST', mode: 'no-cors',
                     body: JSON.stringify({ method: 'SAVE_BOAT', password: ADMIN_SECRET, name: cmd.name, lat: cmd.lat, lng: cmd.lng })
                 });
                 playSuccessBeep(); 
@@ -1103,7 +965,7 @@
             };
 
             try {
-                const res = await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(pointData) });
+                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(pointData) });
                 playSuccessBeep(); await syncData(false); 
                 document.getElementById('depth-input').value = ""; 
                 document.getElementById('voice-status').textContent = `✅ 深さ ${cmd.value}cm (${prefix || '平地'}) を記録しました！`;
@@ -1148,9 +1010,7 @@
             handleMeasureClick(e.latLng);
         });
 
-        map.addListener('zoom_changed', () => {
-            refreshMarkersOnMap();
-        });
+        map.addListener('zoom_changed', () => { refreshMarkersOnMap(); });
 
         switchViewMode('sync-mode', document.getElementById('tab-sync-mode'));
         syncData(true);
@@ -1281,21 +1141,14 @@
             if (row) {
                 let colIdx1 = 1 + h; 
                 let colIdx2 = colIdx1 + 1;
-                
                 let t1 = parseFloat(row[colIdx1]);
                 let t2 = (colIdx2 < row.length) ? parseFloat(row[colIdx2]) : t1;
-                
-                if (!isNaN(t1)) {
-                    currentSelectedTide = t1 + (!isNaN(t2) ? (t2 - t1) * (min / 60) : 0);
-                }
+                if (!isNaN(t1)) currentSelectedTide = t1 + (!isNaN(t2) ? (t2 - t1) * (min / 60) : 0);
             }
         }
 
         const tideBox = document.getElementById('current-tide-val');
-        if (tideBox) {
-            tideBox.textContent = (currentSelectedTide >= 0 ? "+" : "") + currentSelectedTide.toFixed(1) + " cm";
-        }
-
+        if (tideBox) tideBox.textContent = (currentSelectedTide >= 0 ? "+" : "") + currentSelectedTide.toFixed(1) + " cm";
         refreshMarkersOnMap();
     }
 
@@ -1312,7 +1165,6 @@
             const isBigRock = (pType === "岩大" || pType === "大きい岩" || pType === "大岩");
             const isRock = (pType === "岩");
             const isPost = (pType === "杭");
-            
             const isFlat = (!pType || pType === "" || (!isBigRock && !isRock && !isPost));
             const rawPrefix = isFlat ? "" : (p[1] ? String(p[1]).trim() : "");
             
@@ -1320,13 +1172,7 @@
                 if (isFlat) return;
             }
 
-            let labelText = "";
-            if (hazardModeState === 1) {
-                labelText = rawPrefix;
-            } else {
-                labelText = "";
-            }
-
+            let labelText = (hazardModeState === 1) ? rawPrefix : "";
             const rawDepth = parseFloat(p[4]) || 0;
             const baseDepth = parseFloat(p[5]) || 0;
             const simDepth = baseDepth + currentSelectedTide;
@@ -1358,16 +1204,14 @@
             markerLabel = {
                 text: d.labelText,
                 color: getContrastColor(getDepthColor(d.simDepth, d.rawDepth)),
-                fontWeight: "bold",
-                fontSize: "13px"
+                fontWeight: "bold", fontSize: "13px"
             };
         }
 
         const marker = new google.maps.Marker({
             position: {lat: Number(d.lat), lng: Number(d.lng)}, map: map,
             icon: { path: sym, fillColor: getDepthColor(d.simDepth, d.rawDepth), fillOpacity: 0.9, scale: currentScale, strokeColor: "#333333", strokeWeight: 0.6 },
-            label: markerLabel,
-            zIndex: Math.round(1000 - d.simDepth)
+            label: markerLabel, zIndex: Math.round(1000 - d.simDepth)
         });
 
         const info = new google.maps.InfoWindow({
@@ -1407,16 +1251,10 @@
 
     function getDepthColor(b, raw) {
         if (Math.round(raw) === 999) return "#ffffff";
-
         if (currentDepthMode === "foil") {
-            if (b >= 160) return "#000080"; 
-            if (b >= 140) return "#a29bfe"; 
-            if (b >= 130) return "#70a1ff"; 
-            if (b >= 120) return "#00ffff"; 
-            if (b >= 110) return "#a8e6cf"; 
-            if (b >= 100) return "#adff2f"; 
-            if (b >= 80)  return "#ffa500"; 
-            return "#ff0000";                
+            if (b >= 160) return "#000080"; if (b >= 140) return "#a29bfe"; if (b >= 130) return "#70a1ff"; 
+            if (b >= 120) return "#00ffff"; if (b >= 110) return "#a8e6cf"; if (b >= 100) return "#adff2f"; 
+            if (b >= 80)  return "#ffa500"; return "#ff0000";                
         } else {
             if (b < 20) return "#ff0000"; if (b < 40) return "#ffa500"; if (b < 60) return "#ffff00"; 
             if (b < 80) return "#adff2f"; if (b < 100) return "#a8e6cf"; if (b < 120) return "#00ffff"; 
@@ -1530,7 +1368,6 @@
     }
 
     function showLoading(s) { document.getElementById('loading').style.display = s ? 'flex' : 'none'; }
-
     function clearSharedCourse() {
         sharedCoursePolylines.forEach(p => p.setMap(null));
         sharedCourseMarkers.forEach(m => m.setMap(null));
