@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 7.0.6 -->
-    <title>水深測っ太郎 v6.0.1 by Popolo App.com</title>
+    <title>水深測っ太郎 v6.0.5 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -256,7 +256,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v6.0.1 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v6.0.5 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -1020,25 +1020,72 @@
 
 // --- ここに追加してください ---
         // --- 虎キングからのデータをリアルタイムで地図に反映する ---
+        // --- 虎キングからのフネ・ブイおよび線をリアルタイムで地図に反映する ---
+        let latestObjects = {};
+
         db.ref('objects').on('value', (snapshot) => {
-            const objects = snapshot.val();
+            latestObjects = snapshot.val() || {};
             
-            // 1. 古いマーカーを一度クリア（これをしないとピンが重なって増え続けます）
+            // 1. 古いマーカーを一度クリア
             clearAllCustomBoatsOnMap();
             
-            // 2. 受信したデータを一つずつ地図に描画
-            if (objects) {
-                Object.keys(objects).forEach((key) => {
-                    const obj = objects[key];
+            // 2. 既存の線をクリア
+            sharedCoursePolylines.forEach(p => p.setMap(null));
+            sharedCoursePolylines = [];
+            
+            // 3. 虎キング側で変更された名前（commentやassignedLabel）を優先してブイ・フネを描画
+            if (latestObjects) {
+                Object.keys(latestObjects).forEach((key) => {
+                    const obj = latestObjects[key];
                     if (obj.lat && obj.lng) {
-                        // drawCustomBoat(名前, 緯度, 経度, インタラクティブなし)
-                        drawCustomBoat(obj.comment || "マーク", parseFloat(obj.lat), parseFloat(obj.lng), false);
+                        const boatName = obj.comment || obj.assignedLabel || "マーク";
+                        drawCustomBoat(boatName, parseFloat(obj.lat), parseFloat(obj.lng), false);
                     }
                 });
             }
         });
 
-    } // ← この } の前で間違いありません！
+        // 4. 点線・実線のリアルタイム同期と描画
+        db.ref('custom_lines').on('value', (lineSnapshot) => {
+            sharedCoursePolylines.forEach(p => p.setMap(null));
+            sharedCoursePolylines = [];
+
+            const lines = lineSnapshot.val();
+            if (!lines) return;
+
+            Object.keys(lines).forEach((lineId) => {
+                const l = lines[lineId];
+                if (latestObjects[l.from] && latestObjects[l.to]) {
+                    const p1 = { lat: latestObjects[l.from].lat, lng: latestObjects[l.from].lng };
+                    const p2 = { lat: latestObjects[l.to].lat, lng: latestObjects[l.to].lng };
+
+                    const lineSymbol = {
+                        path: 'M 0,-1 0,1',
+                        strokeOpacity: 1,
+                        scale: 3
+                    };
+
+                    const polyline = new google.maps.Polyline({
+                        path: [p1, p2],
+                        geodesic: true,
+                        strokeColor: '#ffffff',
+                        strokeOpacity: l.type === 'dashed' ? 0 : 0.8,
+                        strokeWeight: 3,
+                        icons: l.type === 'dashed' ? [{
+                            icon: lineSymbol,
+                            offset: '0',
+                            repeat: '10px'
+                        }] : [],
+                        map: map,
+                        zIndex: 1400
+                    });
+
+                    sharedCoursePolylines.push(polyline);
+                }
+            });
+        });
+         }
+        
 
 
 
