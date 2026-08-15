@@ -1019,30 +1019,29 @@
         syncData(true);
 
 // --- ここに追加してください ---
-        // --- 虎キングからのデータをリアルタイムで地図に反映する ---
+       // --- 虎キングからのデータをリアルタイムで地図に反映する ---
         db.ref('objects').on('value', (snapshot) => {
             const objects = snapshot.val();
             
-            // 1. 古いマーカーを一度クリア（これをしないとピンが重なって増え続けます）
+            // 1. 古いマーカーを一度クリア
             clearAllCustomBoatsOnMap();
             
-            // 2. 受信したデータを一つずつ地図に描画
+            // 2. 既存の線をクリア
+            sharedCoursePolylines.forEach(p => p.setMap(null));
+            sharedCoursePolylines = [];
+            
+            // 3. 受信したフネ・ブイデータを地図に描画
             if (objects) {
                 Object.keys(objects).forEach((key) => {
                     const obj = objects[key];
                     if (obj.lat && obj.lng) {
-                        // drawCustomBoat(名前, 緯度, 経度, インタラクティブなし)
                         drawCustomBoat(obj.comment || "マーク", parseFloat(obj.lat), parseFloat(obj.lng), false);
                     }
                 });
             }
 
-
-db.ref('custom_lines').once('value', (lineSnapshot) => {
-                // 既存の線をクリア
-                sharedCoursePolylines.forEach(p => p.setMap(null));
-                sharedCoursePolylines = [];
-
+            // 4. 点線・実線（custom_lines）も同時に取得して描画
+            db.ref('custom_lines').once('value', (lineSnapshot) => {
                 const lines = lineSnapshot.val();
                 if (!lines || !objects) return;
 
@@ -1052,17 +1051,19 @@ db.ref('custom_lines').once('value', (lineSnapshot) => {
                         const p1 = { lat: objects[l.from].lat, lng: objects[l.from].lng };
                         const p2 = { lat: objects[l.to].lat, lng: objects[l.to].lng };
 
-                        const lineSymbol = l.type === 'dashed' ? {
+                        // 点線のパターンスペック
+                        const lineSymbol = {
                             path: 'M 0,-1 0,1',
                             strokeOpacity: 1,
                             scale: 3
-                        } : null;
+                        };
 
                         const polyline = new google.maps.Polyline({
                             path: [p1, p2],
                             geodesic: true,
+                            // ★修正: 点線のときはベースの実線を透明(0)にする
                             strokeColor: '#ffffff',
-                            strokeOpacity: 0.8,
+                            strokeOpacity: l.type === 'dashed' ? 0 : 0.8,
                             strokeWeight: 3,
                             icons: l.type === 'dashed' ? [{
                                 icon: lineSymbol,
@@ -1077,7 +1078,6 @@ db.ref('custom_lines').once('value', (lineSnapshot) => {
                     }
                 });
             });
-            
         });
 
     } 
