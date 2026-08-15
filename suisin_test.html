@@ -1038,13 +1038,11 @@
                       
                         
                         // 虎側で設定された名前（comment）を優先し、なければassignedLabel、それもなければ「マーク」を表示
-　　　　　　　　let boatName = obj.comment;
-if (!boatName || boatName === "マーク") {
-    boatName = obj.assignedLabel ? (obj.type === 'ship' ? '本部船_' : 'ブイ_') + obj.assignedLabel : (obj.assignedLabel || "マーク");
-}
-boatName = obj.comment || obj.assignedLabel || "マーク";
-
-drawCustomBoat(boatName, parseFloat(obj.lat), parseFloat(obj.lng), false);
+　　　　　　　　
+                        
+                        // 虎側で設定された名前（comment、assignedLabel）を確実に優先して最初から適用
+                        const boatName = obj.comment || obj.assignedLabel || "マーク";
+                        drawCustomBoat(boatName, parseFloat(obj.lat), parseFloat(obj.lng), false);
 
                         
                     }
