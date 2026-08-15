@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 7.0.6 -->
-    <title>水深測っ太郎 v6.1.1b by Popolo App.com</title>
+    <title>水深測っ太郎 v6.1.1c by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -256,7 +256,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v6.1.1b by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v6.1.1c by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -1444,7 +1444,7 @@
         calculateTideAndRefresh(); 
     }
 
- async function handleSaveBoat() {
+async function handleSaveBoat() {
         const name = document.getElementById('inputBoatName').value || '本部船';
         const lat = parseFloat(document.getElementById('inputBoatLat').value), lng = parseFloat(document.getElementById('inputBoatLng').value);
         if (isNaN(lat) || !lat || isNaN(lng) || !lng) return alert("緯度と経度を入力してください。");
@@ -1454,10 +1454,9 @@
             // 1. 従来通りGASへ保存
             await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ method: 'SAVE_BOAT', password: ADMIN_SECRET, name: name, lat: lat, lng: lng }) });
             
-            // 2. 【修正】名前をキー（safeKey）にしてFirebaseへ保存・更新する
+            // 2. 名前をキー（safeKey）にしてFirebaseへ直接保存・上書きする
             const safeKey = encodeURIComponent(name);
-            let updates = {};
-            updates['objects/' + safeKey] = {
+            const firebaseData = {
                 type: name.includes('フネ') || name.includes('船') ? 'ship' : 'buoy',
                 shape: 'triangle',
                 color: '#ff3b30',
@@ -1467,7 +1466,9 @@
                 assignedLabel: name,
                 ts: Date.now()
             };
-            await db.ref().update(updates);
+            
+            await db.ref('objects/' + safeKey).set(firebaseData);
+            console.log(`📍 「${name}」をFirebaseに同期保存しました`);
 
         } catch (e) {
             console.log("保存エラー", e);
