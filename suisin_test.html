@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 7.0.6 -->
-    <title>水深測っ太郎 v6.1.1c by Popolo App.com</title>
+    <title>水深測っ太郎 v6.1.2 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -256,7 +256,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v6.1.1c by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v6.1.2 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -672,25 +672,43 @@
     function zoomMap(delta) { if (map) map.setZoom(map.getZoom() + delta); }
     function panMap(x, y) { if (map) map.panBy(x * 150, y * 150); }
 
-    function sendQuickLocation(type) {
+   function sendQuickLocation(type) {
         showLoading(true);
         navigator.geolocation.getCurrentPosition(async (pos) => {
             const timeString = new Date().toLocaleTimeString('ja-JP', {hour: '2-digit', minute:'2-digit'});
             const name = (type === 'BOAT' ? "本部船_" : "ブイ_") + timeString;
-            const lat = pos.coords.latitude.toFixed(6);
-            const lng = pos.coords.longitude.toFixed(6);
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
 
-            drawCustomBoat(name, parseFloat(lat), parseFloat(lng), true);
+            drawCustomBoat(name, lat, lng, true);
 
             try {
+                // 1. 従来通りGASへ保存
                 await fetch(WEB_APP_URL, {
                     method: 'POST', mode: 'no-cors',
                     body: JSON.stringify({ method: 'SAVE_BOAT', password: ADMIN_SECRET, name: name, lat: lat, lng: lng })
                 });
+
+                // 2. 名前をキー（safeKey）にしてFirebaseへ直接保存・同期する
+                const safeKey = encodeURIComponent(name);
+                const firebaseData = {
+                    type: type === 'BOAT' ? 'ship' : 'buoy',
+                    shape: 'triangle',
+                    color: '#ff3b30',
+                    lat: lat,
+                    lng: lng,
+                    comment: name,
+                    assignedLabel: name,
+                    ts: Date.now()
+                };
+                await db.ref('objects/' + safeKey).set(firebaseData);
+
                 playSuccessBeep();
                 alert(`【ワンタップ登録完了】\n${name} を配置・送信しました！`);
                 await syncData(false);
-            } catch (e) { alert("位置送信通信に失敗しました。"); }
+            } catch (e) { 
+                alert("位置送信通信に失敗しました。"); 
+            }
             showLoading(false);
         }, (err) => {
             showLoading(false);
@@ -925,23 +943,49 @@
         document.getElementById('voice-status').textContent = "🚀 登録中...";
         showLoading(true);
 
-        if (cmd.type === 'BOAT' || cmd.type === 'BUOY') {
+       if (cmd.type === 'BOAT' || cmd.type === 'BUOY') {
             document.getElementById('inputBoatName').value = cmd.name;
             document.getElementById('inputBoatLat').value = cmd.lat;
             document.getElementById('inputBoatLng').value = cmd.lng;
-            drawCustomBoat(cmd.name, parseFloat(cmd.lat), parseFloat(cmd.lng), true);
+            const latNum = parseFloat(cmd.lat);
+            const lngNum = parseFloat(cmd.lng);
+            drawCustomBoat(cmd.name, latNum, lngNum, true);
 
             try {
+                // 1. 従来通りGASへ保存
                 await fetch(WEB_APP_URL, {
                     method: 'POST', mode: 'no-cors',
                     body: JSON.stringify({ method: 'SAVE_BOAT', password: ADMIN_SECRET, name: cmd.name, lat: cmd.lat, lng: cmd.lng })
                 });
+
+                // 2. 名前をキー（safeKey）にしてFirebaseへ直接保存・同期する
+                const safeKey = encodeURIComponent(cmd.name);
+                const firebaseData = {
+                    type: cmd.type === 'BOAT' ? 'ship' : 'buoy',
+                    shape: 'triangle',
+                    color: '#ff3b30',
+                    lat: latNum,
+                    lng: lngNum,
+                    comment: cmd.name,
+                    assignedLabel: cmd.name,
+                    ts: Date.now()
+                };
+                await db.ref('objects/' + safeKey).set(firebaseData);
+
                 playSuccessBeep(); 
                 document.getElementById('voice-status').textContent = `✅ ${cmd.name} を登録しました！`;
                 speakText("登録しました");
                 setTimeout(() => { if (recognition && !isListening) startVoiceFlowWithGuide(); }, 1500);
-            } catch (e) { document.getElementById('voice-status').textContent = "❌ 通信失敗"; }
-        } else if (cmd.type === 'DEPTH') {
+            } catch (e) { 
+                document.getElementById('voice-status').textContent = "❌ 通信失敗"; 
+            }
+        }
+        
+        
+        
+        
+        
+        else if (cmd.type === 'DEPTH') {
             document.getElementById('depth-input').value = cmd.value;
             const baseDepth = parseFloat(cmd.value) - currentSelectedTide;
             
