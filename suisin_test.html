@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 7.0.6 -->
-    <title>水深測っ太郎 v6.0.2q by Popolo App.com</title>
+    <title>水深測っ太郎 v6.0.2r by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -247,7 +247,7 @@
         </p>
 
         <div class="checkbox-container" onclick="handleContainerClick(event)">
-            <input type="checkbox" id="agree-checkbox" onchange="checkAgreementState()">
+            <input type="checkbox" id="agree-checkbox" onc<input type="checkbox" id="agree-checkbox" onchange="checkAgreementState()" onclick="checkAgreementState()">hange="checkAgreementState()">
             <label for="agree-checkbox">上記の内容を確認し、商用利用ではないことに同意します。</label>
         </div>
 
@@ -256,7 +256,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v6.0.2q by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v6.0.2r by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -522,15 +522,17 @@
         checkAgreementState();
     }
 
- function checkAgreementState() {
+function checkAgreementState() {
         const checkbox = document.getElementById('agree-checkbox');
         const btn = document.getElementById('btn-agree-start');
-        if (checkbox.checked) {
+        if (checkbox && checkbox.checked) {
             btn.classList.add('active');
-            btn.removeAttribute('disabled'); // ← ここを確実にするため変更
-        } else {
+            btn.removeAttribute('disabled');
+            btn.disabled = false;
+        } else if (btn) {
             btn.classList.remove('active');
             btn.setAttribute('disabled', 'true');
+            btn.disabled = true;
         }
     }
 
