@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 7.0.6 -->
-    <title>水深測っ太郎 v6.0.5b by Popolo App.com</title>
+    <title>水深測っ太郎 v6.1.1 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -256,7 +256,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v6.0.5b by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v6.1.1 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -1444,14 +1444,37 @@
         calculateTideAndRefresh(); 
     }
 
-    async function handleSaveBoat() {
+   async function handleSaveBoat() {
         const name = document.getElementById('inputBoatName').value || '本部船';
         const lat = parseFloat(document.getElementById('inputBoatLat').value), lng = parseFloat(document.getElementById('inputBoatLng').value);
         if (isNaN(lat) || !lat || isNaN(lng) || !lng) return alert("緯度と経度を入力してください。");
         drawCustomBoat(name, lat, lng, true);
+        
         try {
+            // 1. 従来通りGASへ保存
             await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ method: 'SAVE_BOAT', password: ADMIN_SECRET, name: name, lat: lat, lng: lng }) });
-        } catch (e) {}
+            
+            // 2. 【追加】Firebase（objects）へも自動保存してリアルタイム同期させる
+            const keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'K', 'S'];
+            // 既存のカスタムボットリストから現在のインデックスを探すか、新規なら末尾に追加
+            let existingIndex = customBoatsList.findIndex(b => b.name === name);
+            let key = (existingIndex !== -1 && existingIndex < keys.length) ? keys[existingIndex] : 'A';
+            
+            let updates = {};
+            updates['objects/' + key] = {
+                type: name.includes('フネ') || name.includes('船') ? 'ship' : 'buoy',
+                color: '#ff3b30',
+                lat: lat,
+                lng: lng,
+                comment: name,
+                assignedLabel: key,
+                ts: Date.now()
+            };
+            await db.ref().update(updates);
+
+        } catch (e) {
+            console.log("保存エラー", e);
+        }
     }
 
     function drawCustomBoat(name, lat, lng, isInteractive = true) {
