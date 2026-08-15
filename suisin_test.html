@@ -522,15 +522,15 @@
         checkAgreementState();
     }
 
-    function checkAgreementState() {
+ function checkAgreementState() {
         const checkbox = document.getElementById('agree-checkbox');
         const btn = document.getElementById('btn-agree-start');
         if (checkbox.checked) {
             btn.classList.add('active');
-            btn.disabled = false;
+            btn.removeAttribute('disabled'); // ← ここを確実にするため変更
         } else {
             btn.classList.remove('active');
-            btn.disabled = true;
+            btn.setAttribute('disabled', 'true');
         }
     }
 
