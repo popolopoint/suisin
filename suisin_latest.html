@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 7.0.6 -->
-    <title>水深測っ太郎 v6.1.3 by Popolo App.com</title>
+    <title>水深測っ太郎 v6.1.4 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -256,7 +256,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v6.1.3 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v6.1.4 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -374,11 +374,11 @@
     <button class="sync-button" id="sync-btn" onclick="syncData(false)" title="手動更新">🔄</button>
     <button class="location-button" onclick="updateMyLocation(true)" title="現在位置を中心にする">📍</button>
     <button class="menu-main-btn" onclick="toggleSubMenu()" id="menu-btn" title="メニュー">🍔</button>
-
-    <div class="sub-menu-container" id="sub-menu">
+<div class="sub-menu-container" id="sub-menu">
         <button class="sub-menu-btn" onclick="openManualModal()" title="使い方マニュアル">❓</button>
         <button class="sub-menu-btn hazard" id="hazard-filter-btn" onclick="toggleHazardMode()" title="表示切り替え（危険物のみ/番号つき/すべて）">⚠️</button>
         <button class="sub-menu-btn" id="measure-btn" onclick="toggleMeasureMode()" title="距離を測る">📏</button>
+        <button class="sub-menu-btn" id="grid-toggle-btn" onclick="toggleGridMode()" title="グリッド線 表示/非表示">🔲</button>
         <button class="sub-menu-btn" onclick="toggleMapStyle()" title="背景切り替え（通常/白/航空写真）">🗺️</button>
         <button class="sub-menu-btn active" id="legend-toggle-sub-btn" onclick="toggleLegend()" title="凡例表示/非表示">📊</button>
     </div>
@@ -460,6 +460,11 @@
     let myLocationMarker = null;
     let selectedType = "平地";
     let mapStyleMode = 0; 
+
+let isGridMode = false;
+    let gridPolylines = [];
+
+    
     
     let hazardModeState = 2;
     let currentDepthMode = "wind";
@@ -822,6 +827,94 @@
         if (!isMeasureMode) document.getElementById('measure-btn').classList.remove('active');
     }
 
+function toggleGridMode() {
+        isGridMode = !isGridMode;
+        const btn = document.getElementById('grid-toggle-btn');
+        if (isGridMode) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+        refreshGridLines();
+    }
+
+    function refreshGridLines() {
+        // 既存のグリッド線を消去
+        gridPolylines.forEach(p => p.setMap(null));
+        gridPolylines = [];
+
+        if (!isGridMode || !map) return;
+
+        const bounds = map.getBounds();
+        if (!bounds) return;
+
+        const ne = bounds.getNorthEast();
+        const sw = bounds.getSouthWest();
+        const center = map.getCenter();
+
+        // 現在の画面上の縦方向の距離（メートル）をおおまかに計算
+        const spanMeters = google.maps.geometry.spherical.computeDistanceBetween(
+            new google.maps.LatLng(sw.lat(), center.lng()),
+            new google.maps.LatLng(ne.lat(), center.lng())
+        );
+
+        // 画面スパンの約1/5をグリッド間隔のベースにする（およそ表示スケールの5倍間隔）
+        let targetIntervalMeters = spanMeters / 5;
+
+        // 綺麗な丸まった数字（10m, 50m, 100m, 250m, 500m, 1000mなど）に丸める
+        const magnitudes = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000];
+        let gridStepMeters = magnitudes[0];
+        for (let m of magnitudes) {
+            if (targetIntervalMeters >= m) {
+                gridStepMeters = m;
+            } else {
+                break;
+            }
+        }
+
+        // 緯度・経度の1度あたりのメートル換算（緯度ベース）
+        const latDegreeMeters = 111000;
+        const lngDegreeMeters = 111000 * Math.cos(center.lat() * Math.PI / 180);
+
+        const stepLat = gridStepMeters / latDegreeMeters;
+        const stepLng = gridStepMeters / lngDegreeMeters;
+
+        // 表示範囲を少し広めにグリッドを引く
+        const startLat = Math.floor(sw.lat() / stepLat) * stepLat;
+        const endLat = Math.ceil(ne.lat() / stepLat) * stepLat;
+        const startLng = Math.floor(sw.lng() / stepLng) * stepLng;
+        const endLng = Math.ceil(ne.lng() / stepLng) * stepLng;
+
+        // 横線を描画
+        for (let lat = startLat; lat <= endLat; lat += stepLat) {
+            const line = new google.maps.Polyline({
+                path: [{ lat: lat, lng: sw.lng() }, { lat: lat, lng: ne.lng() }],
+                geodesic: true,
+                strokeColor: '#34495e',
+                strokeOpacity: 0.25, // 薄めの線
+                strokeWeight: 1,
+                map: map,
+                zIndex: 1200
+            });
+            gridPolylines.push(line);
+        }
+
+        // 縦線を描画
+        for (let lng = startLng; lng <= endLng; lng += stepLng) {
+            const line = new google.maps.Polyline({
+                path: [{ lat: sw.lat(), lng: lng }, { lat: ne.lat(), lng: lng }],
+                geodesic: true,
+                strokeColor: '#34495e',
+                strokeOpacity: 0.25, // 薄めの線
+                strokeWeight: 1,
+                map: map,
+                zIndex: 1200
+            });
+            gridPolylines.push(line);
+        }
+    }
+
+    
     function initInfoWindowCloseTrigger() {
         window.closeActiveInfoWindow = function() {
             if (activeInfoWindow) { activeInfoWindow.close(); activeInfoWindow = null; }
@@ -1057,7 +1150,14 @@
             handleMeasureClick(e.latLng);
         });
 
-        map.addListener('zoom_changed', () => { refreshMarkersOnMap(); });
+        map.addListener('zoom_changed', () => { 
+            refreshMarkersOnMap(); 
+            refreshGridLines(); 
+        });
+
+        map.addListener('idle', () => {
+            refreshGridLines(); 
+        });
 
         // 1. データ入力タブを選択した状態で開く
         switchViewMode('input-mode', document.getElementById('tab-input-mode'));
