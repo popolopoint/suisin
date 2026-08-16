@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 7.0.6 -->
-    <title>水深測っ太郎 v6.1.5 by Popolo App.com</title>
+    <title>水深測っ太郎 v6.1.5b by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -256,7 +256,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v6.1.5 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v6.1.5b by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -854,29 +854,27 @@ function toggleGridMode() {
 
         // 現在の画面上の縦方向の距離（メートル）をおおまかに計算
         // 画面の横方向の距離（メートル）をおおまかに計算
-        const spanMeters = google.maps.geometry.spherical.computeDistanceBetween(
-            new google.maps.LatLng(center.lat(), sw.lng()),
-            new google.maps.LatLng(center.lat(), ne.lng())
-        );
+       const zoom = map.getZoom();
 
-        // Googleマップの通常のスケールバーの目安から「現在のスケール値（例: 50m, 100m）」を逆算
-        let estimatedScaleMeters = spanMeters / 4;
+        // 1. ズームレベルから「1ピクセルあたりの実際の距離（メートル）」を正確に算出
+        const metersPerPixel = (156543.03392 * Math.cos(center.lat() * Math.PI / 180)) / Math.pow(2, zoom);
 
-        // 綺麗な丸まった数字（10, 20, 50, 100, 200, 500, 1000mなど）にスナップさせる
-        const scales = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000];
+        // 2. スケールバーの基準（100ピクセル分）から現在のスケール値を算出
+        const rawScaleMeters = metersPerPixel * 100;
+
+        const scales = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000];
         let currentScaleMeters = scales[0];
         for (let s of scales) {
-            if (estimatedScaleMeters >= s) {
+            if (rawScaleMeters >= s) {
                 currentScaleMeters = s;
             } else {
                 break;
             }
         }
-
-        // 求めるグリッド間隔は「現在のスケール値の5倍」
         let gridStepMeters = currentScaleMeters * 5;
-
         // 緯度・経度の1度あたりのメートル換算（緯度ベース）
+
+        
         const latDegreeMeters = 111000;
         const lngDegreeMeters = 111000 * Math.cos(center.lat() * Math.PI / 180);
 
