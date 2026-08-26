@@ -1138,9 +1138,14 @@ function toggleGridMode() {
 
         initInfoWindowCloseTrigger(); 
         map = new google.maps.Map(document.getElementById("map"), {
-            zoom: 17, center: { lat: 26.3318, lng: 127.9288 }, 
-            mapTypeId: 'roadmap', disableDefaultUI: true, zoomControl: false, scaleControl: true        
-        });
+    zoom: 17, 
+    minZoom: 14, // 👈 最小ズームを制限（これ以上縮小されず、最大でも約3kmエリアを保持）
+    center: { lat: 26.3318, lng: 127.9288 }, 
+    mapTypeId: 'roadmap', 
+    disableDefaultUI: true, 
+    zoomControl: false, 
+    scaleControl: true        
+});
         
         setNow();
         loadFromCache();
