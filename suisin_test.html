@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 7.0.6 -->
-    <title>水深測っ太郎 v6.1.6b by Popolo App.com</title>
+    <title>水深測っ太郎 v6.1.7 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -1478,13 +1478,13 @@ function toggleGridMode() {
         return (((r * 299) + (g * 587) + (b * 114)) / 1000 >= 170) ? '#000000' : '#ffffff';
     }
 
-    function getDepthColor(b, raw) {
-        if (Math.round(raw) === 999) return "#ffffff";
-        if (currentDepthMode === "foil") {
-            if (b >= 160) return "#000080"; if (b >= 140) return "#a29bfe"; if (b >= 130) return "#70a1ff"; 
-            if (b >= 120) return "#00ffff"; if (b >= 110) return "#a8e6cf"; if (b >= 100) return "#adff2f"; 
-            if (b >= 80)  return "#ffa500"; return "#ff0000";                
-        } else {
+function getDepthColor(b, raw) {
+    if (Math.round(raw) === 999) return "#ffffff";
+    if (currentDepthMode === "foil") {
+        if (b >= 160) return "#000080"; if (b >= 140) return "#a29bfe"; if (b >= 130) return "#70a1ff"; 
+        if (b >= 120) return "#00ffff"; if (b >= 110) return "#adff2f"; if (b >= 100) return "#ffff00"; 
+        if (b >= 80)  return "#ffa500"; return "#ff0000";                 
+    } else {
             if (b < 20) return "#ff0000"; if (b < 40) return "#ffa500"; if (b < 60) return "#ffff00"; 
             if (b < 80) return "#adff2f"; if (b < 100) return "#a8e6cf"; if (b < 120) return "#00ffff"; 
             if (b < 140) return "#70a1ff"; if (b < 160) return "#a29bfe"; return "#000080"; 
