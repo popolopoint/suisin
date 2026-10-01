@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 7.0.6 -->
-    <title>水深測っ太郎 v6.1.8b by Popolo App.com</title>
+    <title>水深測っ太郎 v6.1.9 by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -132,6 +132,37 @@
         .honbu-row { display: flex; gap: 8px; margin-bottom: 8px; width: 100%; }
         .honbu-row input { font-size: 1.5rem; padding: 12px 10px; border-radius: 8px; border: 2px solid #28a745; box-sizing: border-box; width: 100%; font-weight: bold; background: white; text-align: center; }
         #inputBoatName { text-align: left !important; }
+
+        /* 📌 【追加】位置登録タブを横並びにするレイアウト用スタイル */
+    .honbu-row.split-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+    .honbu-row.split-row input {
+        flex: 1;
+    }
+    /* 📌 【追加】「地図をタップして登録」ボタンのスタイル */
+    .btn-tap-map {
+        flex: 1;
+        background: #e67e22;
+        color: white;
+        border: none;
+        padding: 12px 6px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+    .btn-tap-map:active {
+        background: #d35400;
+    }
+
+        
         
         .honbu-buttons { display: flex; gap: 8px; width: 100%; margin-top: 4px; }
         #btnSaveBoat { flex: 1; background: #28a745; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
@@ -256,7 +287,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v6.1.8b by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v6.1.9 by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -340,7 +371,14 @@
             <div id="sec-register-mode" class="mode-section">
                 <div class="honbu-panel">
                     <div class="honbu-title">⚓ 船・ブイ配置 / タップして削除・編集</div>
-                    <div class="honbu-row"><input type="text" id="inputBoatName" placeholder="マーク名" value="本部船"></div>
+                  
+                    <div class="honbu-row split-row">
+            <input type="text" id="inputBoatName" placeholder="マーク名" value="本部船">
+            <button class="btn-tap-map" onclick="openTapMapModal()">🗺️ 地図をタップして登録</button> </div>
+                    
+                    
+                    
+                
                     <div class="honbu-row"><input type="number" id="inputBoatLat" step="any" placeholder="緯度 (Lat)"></div>
                     <div class="honbu-row"><input type="number" id="inputBoatLng" step="any" placeholder="経度 (Lng)"></div>
                     <div class="honbu-buttons">
@@ -414,6 +452,28 @@
     </div>
 </div>
 
+<!-- 🗺️ 地図タップ設置選択モーダル -->
+<div id="tap-map-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:7000; justify-content:center; align-items:center;">
+    <div style="background:white; padding:20px; border-radius:12px; width:85%; max-width:340px; box-sizing:border-box; text-align:center;">
+        <h3 style="margin-top:0; color:#2c3e50; font-size:1.1rem; border-bottom:2px solid #e67e22; padding-bottom:8px;">🗺️ 地図をタップして登録</h3>
+        <p style="font-size:0.9rem; color:#555; margin:12px 0;">登録する種類を選んでください：</p>
+        
+        <div style="display:flex; gap:10px; margin-bottom:16px;">
+            <button type="button" id="type-select-boat" onclick="selectTapType('BOAT')" style="flex:1; padding:12px; border:2px solid #1e90ff; background:#1e90ff; color:white; border-radius:8px; font-weight:bold; font-size:1rem; cursor:pointer;">⚓ フネ</button>
+            <button type="button" id="type-select-buoy" onclick="selectTapType('BUOY')" style="flex:1; padding:12px; border:2px solid #d35400; background:white; color:#d35400; border-radius:8px; font-weight:bold; font-size:1rem; cursor:pointer;">🟧 ブイ</button>
+        </div>
+
+        <div style="display:flex; gap:10px;">
+            <button onclick="confirmTapMapPlacement()" style="flex:1; background:#27ae60; color:white; border:none; padding:12px; border-radius:8px; font-weight:bold; font-size:1rem; cursor:pointer;">設置する</button>
+            <button onclick="closeModal('tap-map-modal')" style="flex:1; background:#95a5a6; color:white; border:none; padding:12px; border-radius:8px; font-weight:bold; font-size:1rem; cursor:pointer;">キャンセル</button>
+        </div>
+    </div>
+</div>
+
+
+
+
+    
 <!-- ❓ 使い方マニュアル モーダル -->
 <div id="manual-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:7000; justify-content:center; align-items:center;">
     <div style="background:white; padding:18px; border-radius:12px; width:90%; max-width:420px; box-sizing:border-box;">
@@ -1153,9 +1213,33 @@ function toggleGridMode() {
         navigator.geolocation.watchPosition(updateMyLocationOnlyMarker, null, {enableHighAccuracy: true});
 
         map.addListener('click', (e) => {
-            if (!isMeasureMode) return;
+        // 距離測定モード中の処理
+        if (isMeasureMode) {
             handleMeasureClick(e.latLng);
-        });
+            return;
+        }
+        
+        // 📌 【追加】「地図をタップして登録」モード中の処理
+        if (isTapRegisterMode) {
+            isTapRegisterMode = false;
+            const lat = e.latLng.lat();
+            const lng = e.latLng.lng();
+            const timeString = new Date().toLocaleTimeString('ja-JP', {hour: '2-digit', minute:'2-digit'});
+            const name = (selectedTapObjectType === 'BOAT' ? "本部船_" : "ブイ_") + timeString;
+
+            // 入力欄に自動反映
+            document.getElementById('inputBoatName').value = name;
+            document.getElementById('inputBoatLat').value = lat.toFixed(6);
+            document.getElementById('inputBoatLng').value = lng.toFixed(6);
+
+            // 設置と虎キングへの同期を実行
+            saveAndSyncTapLocation(name, lat, lng, selectedTapObjectType);
+            return;
+        }
+    });
+
+
+        
 
         map.addListener('zoom_changed', () => { 
             refreshMarkersOnMap(); 
@@ -1165,6 +1249,10 @@ function toggleGridMode() {
         map.addListener('idle', () => {
             refreshGridLines(); 
         });
+
+
+   
+        
 
         // 1. データ入力タブを選択した状態で開く
         switchViewMode('input-mode', document.getElementById('tab-input-mode'));
@@ -1691,6 +1779,77 @@ async function handleSaveBoat() {
             showLoading(false);
         } else { alert("削除するマークが見つかりません。ピンをタップしてから削除を押してください。"); }
     }
+
+
+// 📌 【追加】地図タップ登録用の変数と関数
+    let isTapRegisterMode = false;
+    let selectedTapObjectType = 'BOAT'; // 初期値: フネ
+
+    // 1. モーダルを開く
+    function openTapMapModal() {
+        openModal('tap-map-modal');
+    }
+
+    // 2. フネかブイの切り替え選択
+    function selectTapType(type) {
+        selectedTapObjectType = type;
+        const btnBoat = document.getElementById('type-select-boat');
+        const btnBuoy = document.getElementById('type-select-buoy');
+        if (type === 'BOAT') {
+            btnBoat.style.background = '#1e90ff'; btnBoat.style.color = 'white';
+            btnBuoy.style.background = 'white'; btnBuoy.style.color = '#d35400';
+        } else {
+            btnBuoy.style.background = '#d35400'; btnBuoy.style.color = 'white';
+            btnBoat.style.background = 'white'; btnBoat.style.color = '#1e90ff';
+        }
+    }
+
+    // 3. モーダルの「設置する」を押したときの処理
+    function confirmTapMapPlacement() {
+        closeModal('tap-map-modal');
+        isTapRegisterMode = true;
+        alert("🗺️ 地図上の設置したい場所をタップしてください。");
+    }
+
+    // 4. タップされた位置に設置し、虎キングへ同期保存する処理
+    async function saveAndSyncTapLocation(name, lat, lng, type) {
+        showLoading(true);
+        drawCustomBoat(name, lat, lng, true);
+
+        try {
+            // 1. GASへ保存
+            await fetch(WEB_APP_URL, {
+                method: 'POST', mode: 'no-cors',
+                body: JSON.stringify({ method: 'SAVE_BOAT', password: ADMIN_SECRET, name: name, lat: lat, lng: lng })
+            });
+
+            // 2. Firebase（虎キング）へ保存・同期
+            const safeKey = encodeURIComponent(name);
+            const firebaseData = {
+                type: type === 'BOAT' ? 'ship' : 'buoy',
+                shape: 'triangle',
+                color: '#ff3b30',
+                lat: lat,
+                lng: lng,
+                comment: name,
+                assignedLabel: name,
+                ts: Date.now()
+            };
+            await db.ref('objects/' + safeKey).set(firebaseData);
+
+            playSuccessBeep();
+            alert(`【配置完了】\n${name} を設置し、虎キングへ同期しました！`);
+            switchViewMode('register-mode', document.getElementById('tab-register-mode'));
+        } catch (e) {
+            alert("通信に失敗しました。");
+        }
+        showLoading(false);
+    }
+
+
+
+
+    
 </script>
 </body>
 </html>
