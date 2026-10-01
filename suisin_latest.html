@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 7.0.6 -->
-    <title>水深測っ太郎 v6.1.6 by Popolo App.com</title>
+    <title>水深測っ太郎 v6.1.8b by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -69,7 +69,7 @@
         .datetime-quick-row { display: flex; gap: 4px; }
         
         .current-tide-box {
-            width: 72px;
+            width: 85px;
             background: white;
             border: 2px solid #9b59b6;
             border-radius: 6px;
@@ -256,7 +256,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v6.1.6 by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v6.1.8b by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -871,7 +871,7 @@ function toggleGridMode() {
                 break;
             }
         }
-        let gridStepMeters = currentScaleMeters * 5;
+        let gridStepMeters = (currentScaleMeters * 5) / 2;
         // 緯度・経度の1度あたりのメートル換算（緯度ベース）
 
         
@@ -1463,12 +1463,19 @@ function toggleGridMode() {
                 </div>`
         });
 
-        marker.addListener("click", () => {
+       marker.addListener("click", () => {
             if (isMeasureMode) return;
+            
+            // データ入力モード（sec-input-mode）が開いている時はタップ編集を無効化
+            const inputSec = document.getElementById('sec-input-mode');
+            if (inputSec && inputSec.classList.contains('active')) return;
+
             if (activeInfoWindow) activeInfoWindow.close(); 
             info.open(map, marker);
             activeInfoWindow = info; 
         });
+
+        
         markers.push(marker);
     }
 
@@ -1478,13 +1485,13 @@ function toggleGridMode() {
         return (((r * 299) + (g * 587) + (b * 114)) / 1000 >= 170) ? '#000000' : '#ffffff';
     }
 
-    function getDepthColor(b, raw) {
-        if (Math.round(raw) === 999) return "#ffffff";
-        if (currentDepthMode === "foil") {
-            if (b >= 160) return "#000080"; if (b >= 140) return "#a29bfe"; if (b >= 130) return "#70a1ff"; 
-            if (b >= 120) return "#00ffff"; if (b >= 110) return "#a8e6cf"; if (b >= 100) return "#adff2f"; 
-            if (b >= 80)  return "#ffa500"; return "#ff0000";                
-        } else {
+function getDepthColor(b, raw) {
+    if (Math.round(raw) === 999) return "#ffffff";
+    if (currentDepthMode === "foil") {
+        if (b >= 160) return "#000080"; if (b >= 140) return "#a29bfe"; if (b >= 130) return "#70a1ff"; 
+        if (b >= 120) return "#00ffff"; if (b >= 110) return "#adff2f"; if (b >= 100) return "#ffff00"; 
+        if (b >= 80)  return "#ffa500"; return "#ff0000";                 
+    } else {
             if (b < 20) return "#ff0000"; if (b < 40) return "#ffa500"; if (b < 60) return "#ffff00"; 
             if (b < 80) return "#adff2f"; if (b < 100) return "#a8e6cf"; if (b < 120) return "#00ffff"; 
             if (b < 140) return "#70a1ff"; if (b < 160) return "#a29bfe"; return "#000080"; 
