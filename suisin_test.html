@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
  
-    <title>水深測っ太郎 v6.2.0t by Popolo App.com</title>
+    <title>水深測っ太郎 v6.2.0u by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -292,7 +292,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v6.2.0t by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v6.2.0u by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -1270,11 +1270,13 @@ function toggleGridMode() {
             if (latestObjects) {
                 Object.keys(latestObjects).forEach((key) => {
                     const obj = latestObjects[key];
-                    if (obj.lat && obj.lng) {
-                        if (obj.isTempLinePoint || obj.shape === 'dot' || obj.courseLayoutObject) {
+                    // 緯度・経度が存在し、かつ通常の文字データ（shape_markerや中継点以外）の場合に描画
+                    if (obj && obj.lat && obj.lng) {
+                        if (obj.isTempLinePoint || obj.shape === 'dot' || obj.type === 'shape_marker') {
                             return; 
                         }
-                        const boatName = obj.comment || obj.assignedLabel || "マーク";
+                        // ★ 虎キング側で設定された assignedLabel または comment を優先的に取得
+                        const boatName = obj.assignedLabel || obj.comment || key || "マーク";
                         drawCustomBoat(boatName, parseFloat(obj.lat), parseFloat(obj.lng), false);
                     }
                 });
