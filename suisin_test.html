@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
  
-    <title>水深測っ太郎 v6.2.0h by Popolo App.com</title>
+    <title>水深測っ太郎 v6.2.0i by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -287,7 +287,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v6.2.0h by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v6.2.0i by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -1440,14 +1440,14 @@ function toggleGridMode() {
         document.body.appendChild(script);
     }
 
- function calculateTideAndRefresh() {
+function calculateTideAndRefresh() {
         const val = document.getElementById('target-datetime').value;
         currentSelectedTide = 0; 
         
         const statusEl = document.getElementById('status-display');
 
         if (!fullTideMasterData || fullTideMasterData.length === 0) {
-            if (statusEl) statusEl.textContent = "⚠️ 潮位データが未読込です（右上の🔄を押してください）";
+            if (statusEl) statusEl.textContent = "⚠️ 潮位データが空です（右上の🔄を押してください）";
             const tideBox = document.getElementById('current-tide-val');
             if (tideBox) tideBox.textContent = "0.0 cm";
             refreshMarkersOnMap();
@@ -1459,39 +1459,32 @@ function toggleGridMode() {
             const [y, m, d] = datePart.split('-').map(Number);
             const [h, min] = timePart.split(':').map(Number);
             
-            // スプレッドシートの日付セルと照合するため、年・月・日の数値がすべて含まれる行を探す
+            // 試しにデータ全体の最初の数行（ヘッダー行や1行目のデータ）の形を確認用として取得
+            const sampleRow = fullTideMasterData.find(r => r && r.length > 0 && String(r[0]).includes(String(y)) && String(r[0]).includes(String(m)));
+
             const row = fullTideMasterData.find(r => {
                 if (!r || !r[0]) return false;
-                let cellStr = String(r[0]).trim();
-                
-                // 日付セルがISO文字列やDate型、あるいは "2026/02/06" などのいずれであっても確実に一致させる
-                if (cellStr.includes('T')) {
-                    const rd = new Date(cellStr);
-                    if (!isNaN(rd.getTime())) {
-                        return rd.getFullYear() === y && (rd.getMonth() + 1) === m && rd.getDate() === d;
-                    }
-                }
-                
-                // 文字列部分一致（例: "2026", "2", "6" が含まれているか）
+                const cellStr = String(r[0]).trim();
                 return cellStr.includes(String(y)) && cellStr.includes(String(m)) && cellStr.includes(String(d));
             });
 
             if (row) {
-                // 1列目（A列）が日付、2列目（B列）〜 25列目（Y列）が 0時〜23時の潮位データ
+                // 時間（0〜23時）に対応する列インデックス（通常は 1 + h）
                 let colIdx1 = 1 + h; 
                 let colIdx2 = colIdx1 + 1;
                 let t1 = parseFloat(row[colIdx1]);
                 let t2 = (colIdx2 < row.length) ? parseFloat(row[colIdx2]) : t1;
                 
                 if (!isNaN(t1)) {
-                    // 分単位で前後の時間を線形補完
                     currentSelectedTide = t1 + (!isNaN(t2) ? (t2 - t1) * (min / 60) : 0);
-                    if (statusEl) statusEl.textContent = `✅ 同期完了 & 潮位連動中 (${currentSelectedTide >= 0 ? "+" : ""}${currentSelectedTide.toFixed(1)}cm)`;
+                    if (statusEl) statusEl.textContent = `🎉 成功！ 潮位: ${currentSelectedTide.toFixed(1)}cm (列:${colIdx1}値:${t1})`;
                 } else {
-                    if (statusEl) statusEl.textContent = `⚠️ 該当時間の潮位数値が見つかりません (行データエラー)`;
+                    if (statusEl) statusEl.textContent = `⚠️ 日付行は見つかりましたが、時間列[${colIdx1}]の数値が取得できません (中身: ${row[colIdx1]})`;
                 }
             } else {
-                if (statusEl) statusEl.textContent = `⚠️ 指定日(${y}/${m}/${d})の潮位データ行が見つかりません`;
+                // 一致する行が見つからない場合、データ全体の先頭行がどうなっているかをステータスバーに表示して教える
+                const firstCell = fullTideMasterData[0] && fullTideMasterData[0][0] ? fullTideMasterData[0][0] : "不明";
+                if (statusEl) statusEl.textContent = `⚠️ 日付一致なし (探した:${y}/${m}/${d} / シート先頭:${firstCell})`;
             }
         }
 
