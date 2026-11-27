@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
  
-    <title>水深測っ太郎 v6.2.0e by Popolo App.com</title>
+    <title>水深測っ太郎 v6.2.0f by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -287,7 +287,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v6.2.0e by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v6.2.0f by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -1440,70 +1440,7 @@ function toggleGridMode() {
         document.body.appendChild(script);
     }
 
-  function calculateTideAndRefresh() {
-        const val = document.getElementById('target-datetime').value;
-        currentSelectedTide = 0; 
-        
-        if (val && fullTideMasterData && fullTideMasterData.length > 0) {
-            const [datePart, timePart] = val.split('T');
-            const [y, m, d] = datePart.split('-').map(Number);
-            const [h, min] = timePart.split(':').map(Number);
-            
-            const row = fullTideMasterData.find(r => {
-                if (!r[0]) return false;
-                let cell = r[0];
-                let cellY, cellM, cellD;
-
-                if (cell instanceof Date) {
-                    cellY = cell.getFullYear();
-                    cellM = cell.getMonth() + 1;
-                    cellD = cell.getDate();
-                } else {
-                    const cellStr = String(cell).trim();
-                    // ISO形式（例: "2026-11-26T15:00:00.000Z"）の場合は new Date() で日本時間に戻す
-                    if (cellStr.includes('T') && (cellStr.endsWith('Z') || cellStr.includes('+'))) {
-                        const rd = new Date(cellStr);
-                        if (isNaN(rd.getTime())) return false;
-                        cellY = rd.getFullYear();
-                        cellM = rd.getMonth() + 1;
-                        cellD = rd.getDate();
-                    } else {
-                        // "2026-11-27" や "2026/11/27" などの純粋な日付文字列
-                        const match = cellStr.match(/^(\d{4})[-/年](\d{1,2})[-/月](\d{1,2})/);
-                        if (match) {
-                            cellY = Number(match[1]);
-                            cellM = Number(match[2]);
-                            cellD = Number(match[3]);
-                        } else {
-                            const rd = new Date(cellStr);
-                            if (isNaN(rd.getTime())) return false;
-                            cellY = rd.getFullYear();
-                            cellM = rd.getMonth() + 1;
-                            cellD = rd.getDate();
-                        }
-                    }
-                }
-                return cellY === y && cellM === m && cellD === d;
-            });
-
-            if (row) {
-                let colIdx1 = 1 + h; 
-                let colIdx2 = colIdx1 + 1;
-                let t1 = parseFloat(row[colIdx1]);
-                let t2 = (colIdx2 < row.length) ? parseFloat(row[colIdx2]) : t1;
-                if (!isNaN(t1)) currentSelectedTide = t1 + (!isNaN(t2) ? (t2 - t1) * (min / 60) : 0);
-            } else {
-                // デバッグ用：一致する行がない場合、ステータスバーに先頭データの形式を表示
-                const sample = fullTideMasterData.length > 1 ? fullTideMasterData[1][0] : fullTideMasterData[0][0];
-                const st = document.getElementById('status-display');
-                if (st) st.textContent = `⚠️ 潮位該当なし(データ例: ${sample})`;
-            }
-        }
-
-        const tideBox = document.getElementById('current-tide-val');
-        if (tideBox) tideBox.textContent = (currentSelectedTide >= 0 ? "+" : "") + currentSelectedTide.toFixed(1) + " cm";
-        refreshMarkersOnMap();
-    }
+  function calculateTideAndRefresh
 
     function refreshMarkersOnMap() {
         markers.forEach(m => m.setMap(null));
