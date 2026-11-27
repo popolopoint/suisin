@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- コード名: 7.0.6 -->
-    <title>水深測っ太郎 v6.2.0c by Popolo App.com</title>
+    <title>水深測っ太郎 v6.2.0d by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -287,7 +287,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v6.2.0c by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v6.2.0d by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -297,7 +297,7 @@
         <div class="ui-panel" id="ui-panel">
             <div class="datetime-panel" id="global-datetime-panel">
                 <div class="datetime-row">
-                    <input type="datetime-local" id="target-datetime" onchange="calculateTideAndRefresh()">
+                    <input type="datetime-local" id="target-datetime" onchange="calculateTideAndRefresh()" oninput="calculateTideAndRefresh()">
                     <div id="current-tide-val" class="current-tide-box">--- cm</div>
                     <button onclick="setNow()" style="padding: 10px 6px; background: #3498db; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight:bold; flex-shrink: 0;">現在</button>
                     <button onclick="openTideTableModal()" style="padding: 10px 6px; background: #9b59b6; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight:bold; flex-shrink: 0;">潮位</button>
@@ -1445,14 +1445,37 @@ function toggleGridMode() {
         currentSelectedTide = 0; 
         
         if (val && fullTideMasterData && fullTideMasterData.length > 0) {
-            const s = new Date(val);
-            const y = s.getFullYear(), m = s.getMonth() + 1, d = s.getDate(), h = s.getHours(), min = s.getMinutes();
+            const [datePart, timePart] = val.split('T');
+            const [y, m, d] = datePart.split('-').map(Number);
+            const [h, min] = timePart.split(':').map(Number);
             
             const row = fullTideMasterData.find(r => {
                 if (!r[0]) return false;
-                const rd = new Date(r[0]);
-                if (isNaN(rd.getTime())) return false;
-                return rd.getFullYear() === y && (rd.getMonth() + 1) === m && rd.getDate() === d;
+                let cell = r[0];
+                let cellY, cellM, cellD;
+
+                // Dateオブジェクトの場合、または文字列の場合の安全なパース
+                if (cell instanceof Date) {
+                    cellY = cell.getFullYear();
+                    cellM = cell.getMonth() + 1;
+                    cellD = cell.getDate();
+                } else {
+                    const cellStr = String(cell).trim();
+                    // "yyyy-MM-dd" や "yyyy/MM/dd" 形式を優先して抽出
+                    const match = cellStr.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+                    if (match) {
+                        cellY = Number(match[1]);
+                        cellM = Number(match[2]);
+                        cellD = Number(match[3]);
+                    } else {
+                        const rd = new Date(cellStr);
+                        if (isNaN(rd.getTime())) return false;
+                        cellY = rd.getFullYear();
+                        cellM = rd.getMonth() + 1;
+                        cellD = rd.getDate();
+                    }
+                }
+                return cellY === y && cellM === m && cellD === d;
             });
 
             if (row) {
@@ -1592,15 +1615,35 @@ function getDepthColor(b, raw) {
             alert("潮位データが読み込まれていません。右側のリセットボタン(🔄)を押してください。");
             return;
         }
-        const dt = new Date(val);
-        const y = dt.getFullYear(), m = dt.getMonth() + 1, d = dt.getDate();
+        const [datePart] = val.split('T');
+        const [y, m, d] = datePart.split('-').map(Number);
         document.getElementById('tide-modal-date').textContent = `📅 ${y}年${m}月${d}日`;
 
         const row = fullTideMasterData.find(r => {
             if (!r[0]) return false;
-            const rd = new Date(r[0]);
-            if (isNaN(rd.getTime())) return false;
-            return rd.getFullYear() === y && (rd.getMonth() + 1) === m && rd.getDate() === d;
+            let cell = r[0];
+            let cellY, cellM, cellD;
+
+            if (cell instanceof Date) {
+                cellY = cell.getFullYear();
+                cellM = cell.getMonth() + 1;
+                cellD = cell.getDate();
+            } else {
+                const cellStr = String(cell).trim();
+                const match = cellStr.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+                if (match) {
+                    cellY = Number(match[1]);
+                    cellM = Number(match[2]);
+                    cellD = Number(match[3]);
+                } else {
+                    const rd = new Date(cellStr);
+                    if (isNaN(rd.getTime())) return false;
+                    cellY = rd.getFullYear();
+                    cellM = rd.getMonth() + 1;
+                    cellD = rd.getDate();
+                }
+            }
+            return cellY === y && cellM === m && cellD === d;
         });
 
         const hlContainer = document.getElementById('tide-hl-container');
@@ -1623,6 +1666,7 @@ function getDepthColor(b, raw) {
         listContainer.innerHTML = listHtml;
         openModal('tide-modal');
     }
+    
 
     function recordAtCurrentLocation() {
         navigator.geolocation.getCurrentPosition((pos) => {
