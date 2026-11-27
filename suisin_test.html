@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
  
-    <title>水深測っ太郎 v6.2.0r by Popolo App.com</title>
+    <title>水深測っ太郎 v6.2.0s by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -292,7 +292,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v6.2.0r by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v6.2.0s by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -1191,8 +1191,29 @@ function toggleGridMode() {
     }
 
     // グローバルに確実に出現させる
+
     window.initMap = async function initMap() {
         if (localStorage.getItem('popolo_commercial_agreed') === 'true') {
+            document.getElementById('commercial-modal').style.display = 'none';
+        } else {
+            document.getElementById('commercial-modal').style.display = 'flex';
+        }
+
+        updateLegendUI();
+        document.getElementById('hazard-filter-btn').classList.remove('active');
+
+        initInfoWindowCloseTrigger(); 
+        map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 17, 
+            minZoom: 14, 
+            center: { lat: 26.3318, lng: 127.9288 }, 
+            mapTypeId: 'roadmap', 
+            disableDefaultUI: true, 
+            zoomControl: false, 
+            scaleControl: true        
+        });
+
+
             document.getElementById('commercial-modal').style.display = 'none';
         } else {
             document.getElementById('commercial-modal').style.display = 'flex';
@@ -1329,7 +1350,7 @@ function toggleGridMode() {
                         scale: 3
                     };
 
-                    const polyline = new google.maps.Polyline({
+                    const polyline = new goｆogle.maps.Polyline({
                         path: [p1, p2],
                         geodesic: true,
                         strokeColor: '#ffffff',
