@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 7.0.6 -->
-    <title>水深測っ太郎 v6.2.0c by Popolo App.com</title>
+ 
+    <title>水深測っ太郎 v6.2.0u by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -265,29 +265,34 @@
 <div id="loading">📡 通信中...</div>
 
 <!-- 🔒 初回商用利用同意モーダル -->
-<div id="commercial-modal">
-    <div class="commercial-box">
-        <h3>⚠️ ご利用に関する重要なお知らせ</h3>
-        <p>「水深測っ太郎」は個人・趣味での利用を想定して開発されたアプリケーションです。</p>
-        <p><strong>商用（ビジネス・業務）でのご利用は有料となります。</strong>ご使用の際は必ず事前に開発者へご連絡ください。</p>
+<!-- 🔒 初回商用利用同意モーダル -->
+<div id="commercial-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 16px; box-sizing: border-box;">
+    <div style="background: white; padding: 24px 20px; border-radius: 12px; width: 100%; max-width: 400px; box-sizing: border-box; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: left;">
+        <h3 style="margin-top: 0; color: #c0392b; font-size: 1.2rem; text-align: center; border-bottom: 2px solid #e74c3c; padding-bottom: 8px;">⚠️ ご利用に関する重要なお知らせ</h3>
+        <p style="font-size: 0.9rem; line-height: 1.6; color: #333; margin: 12px 0;">「水深測っ太郎」は個人・趣味での利用を想定して開発されたアプリケーションです。</p>
+        <p style="font-size: 0.9rem; line-height: 1.6; color: #333; margin: 12px 0;"><strong>商用（ビジネス・業務）でのご利用は有料となります。</strong>ご使用の際は必ず事前に開発者へご連絡ください。</p>
         
-        <p>
+        <p style="font-size: 0.9rem; line-height: 1.6; color: #333; margin: 12px 0;">
             <a href="mailto:popolopoint@gmail.com" style="color: #3498db; font-weight: bold; text-decoration: underline;">
                 ✉️ 開発者にメールを送る (popolopoint@gmail.com)
             </a>
         </p>
 
-        <div class="checkbox-container" onclick="handleContainerClick(event)">
-            <input type="checkbox" id="agree-checkbox" onchange="checkAgreementState()">
-            <label for="agree-checkbox">上記の内容を確認し、商用利用ではないことに同意します。</label>
+        <div style="display: flex; align-items: center; gap: 12px; background: #fdf2e9; padding: 14px 12px; border-radius: 8px; border: 1px solid #f5cba7; margin: 16px 0;">
+            <input type="checkbox" id="agree-checkbox" onchange="
+                const btn = document.getElementById('btn-agree-start');
+                if(this.checked) { btn.style.background = '#27ae60'; btn.style.cursor = 'pointer'; btn.disabled = false; }
+                else { btn.style.background = '#bdc3c7'; btn.style.cursor = 'not-allowed'; btn.disabled = true; }
+            " style="width: 26px; height: 26px; cursor: pointer; flex-shrink: 0;">
+            <label for="agree-checkbox" style="font-size: 0.95rem; font-weight: bold; color: #d35400; cursor: pointer; line-height: 1.4; user-select: none;">上記の内容を確認し、商用利用ではないことに同意します。</label>
         </div>
 
-        <button id="btn-agree-start" class="btn-agree" onclick="handleAgreementComplete()" disabled>同意してアプリを開始する</button>
+        <button id="btn-agree-start" onclick="document.getElementById('commercial-modal').style.display='none'; localStorage.setItem('popolo_commercial_agreed', 'true');" style="width: 100%; background: #bdc3c7; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: not-allowed;" disabled>同意してアプリを開始する</button>
     </div>
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v6.2.0c by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v6.2.0u by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -297,7 +302,7 @@
         <div class="ui-panel" id="ui-panel">
             <div class="datetime-panel" id="global-datetime-panel">
                 <div class="datetime-row">
-                    <input type="datetime-local" id="target-datetime" onchange="calculateTideAndRefresh()">
+                    <input type="datetime-local" id="target-datetime" onchange="calculateTideAndRefresh()" oninput="calculateTideAndRefresh()">
                     <div id="current-tide-val" class="current-tide-box">--- cm</div>
                     <button onclick="setNow()" style="padding: 10px 6px; background: #3498db; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight:bold; flex-shrink: 0;">現在</button>
                     <button onclick="openTideTableModal()" style="padding: 10px 6px; background: #9b59b6; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight:bold; flex-shrink: 0;">潮位</button>
@@ -512,7 +517,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbysZdCnWxh4SFH3Tvj3Ha3gbLelEjzRnf0PLJwc65zB83c7MhPXKgXw1dg6pxgcgLFq6Q/exec"; 
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwVcSNM8jMNu9FjH3axHasvj9svLiugFQKitjl2sy1seLjJJlaPhZpYMJ2j-E1FvW96/exec"; 
     const ADMIN_SECRET = "1192"; 
     
     let map, markers = [], allPointsData = [], currentSelectedTide = 0;
@@ -580,8 +585,7 @@ let isGridMode = false;
         });
     }
 
-    function handleContainerClick(event) {
-        if (event.target.tagName === 'INPUT' || event.target.tagName === 'LABEL') return;
+    function toggleAgreementCheckbox() {
         const checkbox = document.getElementById('agree-checkbox');
         checkbox.checked = !checkbox.checked;
         checkAgreementState();
@@ -1186,7 +1190,9 @@ function toggleGridMode() {
         window.speechSynthesis.speak(uttr);
     }
 
-    async function initMap() {
+    // グローバルに確実に出現させる
+
+    window.initMap = async function initMap() {
         if (localStorage.getItem('popolo_commercial_agreed') === 'true') {
             document.getElementById('commercial-modal').style.display = 'none';
         } else {
@@ -1198,14 +1204,14 @@ function toggleGridMode() {
 
         initInfoWindowCloseTrigger(); 
         map = new google.maps.Map(document.getElementById("map"), {
-    zoom: 17, 
-    minZoom: 14, // 👈 最小ズームを制限（これ以上縮小されず、最大でも約3kmエリアを保持）
-    center: { lat: 26.3318, lng: 127.9288 }, 
-    mapTypeId: 'roadmap', 
-    disableDefaultUI: true, 
-    zoomControl: false, 
-    scaleControl: true        
-});
+            zoom: 17, 
+            minZoom: 14, 
+            center: { lat: 26.3318, lng: 127.9288 }, 
+            mapTypeId: 'roadmap', 
+            disableDefaultUI: true, 
+            zoomControl: false, 
+            scaleControl: true        
+        });
         
         setNow();
         loadFromCache();
@@ -1213,33 +1219,25 @@ function toggleGridMode() {
         navigator.geolocation.watchPosition(updateMyLocationOnlyMarker, null, {enableHighAccuracy: true});
 
         map.addListener('click', (e) => {
-        // 距離測定モード中の処理
-        if (isMeasureMode) {
-            handleMeasureClick(e.latLng);
-            return;
-        }
-        
-        // 📌 【追加】「地図をタップして登録」モード中の処理
-        if (isTapRegisterMode) {
-            isTapRegisterMode = false;
-            const lat = e.latLng.lat();
-            const lng = e.latLng.lng();
-            const timeString = new Date().toLocaleTimeString('ja-JP', {hour: '2-digit', minute:'2-digit'});
-            const name = (selectedTapObjectType === 'BOAT' ? "本部船_" : "ブイ_") + timeString;
+            if (isMeasureMode) {
+                handleMeasureClick(e.latLng);
+                return;
+            }
+            if (isTapRegisterMode) {
+                isTapRegisterMode = false;
+                const lat = e.latLng.lat();
+                const lng = e.latLng.lng();
+                const timeString = new Date().toLocaleTimeString('ja-JP', {hour: '2-digit', minute:'2-digit'});
+                const name = (selectedTapObjectType === 'BOAT' ? "本部船_" : "ブイ_") + timeString;
 
-            // 入力欄に自動反映
-            document.getElementById('inputBoatName').value = name;
-            document.getElementById('inputBoatLat').value = lat.toFixed(6);
-            document.getElementById('inputBoatLng').value = lng.toFixed(6);
+                document.getElementById('inputBoatName').value = name;
+                document.getElementById('inputBoatLat').value = lat.toFixed(6);
+                document.getElementById('inputBoatLng').value = lng.toFixed(6);
 
-            // 設置と虎キングへの同期を実行
-            saveAndSyncTapLocation(name, lat, lng, selectedTapObjectType);
-            return;
-        }
-    });
-
-
-        
+                saveAndSyncTapLocation(name, lat, lng, selectedTapObjectType);
+                return;
+            }
+        });
 
         map.addListener('zoom_changed', () => { 
             refreshMarkersOnMap(); 
@@ -1250,14 +1248,8 @@ function toggleGridMode() {
             refreshGridLines(); 
         });
 
-
-   
-        
-
-        // 1. データ入力タブを選択した状態で開く
         switchViewMode('input-mode', document.getElementById('tab-input-mode'));
         
-        // 2. パネルを「日時と潮位のみ」のコンパクト表示にする（🔭を1回押した状態）
         const panel = document.getElementById('ui-panel');
         const tabs = document.getElementById('mode-tabs');
         const icon = document.getElementById('toggle-icon');
@@ -1267,34 +1259,30 @@ function toggleGridMode() {
 
         syncData(true);
 
-// --- ここに追加してください ---
-        // --- 虎キングからのデータをリアルタイムで地図に反映する ---
-        // --- 虎キングからのフネ・ブイおよび線をリアルタイムで地図に反映する ---
         let latestObjects = {};
 
         db.ref('objects').on('value', (snapshot) => {
             latestObjects = snapshot.val() || {};
-            
-            // 1. 古いマーカーを一度クリア
             clearAllCustomBoatsOnMap();
-            
-            // 2. 既存の線をクリア
             sharedCoursePolylines.forEach(p => p.setMap(null));
             sharedCoursePolylines = [];
             
-            // 3. 虎キング側で変更された名前（commentやassignedLabel）を優先してブイ・フネを描画
             if (latestObjects) {
                 Object.keys(latestObjects).forEach((key) => {
                     const obj = latestObjects[key];
-                    if (obj.lat && obj.lng) {
-                        const boatName = obj.comment || obj.assignedLabel || "マーク";
+                    // 緯度・経度が存在し、かつ通常の文字データ（shape_markerや中継点以外）の場合に描画
+                    if (obj && obj.lat && obj.lng) {
+                        if (obj.isTempLinePoint || obj.shape === 'dot' || obj.type === 'shape_marker') {
+                            return; 
+                        }
+                        // ★ 虎キング側で設定された assignedLabel または comment を優先的に取得
+                        const boatName = obj.assignedLabel || obj.comment || key || "マーク";
                         drawCustomBoat(boatName, parseFloat(obj.lat), parseFloat(obj.lng), false);
                     }
                 });
             }
         });
 
-        // 4. 点線・実線のリアルタイム同期と描画
         db.ref('custom_lines').on('value', (lineSnapshot) => {
             sharedCoursePolylines.forEach(p => p.setMap(null));
             sharedCoursePolylines = [];
@@ -1333,8 +1321,7 @@ function toggleGridMode() {
                 }
             });
         });
-         }
-        
+    };
 
 
 
@@ -1440,19 +1427,37 @@ function toggleGridMode() {
         document.body.appendChild(script);
     }
 
-    function calculateTideAndRefresh() {
+function calculateTideAndRefresh() {
         const val = document.getElementById('target-datetime').value;
         currentSelectedTide = 0; 
         
-        if (val && fullTideMasterData && fullTideMasterData.length > 0) {
-            const s = new Date(val);
-            const y = s.getFullYear(), m = s.getMonth() + 1, d = s.getDate(), h = s.getHours(), min = s.getMinutes();
+        const statusEl = document.getElementById('status-display');
+
+        if (!fullTideMasterData || fullTideMasterData.length === 0) {
+            if (statusEl) statusEl.textContent = "⚠️ 潮位データが未読込です（右上の🔄を押してください）";
+            const tideBox = document.getElementById('current-tide-val');
+            if (tideBox) tideBox.textContent = "0.0 cm";
+            refreshMarkersOnMap();
+            return;
+        }
+
+        if (val) {
+            const [datePart, timePart] = val.split('T');
+            const [y, m, d] = datePart.split('-').map(Number);
+            const [h, min] = timePart.split(':').map(Number);
             
             const row = fullTideMasterData.find(r => {
-                if (!r[0]) return false;
-                const rd = new Date(r[0]);
-                if (isNaN(rd.getTime())) return false;
-                return rd.getFullYear() === y && (rd.getMonth() + 1) === m && rd.getDate() === d;
+                if (!r || !r[0]) return false;
+                const cellStr = String(r[0]).trim();
+                
+                // ISO形式やDate文字列をローカル時間（日本時間）の Date オブジェクトに変換
+                const rd = new Date(cellStr);
+                if (!isNaN(rd.getTime())) {
+                    return rd.getFullYear() === y && (rd.getMonth() + 1) === m && rd.getDate() === d;
+                }
+                
+                // フォールバック：数値としての部分一致
+                return cellStr.includes(String(y)) && cellStr.includes(String(m)) && cellStr.includes(String(d));
             });
 
             if (row) {
@@ -1460,7 +1465,15 @@ function toggleGridMode() {
                 let colIdx2 = colIdx1 + 1;
                 let t1 = parseFloat(row[colIdx1]);
                 let t2 = (colIdx2 < row.length) ? parseFloat(row[colIdx2]) : t1;
-                if (!isNaN(t1)) currentSelectedTide = t1 + (!isNaN(t2) ? (t2 - t1) * (min / 60) : 0);
+                
+                if (!isNaN(t1)) {
+                    currentSelectedTide = t1 + (!isNaN(t2) ? (t2 - t1) * (min / 60) : 0);
+                    if (statusEl) statusEl.textContent = `✅ 潮位連動中 (${currentSelectedTide >= 0 ? "+" : ""}${currentSelectedTide.toFixed(1)}cm)`;
+                } else {
+                    if (statusEl) statusEl.textContent = `⚠️ 時間列[${colIdx1}]の数値が見つかりません`;
+                }
+            } else {
+                if (statusEl) statusEl.textContent = `⚠️ 指定日(${y}/${m}/${d})のデータ行が一致しません`;
             }
         }
 
@@ -1469,6 +1482,8 @@ function toggleGridMode() {
         refreshMarkersOnMap();
     }
 
+
+    
     function refreshMarkersOnMap() {
         markers.forEach(m => m.setMap(null));
         markers = [];
@@ -1592,20 +1607,48 @@ function getDepthColor(b, raw) {
             alert("潮位データが読み込まれていません。右側のリセットボタン(🔄)を押してください。");
             return;
         }
-        const dt = new Date(val);
-        const y = dt.getFullYear(), m = dt.getMonth() + 1, d = dt.getDate();
+        const [datePart] = val.split('T');
+        const [y, m, d] = datePart.split('-').map(Number);
         document.getElementById('tide-modal-date').textContent = `📅 ${y}年${m}月${d}日`;
 
         const row = fullTideMasterData.find(r => {
             if (!r[0]) return false;
-            const rd = new Date(r[0]);
-            if (isNaN(rd.getTime())) return false;
-            return rd.getFullYear() === y && (rd.getMonth() + 1) === m && rd.getDate() === d;
+            let cell = r[0];
+            let cellY, cellM, cellD;
+
+            if (cell instanceof Date) {
+                cellY = cell.getFullYear();
+                cellM = cell.getMonth() + 1;
+                cellD = cell.getDate();
+            } else {
+                const cellStr = String(cell).trim();
+                if (cellStr.includes('T') && (cellStr.endsWith('Z') || cellStr.includes('+'))) {
+                    const rd = new Date(cellStr);
+                    if (isNaN(rd.getTime())) return false;
+                    cellY = rd.getFullYear();
+                    cellM = rd.getMonth() + 1;
+                    cellD = rd.getDate();
+                } else {
+                    const match = cellStr.match(/^(\d{4})[-/年](\d{1,2})[-/月](\d{1,2})/);
+                    if (match) {
+                        cellY = Number(match[1]);
+                        cellM = Number(match[2]);
+                        cellD = Number(match[3]);
+                    } else {
+                        const rd = new Date(cellStr);
+                        if (isNaN(rd.getTime())) return false;
+                        cellY = rd.getFullYear();
+                        cellM = rd.getMonth() + 1;
+                        cellD = rd.getDate();
+                    }
+                }
+            }
+            return cellY === y && cellM === m && cellD === d;
         });
 
         const hlContainer = document.getElementById('tide-hl-container');
         const listContainer = document.getElementById('tide-list-container');
-        if (!row) { hlContainer.style.display = 'none'; listContainer.innerHTML = ""; openModal('tide-modal'); return; }
+        if (!row) { hlContainer.style.display = 'none'; listContainer.innerHTML = "<p style='text-align:center;color:#999;'>この日の潮位データが見つかりません</p>"; openModal('tide-modal'); return; }
 
         let hlHtml = "";
         if (row.length >= 29 && row[25]) hlHtml += `<strong>【満潮】</strong> ${row[25]} (${row[26]}cm) / ${row[27] || ''} (${row[28] || ''}cm)<br>`;
