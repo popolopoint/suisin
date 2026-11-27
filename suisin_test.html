@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
  
-    <title>水深測っ太郎 v6.2.0p by Popolo App.com</title>
+    <title>水深測っ太郎 v6.2.0q by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -265,6 +265,7 @@
 <div id="loading">📡 通信中...</div>
 
 <!-- 🔒 初回商用利用同意モーダル -->
+<!-- 🔒 初回商用利用同意モーダル -->
 <div id="commercial-modal">
     <div class="commercial-box">
         <h3>⚠️ ご利用に関する重要なお知らせ</h3>
@@ -277,17 +278,17 @@
             </a>
         </p>
 
-        <div class="checkbox-container" onclick="toggleAgreementCheckbox()">
-            <input type="checkbox" id="agree-checkbox" onclick="event.stopPropagation(); checkAgreementState();">
-            <label for="agree-checkbox">上記の内容を確認し、商用利用ではないことに同意します。</label>
-        </div>
+        <label for="agree-checkbox" style="display: flex; align-items: center; gap: 12px; background: #fdf2e9; padding: 14px 12px; border-radius: 8px; border: 1px solid #f5cba7; margin: 16px 0; cursor: pointer;">
+            <input type="checkbox" id="agree-checkbox" onchange="checkAgreementState()" style="width: 26px; height: 26px; cursor: pointer; flex-shrink: 0;">
+            <span style="font-size: 0.95rem; font-weight: bold; color: #d35400; cursor: pointer; line-height: 1.4; user-select: none;">上記の内容を確認し、商用利用ではないことに同意します。</span>
+        </label>
 
         <button id="btn-agree-start" class="btn-agree" onclick="handleAgreementComplete()" disabled>同意してアプリを開始する</button>
     </div>
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v6.2.0p by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v6.2.0q by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
