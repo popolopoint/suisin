@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- コード名: 7.0.6 -->
-    <title>水深測っ太郎 v6.2.0d by Popolo App.com</title>
+ 
+    <title>水深測っ太郎 v6.2.0e by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -287,7 +287,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v6.2.0d by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v6.2.0e by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -1440,7 +1440,7 @@ function toggleGridMode() {
         document.body.appendChild(script);
     }
 
-    function calculateTideAndRefresh() {
+  function calculateTideAndRefresh() {
         const val = document.getElementById('target-datetime').value;
         currentSelectedTide = 0; 
         
@@ -1454,25 +1454,33 @@ function toggleGridMode() {
                 let cell = r[0];
                 let cellY, cellM, cellD;
 
-                // Dateオブジェクトの場合、または文字列の場合の安全なパース
                 if (cell instanceof Date) {
                     cellY = cell.getFullYear();
                     cellM = cell.getMonth() + 1;
                     cellD = cell.getDate();
                 } else {
                     const cellStr = String(cell).trim();
-                    // "yyyy-MM-dd" や "yyyy/MM/dd" 形式を優先して抽出
-                    const match = cellStr.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-                    if (match) {
-                        cellY = Number(match[1]);
-                        cellM = Number(match[2]);
-                        cellD = Number(match[3]);
-                    } else {
+                    // ISO形式（例: "2026-11-26T15:00:00.000Z"）の場合は new Date() で日本時間に戻す
+                    if (cellStr.includes('T') && (cellStr.endsWith('Z') || cellStr.includes('+'))) {
                         const rd = new Date(cellStr);
                         if (isNaN(rd.getTime())) return false;
                         cellY = rd.getFullYear();
                         cellM = rd.getMonth() + 1;
                         cellD = rd.getDate();
+                    } else {
+                        // "2026-11-27" や "2026/11/27" などの純粋な日付文字列
+                        const match = cellStr.match(/^(\d{4})[-/年](\d{1,2})[-/月](\d{1,2})/);
+                        if (match) {
+                            cellY = Number(match[1]);
+                            cellM = Number(match[2]);
+                            cellD = Number(match[3]);
+                        } else {
+                            const rd = new Date(cellStr);
+                            if (isNaN(rd.getTime())) return false;
+                            cellY = rd.getFullYear();
+                            cellM = rd.getMonth() + 1;
+                            cellD = rd.getDate();
+                        }
                     }
                 }
                 return cellY === y && cellM === m && cellD === d;
@@ -1484,6 +1492,11 @@ function toggleGridMode() {
                 let t1 = parseFloat(row[colIdx1]);
                 let t2 = (colIdx2 < row.length) ? parseFloat(row[colIdx2]) : t1;
                 if (!isNaN(t1)) currentSelectedTide = t1 + (!isNaN(t2) ? (t2 - t1) * (min / 60) : 0);
+            } else {
+                // デバッグ用：一致する行がない場合、ステータスバーに先頭データの形式を表示
+                const sample = fullTideMasterData.length > 1 ? fullTideMasterData[1][0] : fullTideMasterData[0][0];
+                const st = document.getElementById('status-display');
+                if (st) st.textContent = `⚠️ 潮位該当なし(データ例: ${sample})`;
             }
         }
 
@@ -1630,17 +1643,25 @@ function getDepthColor(b, raw) {
                 cellD = cell.getDate();
             } else {
                 const cellStr = String(cell).trim();
-                const match = cellStr.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-                if (match) {
-                    cellY = Number(match[1]);
-                    cellM = Number(match[2]);
-                    cellD = Number(match[3]);
-                } else {
+                if (cellStr.includes('T') && (cellStr.endsWith('Z') || cellStr.includes('+'))) {
                     const rd = new Date(cellStr);
                     if (isNaN(rd.getTime())) return false;
                     cellY = rd.getFullYear();
                     cellM = rd.getMonth() + 1;
                     cellD = rd.getDate();
+                } else {
+                    const match = cellStr.match(/^(\d{4})[-/年](\d{1,2})[-/月](\d{1,2})/);
+                    if (match) {
+                        cellY = Number(match[1]);
+                        cellM = Number(match[2]);
+                        cellD = Number(match[3]);
+                    } else {
+                        const rd = new Date(cellStr);
+                        if (isNaN(rd.getTime())) return false;
+                        cellY = rd.getFullYear();
+                        cellM = rd.getMonth() + 1;
+                        cellD = rd.getDate();
+                    }
                 }
             }
             return cellY === y && cellM === m && cellD === d;
@@ -1648,7 +1669,7 @@ function getDepthColor(b, raw) {
 
         const hlContainer = document.getElementById('tide-hl-container');
         const listContainer = document.getElementById('tide-list-container');
-        if (!row) { hlContainer.style.display = 'none'; listContainer.innerHTML = ""; openModal('tide-modal'); return; }
+        if (!row) { hlContainer.style.display = 'none'; listContainer.innerHTML = "<p style='text-align:center;color:#999;'>この日の潮位データが見つかりません</p>"; openModal('tide-modal'); return; }
 
         let hlHtml = "";
         if (row.length >= 29 && row[25]) hlHtml += `<strong>【満潮】</strong> ${row[25]} (${row[26]}cm) / ${row[27] || ''} (${row[28] || ''}cm)<br>`;
@@ -1666,7 +1687,6 @@ function getDepthColor(b, raw) {
         listContainer.innerHTML = listHtml;
         openModal('tide-modal');
     }
-    
 
     function recordAtCurrentLocation() {
         navigator.geolocation.getCurrentPosition((pos) => {
