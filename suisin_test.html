@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
  
-    <title>水深測っ太郎 v6.2.0k by Popolo App.com</title>
+    <title>水深測っ太郎 v6.2.0m by Popolo App.com</title>
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; background: #f0f4f8; }
@@ -287,7 +287,7 @@
 </div>
 
 <!-- 📱 アプリ名ヘッダー -->
-<div id="app-header">水深測っ太郎 v6.2.0k by Popolo App.com</div>
+<div id="app-header">水深測っ太郎 v6.2.0m by Popolo App.com</div>
 
 <div id="map-container">
     <div id="map"></div>
@@ -1272,6 +1272,8 @@ function toggleGridMode() {
         // --- 虎キングからのフネ・ブイおよび線をリアルタイムで地図に反映する ---
         let latestObjects = {};
 
+        let latestObjects = {};
+
         db.ref('objects').on('value', (snapshot) => {
             latestObjects = snapshot.val() || {};
             
@@ -1282,12 +1284,18 @@ function toggleGridMode() {
             sharedCoursePolylines.forEach(p => p.setMap(null));
             sharedCoursePolylines = [];
             
-            // 3. 虎キング側で変更された名前（commentやassignedLabel）を優先してブイ・フネを描画
+            // 3. 虎キング側で登録された通常のフネ・ブイのみを描画する（線の中継点や起点オブジェクトは除外）
             if (latestObjects) {
                 Object.keys(latestObjects).forEach((key) => {
                     const obj = latestObjects[key];
                     if (obj.lat && obj.lng) {
+                        // 起点や中継点（isTempLinePoint、shape==='dot'、courseLayoutObjectなど）を除外
+                        if (obj.isTempLinePoint || obj.shape === 'dot' || obj.courseLayoutObject) {
+                            return; 
+                        }
+
                         const boatName = obj.comment || obj.assignedLabel || "マーク";
+                        // 水深測定アプリ側に元々ある自分のデータと重複しない、または船舶・ブイとして有効なものだけを描画
                         drawCustomBoat(boatName, parseFloat(obj.lat), parseFloat(obj.lng), false);
                     }
                 });
